@@ -1,0 +1,191 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Event {
+  id           BigInt      @id @default(autoincrement())
+  slug         String
+  tournamentId String
+  name         String
+  status       EventStatus @default(SCORING)
+  highScoring  Boolean     @default(true)
+  tournament   Tournament  @relation(fields: [tournamentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  roles        Role[]
+  scores       Score[]
+}
+
+model Role {
+  id           BigInt          @id @default(autoincrement())
+  userId       String          @db.Uuid
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  tournamentId String
+  tournament   Tournament      @relation(fields: [tournamentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  eventId      BigInt?
+  event        Event?          @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  role         TournamentRoles
+}
+
+model Score {
+  id       BigInt      @id @default(autoincrement())
+  teamId   BigInt
+  team     Team        @relation(fields: [teamId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  eventId  BigInt
+  event    Event       @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  rawScore Float
+  tier     Int?        @db.SmallInt
+  tiebreak Float?      @db.Real
+  status   ScoreStatus
+  notes    String?
+}
+
+model Team {
+  id           BigInt     @id @default(autoincrement())
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  number       Int        @db.SmallInt
+  school       String
+  abbreviation String?
+  suffix       String?
+  city         String?
+  state        States
+  trackId      BigInt?
+  tracks       Track?     @relation(fields: [trackId], references: [id], onUpdate: NoAction)
+  exhibition   Boolean    @default(false)
+  penalties    Int?       @db.SmallInt
+  scores       Score[]
+}
+
+model Tournament {
+  id         String           @id
+  name       String
+  shortName  String?
+  location   String
+  state      States
+  level      TournamentLevels
+  division   Divisions
+  year       Int              @db.SmallInt
+  startDate  DateTime         @db.Date
+  endDate    DateTime         @db.Date
+  awardsDate DateTime         @db.Date
+  medals     Int?             @db.SmallInt
+  trophies   Int?             @db.SmallInt
+  bids       Int?             @db.SmallInt
+  nOffset    Int?             @db.SmallInt
+  drops      Int?             @db.SmallInt
+  events     Event[]
+  roles      Role[]
+  teams      Team[]
+  tracks     Track[]
+}
+
+model Track {
+  id           BigInt     @id @default(autoincrement())
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  name         String
+  medals       Int?       @db.SmallInt
+  trophies     Int?       @db.SmallInt
+  teams        Team[]
+}
+
+model User {
+  id    String @id @db.Uuid
+  name  String
+  roles Role[]
+}
+
+enum EventStatus {
+  SCORING
+  TRIAL
+  TRIALED
+}
+
+enum ScoreStatus {
+  COMPETED
+  PARTICIPATION
+  NOSHOW
+  DISQUALIFICATION
+}
+
+enum TournamentRoles {
+  DIRECTOR
+  LEAD_ES
+  VOLUNTEER
+}
+
+enum Divisions {
+  A
+  B
+  C
+}
+
+enum TournamentLevels {
+  INVITATIONAL
+  REGIONAL
+  STATE
+  NATIONAL
+}
+
+enum States {
+  AL
+  AK
+  AZ
+  AR
+  CA
+  nCA
+  sCA
+  CO
+  CT
+  DE
+  DC
+  FL
+  GA
+  HI
+  ID
+  IL
+  IN
+  IA
+  KS
+  KY
+  LA
+  ME
+  MD
+  MA
+  MI
+  MN
+  MS
+  MO
+  MT
+  NE
+  NV
+  NH
+  NJ
+  NM
+  NY
+  NC
+  ND
+  OH
+  OK
+  OR
+  PA
+  RI
+  SC
+  SD
+  TN
+  TX
+  UT
+  VT
+  VA
+  WA
+  WV
+  WI
+  WY
+
+  INTERNATIONAL
+}
