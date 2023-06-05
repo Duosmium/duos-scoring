@@ -44,7 +44,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		return session;
 	};
 
-	const loginRoute = event.url.pathname.includes('login') || event.url.pathname.includes('signup');
+	const loginRoute = event.url.pathname.includes('login');
 	const session = await event.locals.getSession();
 	if (!session) {
 		if (loginRoute) {

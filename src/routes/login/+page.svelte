@@ -1,23 +1,97 @@
 <script lang="ts">
 	import Head from '$lib/components/Head.svelte';
 
-	import { Auth } from '@supabase/auth-ui-svelte';
-	import { ThemeSupa } from '@supabase/auth-ui-shared';
-	import type { PageData } from './$types';
-
-	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { onMount } from 'svelte';
+	import type { PageData } from './$types';
+
+	let errorMessage = '';
+	let successMessage = '';
+	let view: 'sign_in' | 'sign_up' | 'forgot_pass' | 'pass_reset' = 'sign_in';
+
+	const buttonText = {
+		sign_in: 'Log In',
+		sign_up: 'Sign Up',
+		forgot_pass: 'Reset Password',
+		pass_reset: 'Reset Password'
+	};
+
+	const headingText = {
+		sign_in: 'Duosmium Scoring Login',
+		sign_up: 'Create a Duosmium Scoring Account',
+		forgot_pass: 'Reset Password',
+		pass_reset: 'Reset Password'
+	};
 
 	export let data: PageData;
-	$: {
-		const redirectTo = $page.url.searchParams.get('redirect');
+	$: ({ supabase } = data);
 
-		// check if user has been set in session store then redirect
-		if (browser && data.session) {
-			goto(redirectTo ?? '/dashboard');
+	onMount(() => {
+		const code = $page.url.searchParams.get('code');
+
+		if (code) {
+			view = 'pass_reset';
+		}
+	});
+
+	let loading = false;
+	let email = '';
+	let password = '';
+	let confirmPassword = '';
+
+	$: {
+		if (view === 'sign_up' || view === 'pass_reset') {
+			if (password !== confirmPassword) {
+				errorMessage = 'Passwords do not match!';
+			} else {
+				errorMessage = '';
+			}
 		}
 	}
+
+	const handleLogin = async () => {
+		errorMessage = '';
+		successMessage = '';
+		try {
+			loading = true;
+
+			switch (view) {
+				case 'sign_in': {
+					const { error } = await supabase.auth.signInWithPassword({ email, password });
+					if (error) throw error;
+					goto('/dashboard');
+					break;
+				}
+				case 'sign_up': {
+					const { error } = await supabase.auth.signUp({ email, password });
+					if (error) throw error;
+					successMessage = 'Check your email for a confirmation link!';
+					break;
+				}
+				case 'forgot_pass': {
+					const { error } = await supabase.auth.resetPasswordForEmail(email, {
+						redirectTo: 'http://localhost:5173/login' // TODO: Change this to the actual URL
+					});
+					if (error) throw error;
+					successMessage = 'Check your email for a password reset link!';
+					break;
+				}
+				case 'pass_reset': {
+					const { error } = await supabase.auth.updateUser({ password });
+					if (error) throw error;
+					goto('/dashboard');
+					break;
+				}
+			}
+		} catch (error) {
+			if (error instanceof Error) {
+				errorMessage = error.message;
+			}
+		} finally {
+			loading = false;
+		}
+	};
 </script>
 
 <Head title="Login | Duosmium Scoring" />
@@ -26,15 +100,64 @@
 	<div>
 		<img src="/logo.png" alt="Duosmium Logo" />
 	</div>
-	<h1>Duosmium Scoring Login</h1>
-	<Auth
-		supabaseClient={data.supabase}
-		view="sign_in"
-		redirectTo={`${data.url}/login?redirect=/`}
-		showLinks={false}
-		appearance={{ theme: ThemeSupa }}
-	/>
-	<p><a href="/signup">Don't have an account? Sign up here!</a></p>
+	<h1>{headingText[view]}</h1>
+	<form on:submit|preventDefault={handleLogin}>
+		{#if view === 'sign_in' || view === 'sign_up' || view === 'forgot_pass'}
+			<label>
+				Email
+				<input required type="email" placeholder="Your email" bind:value={email} />
+			</label>
+		{/if}
+
+		{#if view === 'sign_in' || view === 'sign_up' || view === 'pass_reset'}
+			<label>
+				Password
+				<input required type="password" bind:value={password} />
+			</label>
+		{/if}
+
+		{#if view === 'sign_up' || view === 'pass_reset'}
+			<label>
+				Confirm Password
+				<input required type="password" bind:value={confirmPassword} />
+			</label>
+		{/if}
+
+		<button type="submit" aria-live="polite" disabled={loading}>
+			<span>{loading ? 'Loading' : buttonText[view]}</span>
+		</button>
+	</form>
+	{#if errorMessage}
+		<div class="error">{errorMessage}</div>
+	{/if}
+	{#if successMessage}
+		<div class="success">{successMessage}</div>
+	{/if}
+	{#if view === 'sign_in'}
+		<p>
+			<button
+				on:click={() => {
+					view = 'forgot_pass';
+				}}>Forgot password?</button
+			>
+		</p>
+		<p>
+			<button
+				on:click={() => {
+					view = 'sign_up';
+				}}>Don't have an account?</button
+			>
+		</p>
+	{/if}
+	{#if view === 'sign_up'}
+		<p>
+			<button
+				on:click={() => {
+					view = 'sign_in';
+				}}>Already have an account?</button
+			>
+		</p>
+	{/if}
 </main>
 
 <style>
@@ -77,6 +200,15 @@
 		background-color: #fecaca;
 		color: #991b1b;
 		border: 2px solid #991b1b;
+		border-radius: 4px;
+
+		padding: 8px 16px;
+		margin-top: 32px;
+	}
+	.success {
+		background-color: #cffeca;
+		color: #34991b;
+		border: 2px solid #1b991f;
 		border-radius: 4px;
 
 		padding: 8px 16px;
