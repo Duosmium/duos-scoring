@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import Head from '$lib/components/Head.svelte';
-	import { page } from '$app/stores';
 
 	export let data: PageData;
 </script>
@@ -11,4 +10,8 @@
 		.division} | Duosmium Scoring"
 />
 
-<h2>{$page.params.event}</h2>
+<h2>{data.event.name}</h2>
+
+<pre>
+	{JSON.stringify(data.scores, null, 2)}
+</pre>

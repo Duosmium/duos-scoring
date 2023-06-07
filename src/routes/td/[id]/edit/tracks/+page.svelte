@@ -12,7 +12,7 @@
 
 <h2>Tracks</h2>
 
-{#if data.tracks === false}
+{#if data.tracks.length === 0}
 	<p>This tournament has no tracks!</p>
 {:else}
 	<ul>

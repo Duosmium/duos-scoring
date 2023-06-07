@@ -6,7 +6,7 @@
 </script>
 
 <Head
-	title="Teams | {data.tournament.year} {data.tournament.shortName} {data.tournament
+	title="Edit Teams | {data.tournament.year} {data.tournament.shortName} {data.tournament
 		.division} | Duosmium Scoring"
 />
 

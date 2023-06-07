@@ -5,6 +5,20 @@
 	export let data: PageData;
 
 	let newEvents: number[] = [];
+
+	function deleteEvent(event: bigint) {
+		if (confirm('Are you sure you want to delete this event?')) {
+			fetch(`?event=${event}`, { method: 'DELETE' })
+				.then((res) => {
+					if (res.ok) {
+						location.reload();
+					} else {
+						alert('An error occurred while deleting the event.');
+					}
+				})
+				.catch(() => alert('An error occurred while deleting the event.'));
+		}
+	}
 </script>
 
 <Head
@@ -24,6 +38,7 @@
 					<option value="TRIAL">Trial</option>
 					<option value="TRIALED">Trialed</option>
 				</select>
+				<button type="button" on:click={() => deleteEvent(event.id)}>Delete</button>
 				<input type="hidden" name="event" value={event.id} />
 			</li>
 		{:else}
@@ -42,10 +57,10 @@
 						<option value="TRIAL">Trial</option>
 						<option value="TRIALED">Trialed</option>
 					</select>
-					<input type="hidden" name="event" value="new{event}" />
 					<button type="button" on:click={() => (newEvents = newEvents.filter((e) => e !== event))}
 						>Delete</button
 					>
+					<input type="hidden" name="event" value="new{event}" />
 				</li>
 			{/each}
 			<button type="button" on:click={() => (newEvents = [...newEvents, newEvents.length])}

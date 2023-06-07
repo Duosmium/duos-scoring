@@ -7,6 +7,8 @@ import {
 } from '@prisma/client';
 const prisma = new PrismaClient();
 
+// TODO: double check permissions in every function
+
 export async function createOrUpdateUser(userId: string, name: string) {
 	await prisma.user.upsert({
 		where: {
@@ -81,6 +83,14 @@ export async function updateEvent(
 	});
 }
 
+export async function deleteEvent(eventId: bigint) {
+	await prisma.event.delete({
+		where: {
+			id: eventId
+		}
+	});
+}
+
 export async function getUserInfo(userId: string) {
 	const user = await prisma.user.findUnique({
 		where: { id: userId },
@@ -137,5 +147,42 @@ export async function getTournamentInfo(tournamentId: string) {
 		return false;
 	}
 
+	tournament.events.sort((a, b) => a.name.localeCompare(b.name));
+	tournament.teams.sort((a, b) => a.number - b.number);
+
 	return tournament;
+}
+
+export async function getTracks(tournamentId: string) {
+	const tracks = await prisma.track.findMany({
+		where: {
+			tournamentId
+		},
+		include: {
+			teams: true
+		}
+	});
+
+	if (tracks == undefined) {
+		return false;
+	}
+
+	return tracks;
+}
+
+export async function getEventScores(eventId: bigint) {
+	const scores = await prisma.score.findMany({
+		where: {
+			eventId
+		},
+		include: {
+			team: true
+		}
+	});
+
+	if (scores == undefined) {
+		return false;
+	}
+
+	return scores;
 }
