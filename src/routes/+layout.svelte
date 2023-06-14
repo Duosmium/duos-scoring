@@ -1,5 +1,6 @@
 <script lang="ts">
-	import './app.css';
+	import '../app.postcss';
+	// import './app.css';
 
 	import { invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
@@ -38,6 +39,8 @@
 		font-size: 1.1rem;
 	}
 	div.bar {
+		position: sticky;
+		top: 0;
 		height: 12px;
 		background: radial-gradient(
 			circle at 50% 50%,

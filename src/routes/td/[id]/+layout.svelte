@@ -1,6 +1,19 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import Head from '$lib/components/Head.svelte';
+	import {
+		Avatar,
+		DarkMode,
+		Dropdown,
+		DropdownHeader,
+		DropdownItem,
+		DropdownDivider,
+		Navbar,
+		NavBrand,
+		NavLi,
+		NavUl,
+		NavHamburger
+	} from 'flowbite-svelte';
 
 	export let data: PageData;
 </script>
@@ -9,31 +22,59 @@
 	title="{data.tournament.year} {data.tournament.shortName} {data.tournament
 		.division} | Duosmium Scoring"
 />
-<nav>
-	<a href="/td/{data.tournament.id}/">General Info</a>
-	<a href="/td/{data.tournament.id}/events">Events/Score Counseling</a>
-	<a href="/td/{data.tournament.id}/teams">Teams</a>
-	<a href="/td/{data.tournament.id}/results">Results</a>
-</nav>
-<main class="main">
-	<header>
-		<img src="/logo.png" alt="Duosmium Logo" />
-		<a class="btn" href="/logout">Log Out</a>
-	</header>
-	<h1>{data.tournament.year} {data.tournament.shortName} {data.tournament.division}</h1>
+
+<Navbar
+	let:hidden
+	let:toggle
+	class="py-4 mb-4 sticky top-3"
+	navDivClass="mx-auto flex flex-wrap justify-between items-center lg:max-w-5xl xl:max-w-7xl"
+	fluid={true}
+>
+	<NavBrand href="/td/{data.tournament.id}/">
+		<span
+			class="self-center whitespace-nowrap text-xl font-semibold dark:text-white pl-4 flex items-center"
+		>
+			<img class="h-12 mr-6 dark:hidden inline-block" src="/logo_dark.png" alt="Duosmium Logo" />
+			<img class="h-12 mr-6 dark:inline-block hidden" src="/logo_light.png" alt="Duosmium Logo" />
+			{data.tournament.year}
+			{data.tournament.shortName}
+			{data.tournament.division}
+		</span>
+	</NavBrand>
+	<NavHamburger on:click={toggle} />
+	<NavUl
+		{hidden}
+		divClass="w-full md:block md:w-auto pr-8"
+		ulClass="flex flex-col p-4 mt-4 md:flex-row md:space-x-8 md:mt-0 md:text-md md:font-medium items-baseline"
+	>
+		<NavLi href="/td/{data.tournament.id}/events">Events/Score Counseling</NavLi>
+		<NavLi href="/td/{data.tournament.id}/teams">Teams</NavLi>
+		<NavLi href="/td/{data.tournament.id}/results">Results</NavLi>
+		<NavLi
+			><Avatar id="user-drop" class="cursor-pointer"
+				>{data.user.name
+					.split(' ')
+					.map((w) => w[0])
+					.join('')
+					.toUpperCase()}</Avatar
+			>
+			<Dropdown triggeredBy="#user-drop">
+				<DropdownHeader>
+					<span class="block text-sm"> {data.user.name} </span>
+					<span class="block truncate text-sm font-medium"> {data.session?.user.email} </span>
+				</DropdownHeader>
+				<DropdownItem>Dashboard</DropdownItem>
+				<DropdownItem>Settings</DropdownItem>
+				<DropdownDivider />
+				<DropdownItem>Sign out</DropdownItem>
+			</Dropdown></NavLi
+		>
+	</NavUl>
+</Navbar>
+<DarkMode
+	btnClass="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-lg p-2.5 fixed left-8 bottom-8 z-50"
+/>
+
+<main class="px-6 w-full mx-auto lg:max-w-5xl xl:max-w-7xl">
 	<slot />
 </main>
-
-<style>
-	img {
-		height: 84px;
-	}
-	header {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: 36px;
-		gap: 16px;
-	}
-</style>

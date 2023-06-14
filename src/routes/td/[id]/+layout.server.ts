@@ -30,5 +30,5 @@ export const load: LayoutServerLoad = async ({ locals, request, params }) => {
 		throw error(403, 'You do not have permission to view this page');
 	}
 
-	return { tournament };
+	return { tournament, user };
 };
