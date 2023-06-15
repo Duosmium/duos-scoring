@@ -5,6 +5,7 @@
 	import { invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import type { LayoutData } from './$types';
+	import { DarkMode } from 'flowbite-svelte';
 
 	export let data: LayoutData;
 
@@ -23,11 +24,15 @@
 	});
 </script>
 
-<div class="wrapper">
+<div class="min-h-screen p-0 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-200">
 	<div class="bar" />
 	<slot />
 </div>
 <footer>Duosmium Scoring System</footer>
+
+<DarkMode
+	btnClass="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-lg p-2.5 fixed left-8 bottom-8 z-50"
+/>
 
 <style>
 	footer {
