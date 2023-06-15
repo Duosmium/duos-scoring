@@ -26,7 +26,7 @@
 <Navbar
 	let:hidden
 	let:toggle
-	class="py-4 mb-4 sticky top-3"
+	class="py-4 mb-4 sticky top-3 z-50"
 	navDivClass="mx-auto flex flex-wrap justify-between items-center lg:max-w-5xl xl:max-w-7xl"
 	fluid={true}
 >
@@ -41,11 +41,11 @@
 			{data.tournament.division}
 		</span>
 	</NavBrand>
-	<NavHamburger on:click={toggle} />
+	<NavHamburger on:click={toggle} btnClass="ml-3 lg:hidden" />
 	<NavUl
 		{hidden}
-		divClass="w-full md:block md:w-auto pr-8"
-		ulClass="flex flex-col p-4 mt-4 md:flex-row md:space-x-8 md:mt-0 md:text-md md:font-medium items-baseline"
+		divClass="w-full lg:block lg:w-auto pr-8"
+		ulClass="flex flex-col p-4 mt-4 lg:flex-row lg:space-x-8 lg:mt-0 lg:text-md lg:font-medium items-baseline"
 	>
 		<NavLi href="/td/{data.tournament.id}/events">Events/Score Counseling</NavLi>
 		<NavLi href="/td/{data.tournament.id}/teams">Teams</NavLi>
@@ -72,6 +72,6 @@
 	</NavUl>
 </Navbar>
 
-<main class="px-6 w-full mx-auto lg:max-w-5xl xl:max-w-7xl">
+<main class="px-6 py-12 w-full mx-auto lg:max-w-5xl xl:max-w-7xl">
 	<slot />
 </main>

@@ -43,24 +43,4 @@
 		padding: 64px;
 		font-size: 1.1rem;
 	}
-	div.bar {
-		position: sticky;
-		top: 0;
-		height: 12px;
-		background: radial-gradient(
-			circle at 50% 50%,
-			#15658c,
-			#196088,
-			#20557c,
-			#25466b,
-			#263658,
-			#242846,
-			#211f3a,
-			#1f1b35
-		);
-	}
-	div.wrapper {
-		min-height: 100vh;
-		padding: 0;
-	}
 </style>

@@ -3,6 +3,32 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+	h1 {
+		font-size: 3rem;
+		font-weight: 700;
+		line-height: 1.2;
+		margin-bottom: 0.5em;
+	}
+	h2 {
+		font-size: 2rem;
+		font-weight: 600;
+		line-height: 1.2;
+		margin-bottom: 0.5em;
+	}
+	h3 {
+		font-size: 1.5rem;
+		font-weight: 600;
+		line-height: 1.2;
+		margin-bottom: 0.5em;
+	}
+	p {
+		font-size: 1rem;
+		line-height: 1.5;
+		margin-bottom: 1em;
+	}
+}
+
 @layer components {
 	.btn {
 		color: inherit;
@@ -32,5 +58,23 @@
 		max-width: 720px;
 		margin: 24px auto 128px;
 		padding: 24px;
+	}
+
+	.bar {
+		position: sticky;
+		top: 0;
+		z-index: 51;
+		height: 12px;
+		background: radial-gradient(
+			circle at 50% 50%,
+			#15658c,
+			#196088,
+			#20557c,
+			#25466b,
+			#263658,
+			#242846,
+			#211f3a,
+			#1f1b35
+		);
 	}
 }
