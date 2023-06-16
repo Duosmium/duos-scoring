@@ -15,8 +15,12 @@
 		Button,
 		Heading,
 		Modal,
-		Input
+		Input,
+		Toast
 	} from 'flowbite-svelte';
+	import { page } from '$app/stores';
+	import { slide } from 'svelte/transition';
+	import { invalidateAll } from '$app/navigation';
 
 	export let data: PageData;
 
@@ -25,9 +29,13 @@
 		{ value: 'TRIAL', name: 'Trial' },
 		{ value: 'TRIALED', name: 'Trialed' }
 	];
+	const highScoring = [
+		{ value: 'true', name: 'High Score Wins' },
+		{ value: 'false', name: 'Low Score Wins' }
+	];
 
 	let selectAll = false;
-	let events = data.tournament.events.map((ev, i) => ({ ...ev, index: i, checked: false }));
+	$: events = data.tournament.events.map((ev, i) => ({ ...ev, index: i, checked: false }));
 
 	let lastIndex = -1;
 	function toggleCheck(id: bigint) {
@@ -71,7 +79,7 @@
 	let showConfirmDelete = false;
 	let confirmDeleteText = '';
 	function confirmDelete() {
-		const ids = selected.map((ev) => ev.id);
+		const ids = selected.map((ev) => ev.id.toString());
 		fetch('.', {
 			method: 'DELETE',
 			headers: {
@@ -80,6 +88,13 @@
 			body: JSON.stringify({
 				events: ids
 			})
+		}).then((res) => {
+			if (res.status === 200) {
+				events = events.filter((ev) => !ids.includes(ev.id.toString()));
+				addToastMessage('Events deleted!', 'success');
+			} else {
+				addToastMessage('Failed to delete events!', 'error');
+			}
 		});
 	}
 
@@ -87,20 +102,62 @@
 		const event = events.find((ev) => ev.id === id);
 		if (!event) return;
 
-		fetch('.', {
+		fetch(`/td/${$page.params['id']}/events`, {
 			method: 'PATCH',
 			headers: {
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({
-				event: event.id,
+				event: event.id.toString(),
 				status: event.status
 			})
+		}).then((res) => {
+			if (res.status === 200) {
+				addToastMessage('Event status updated!', 'success');
+			} else {
+				addToastMessage('Failed to update event status!', 'error');
+			}
 		});
 	}
 
 	let showAddEvent = false;
-	function addEvent(name: string, status: string) {}
+	let addEventName = '';
+	let addEventStatus = 'SCORING';
+	let addHighScoring = 'true';
+	function openAddEvent() {
+		showAddEvent = true;
+		addEventName = '';
+		addEventStatus = 'SCORING';
+		addHighScoring = 'true';
+	}
+	function addEvent() {
+		fetch(`/td/${$page.params['id']}/events`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				name: addEventName,
+				status: addEventStatus,
+				highScoring: addHighScoring
+			})
+		}).then((res) => {
+			if (res.status === 200) {
+				addToastMessage('Event added!', 'success');
+				invalidateAll();
+			} else {
+				addToastMessage('Failed to add event!', 'error');
+			}
+		});
+	}
+
+	let messages: { text: string; type: 'success' | 'error' }[] = [];
+	function addToastMessage(message: string, type: 'success' | 'error' = 'success') {
+		messages = [...messages, { text: message, type }];
+		setTimeout(() => {
+			messages = messages.slice(1);
+		}, 3000);
+	}
 </script>
 
 <Head
@@ -195,44 +252,48 @@
 				</TableBodyRow>
 			{/each}
 		{/if}
-		<TableBodyRow>
-			<TableBodyCell colspan={8}>
-				<Button color="green" class="block ml-auto">Add Event</Button>
-			</TableBodyCell>
-		</TableBodyRow>
 	</TableBody>
 </Table>
+<div class="w-full flex justify-items-end mt-8">
+	<Button color="green" class="block ml-auto" on:click={openAddEvent}>Add Event</Button>
+</div>
 
-<Modal
-	title="Confirm Deleting Events"
-	bind:open={showConfirmDelete}
-	autoclose
-	outsideclose
-	on:close={() => {
-		confirmDeleteText = '';
-	}}
->
-	<p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-		Are you sure you want to delete {selected.length} event{selected.length > 1 ? 's' : ''}? This
-		action cannot be undone.
-	</p>
-	<Label>
-		Type "confirm" to delete these events.
-		<Input class="mt-2" type="text" required placeholder="confirm" bind:value={confirmDeleteText} />
-	</Label>
-	<svelte:fragment slot="footer">
-		<Button
-			color="red"
-			disabled={confirmDeleteText !== 'confirm'}
-			on:click={() => {
-				if (confirmDeleteText === 'confirm') {
-					confirmDelete();
-				}
-			}}>I accept</Button
-		>
-		<Button color="alternative">Cancel</Button>
-	</svelte:fragment>
-</Modal>
+<div class="fixed bottom-8 right-8 flex flex-col space-y-4">
+	{#each messages as message}
+		<Toast color={message.type === 'success' ? 'green' : 'red'} transition={slide}>
+			<svelte:fragment slot="icon">
+				{#if message.type === 'success'}
+					<svg
+						aria-hidden="true"
+						class="w-5 h-5"
+						fill="currentColor"
+						viewBox="0 0 20 20"
+						xmlns="http://www.w3.org/2000/svg"
+						><path
+							fill-rule="evenodd"
+							d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+							clip-rule="evenodd"
+						/></svg
+					>
+					<span class="sr-only">Check icon</span>
+				{:else}
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 20 20"
+						fill="currentColor"
+						class="w-5 h-5"
+					>
+						<path
+							d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
+						/>
+					</svg>
+					<span class="sr-only">X icon</span>
+				{/if}
+			</svelte:fragment>
+			{message.text}
+		</Toast>
+	{/each}
+</div>
 
 <Modal
 	title="Delete Events"
@@ -258,9 +319,36 @@
 			on:click={() => {
 				if (confirmDeleteText === 'confirm') {
 					confirmDelete();
+					confirmDeleteText = '';
 				}
 			}}>I accept</Button
 		>
+		<Button color="alternative">Cancel</Button>
+	</svelte:fragment>
+</Modal>
+
+<Modal title="Add Events" bind:open={showAddEvent} autoclose outsideclose>
+	<Label>
+		Event Name
+		<Input
+			class="mt-2"
+			type="text"
+			required
+			placeholder="Anatomy and Physiology"
+			bind:value={addEventName}
+		/>
+	</Label>
+	<Label>
+		Status
+		<Select underline class="mt-2" items={scoringStatus} bind:value={addEventStatus} />
+	</Label>
+	<Label>
+		High Scoring
+		<Select underline class="mt-2" items={highScoring} bind:value={addHighScoring} />
+	</Label>
+
+	<svelte:fragment slot="footer">
+		<Button color="green" disabled={addEventName === ''} on:click={addEvent}>Add Event</Button>
 		<Button color="alternative">Cancel</Button>
 	</svelte:fragment>
 </Modal>

@@ -46,11 +46,14 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 	const payload: {
 		name?: string;
 		status?: EventStatus;
+		highScoring?: 'true' | 'false';
 	} = await request.json();
 	if (!payload.name || typeof payload.name !== 'string')
 		return new Response('missing name', { status: 400 });
 	if (!payload.status || !Object.values(EventStatus).includes(payload.status))
 		return new Response('invalid status', { status: 400 });
+	if (!payload.highScoring || !['true', 'false'].includes(payload.highScoring))
+		return new Response('invalid highScoring', { status: 400 });
 
 	await addEvents(params.id, [
 		{
@@ -60,7 +63,8 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 				strict: true,
 				trim: true
 			}),
-			status: payload.status
+			status: payload.status,
+			highScoring: payload.highScoring === 'true'
 		}
 	]);
 

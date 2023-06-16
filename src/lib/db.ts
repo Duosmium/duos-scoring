@@ -59,36 +59,48 @@ export async function addUserToRole(
 
 export async function addEvents(
 	tournamentId: string,
-	events: { slug: string; name: string; status?: EventStatus }[]
+	events: { slug: string; name: string; status?: EventStatus; highScoring?: boolean }[]
 ) {
-	await prisma.event.createMany({
-		data: events.map((event) => ({
-			...event,
-			tournamentId
-		}))
-	});
+	try {
+		await prisma.event.createMany({
+			data: events.map((event) => ({
+				...event,
+				tournamentId
+			}))
+		});
+	} catch (e) {
+		return false;
+	}
 }
 
 export async function updateEvent(
 	eventId: bigint,
 	event: { name?: string; slug?: string; status?: EventStatus }
 ) {
-	await prisma.event.update({
-		where: {
-			id: eventId
-		},
-		data: {
-			...event
-		}
-	});
+	try {
+		await prisma.event.update({
+			where: {
+				id: eventId
+			},
+			data: {
+				...event
+			}
+		});
+	} catch (e) {
+		return false;
+	}
 }
 
 export async function deleteEvent(eventId: bigint) {
-	await prisma.event.delete({
-		where: {
-			id: eventId
-		}
-	});
+	try {
+		await prisma.event.delete({
+			where: {
+				id: eventId
+			}
+		});
+	} catch (e) {
+		return false;
+	}
 }
 
 export async function getUserInfo(userId: string) {
