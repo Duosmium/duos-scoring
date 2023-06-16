@@ -70,7 +70,7 @@ export async function addEvents(
 }
 
 export async function updateEvent(
-	eventId: number,
+	eventId: bigint,
 	event: { name?: string; slug?: string; status?: EventStatus }
 ) {
 	await prisma.event.update({

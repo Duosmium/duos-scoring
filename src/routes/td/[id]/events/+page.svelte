@@ -13,7 +13,9 @@
 		Label,
 		Select,
 		Button,
-		Heading
+		Heading,
+		Modal,
+		Input
 	} from 'flowbite-svelte';
 
 	export let data: PageData;
@@ -47,7 +49,7 @@
 		}
 	}
 
-	function toggleSelect() {
+	function toggleAll() {
 		selectAll = !selectAll;
 		events = events.map((ev) => ({ ...ev, checked: selectAll }));
 	}
@@ -65,6 +67,40 @@
 			shiftDown = false;
 		}
 	}
+
+	let showConfirmDelete = false;
+	let confirmDeleteText = '';
+	function confirmDelete() {
+		const ids = selected.map((ev) => ev.id);
+		fetch('.', {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				events: ids
+			})
+		});
+	}
+
+	function changeStatus(id: bigint) {
+		const event = events.find((ev) => ev.id === id);
+		if (!event) return;
+
+		fetch('.', {
+			method: 'PATCH',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				event: event.id,
+				status: event.status
+			})
+		});
+	}
+
+	let showAddEvent = false;
+	function addEvent(name: string, status: string) {}
 </script>
 
 <Head
@@ -88,14 +124,20 @@
 				events = events.map((ev) => ({ ...ev, checked: false }));
 			}}>Clear</Button
 		>
-		<Button size="sm" color="red">Delete</Button>
+		<Button
+			size="sm"
+			color="red"
+			on:click={() => {
+				showConfirmDelete = true;
+			}}>Delete</Button
+		>
 	</div>
 {/if}
 <Table divClass="relative overflow-x-auto" hoverable={true}>
 	<!-- top-[92px] lg:top-[116px] -->
 	<TableHead>
 		<TableHeadCell class="!p-4">
-			<Checkbox on:click={toggleSelect} checked={selectAll} />
+			<Checkbox on:click={toggleAll} checked={selectAll} />
 		</TableHeadCell>
 		<TableHeadCell>Event Name</TableHeadCell>
 		<TableHeadCell>Status</TableHeadCell>
@@ -125,14 +167,18 @@
 					</TableBodyCell>
 					<TableBodyCell>{event.name}</TableBodyCell>
 					<TableBodyCell>
-						<Label
-							><span class="sr-only">Status</span><Select
+						<Label>
+							<span class="sr-only">Status</span>
+							<Select
+								on:change={() => {
+									changeStatus(event.id);
+								}}
 								underline
 								class="mt-2"
 								items={scoringStatus}
-								value={event.status}
-							/></Label
-						>
+								bind:value={event.status}
+							/>
+						</Label>
 					</TableBodyCell>
 					<TableBodyCell>[Audited Placeholder]</TableBodyCell>
 					<TableBodyCell>[Sorted Placeholder]</TableBodyCell>
@@ -156,3 +202,65 @@
 		</TableBodyRow>
 	</TableBody>
 </Table>
+
+<Modal
+	title="Confirm Deleting Events"
+	bind:open={showConfirmDelete}
+	autoclose
+	outsideclose
+	on:close={() => {
+		confirmDeleteText = '';
+	}}
+>
+	<p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+		Are you sure you want to delete {selected.length} event{selected.length > 1 ? 's' : ''}? This
+		action cannot be undone.
+	</p>
+	<Label>
+		Type "confirm" to delete these events.
+		<Input class="mt-2" type="text" required placeholder="confirm" bind:value={confirmDeleteText} />
+	</Label>
+	<svelte:fragment slot="footer">
+		<Button
+			color="red"
+			disabled={confirmDeleteText !== 'confirm'}
+			on:click={() => {
+				if (confirmDeleteText === 'confirm') {
+					confirmDelete();
+				}
+			}}>I accept</Button
+		>
+		<Button color="alternative">Cancel</Button>
+	</svelte:fragment>
+</Modal>
+
+<Modal
+	title="Delete Events"
+	bind:open={showConfirmDelete}
+	autoclose
+	outsideclose
+	on:close={() => {
+		confirmDeleteText = '';
+	}}
+>
+	<p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+		Are you sure you want to delete {selected.length} event{selected.length > 1 ? 's' : ''}? This
+		action cannot be undone.
+	</p>
+	<Label>
+		Type "confirm" to delete these events.
+		<Input class="mt-2" type="text" required placeholder="confirm" bind:value={confirmDeleteText} />
+	</Label>
+	<svelte:fragment slot="footer">
+		<Button
+			color="red"
+			disabled={confirmDeleteText !== 'confirm'}
+			on:click={() => {
+				if (confirmDeleteText === 'confirm') {
+					confirmDelete();
+				}
+			}}>I accept</Button
+		>
+		<Button color="alternative">Cancel</Button>
+	</svelte:fragment>
+</Modal>

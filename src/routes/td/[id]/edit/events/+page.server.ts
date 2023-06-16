@@ -50,7 +50,7 @@ export const actions = {
 				]);
 			} else {
 				const name = formData.get(`${eventId}_name`)?.toString() ?? undefined;
-				await updateEvent(parseInt(eventId), {
+				await updateEvent(BigInt(eventId), {
 					name,
 					slug: name ? slugify(name, { lower: true, strict: true, trim: true }) : undefined,
 					status: (formData.get(`${eventId}_status`)?.toString() as EventStatus) ?? undefined
