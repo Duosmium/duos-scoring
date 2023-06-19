@@ -134,7 +134,7 @@
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({
-				events: ids
+				teams: ids
 			})
 		}).then((res) => {
 			if (res.status === 200) {
@@ -153,13 +153,16 @@
 		addTeamData = {};
 	}
 	function addTeam() {
-		// TODO: validate event names for canonicalization
+		// TODO: validation
+
+		addTeamData.number = parseInt(addTeamData.number as any);
+		addTeamData.trackId = addTeamData.trackId || null;
 		fetch(`/td/${$page.params['id']}/teams`, {
 			method: 'PUT',
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify(addTeamData) // TODO: validate
+			body: JSON.stringify([addTeamData]) // TODO: validate
 		}).then((res) => {
 			if (res.status === 200) {
 				addToastMessage('Team added!', 'success');
@@ -245,6 +248,7 @@
 		</TableHeadCell>
 		<TableHeadCell>Team #</TableHeadCell>
 		<TableHeadCell>Team Name</TableHeadCell>
+		<TableHeadCell>Location</TableHeadCell>
 		<TableHeadCell>Track</TableHeadCell>
 		<TableHeadCell>Exhibition</TableHeadCell>
 		<TableHeadCell>Penalties</TableHeadCell>
@@ -272,14 +276,17 @@
 					</TableBodyCell>
 					<TableBodyCell>{team.number}</TableBodyCell>
 					<TableBodyCell
-						>{team.abbreviation ?? team.school}{team.suffix ? ' ' + team.suffix : ''}
-						{team.city ? team.city + ', ' : ''}{team.state}</TableBodyCell
+						>{team.abbreviation ?? team.school}{team.suffix ? ' ' + team.suffix : ''}</TableBodyCell
 					>
+					<TableBodyCell>{team.city ? team.city + ', ' : ''}{team.state}</TableBodyCell>
 					<TableBodyCell>{team.trackId ?? 'None'}</TableBodyCell>
-					<TableBodyCell>{team.exhibition ? 'Exhib. Team' : 'N/A'}</TableBodyCell>
-					<TableBodyCell>{team.penalties ?? 'N/A'}</TableBodyCell>
+					<TableBodyCell>{team.exhibition ? 'Exhib. Team' : 'No'}</TableBodyCell>
+					<TableBodyCell>{team.penalties ?? 'None'}</TableBodyCell>
 					<TableBodyCell>
-						<Button class="font-medium text-primary-600 hover:underline dark:text-primary-500">
+						<Button
+							color="alternative"
+							class="border-none p-1 font-medium text-primary-600 hover:underline dark:text-primary-500"
+						>
 							Edit
 						</Button>
 					</TableBodyCell>

@@ -3,7 +3,8 @@ import {
 	type Tournament,
 	type Event,
 	type TournamentRoles,
-	EventStatus
+	type EventStatus,
+	type Team
 } from '@prisma/client';
 const prisma = new PrismaClient();
 
@@ -96,6 +97,47 @@ export async function deleteEvent(eventId: bigint) {
 		await prisma.event.delete({
 			where: {
 				id: eventId
+			}
+		});
+	} catch (e) {
+		return false;
+	}
+}
+
+export async function addTeams(tournamentId: string, teams: Team[]) {
+	try {
+		await prisma.team.createMany({
+			data: teams.map((team) => ({
+				...team,
+				tournamentId
+			}))
+		});
+	} catch (e) {
+		console.log(e);
+		return false;
+	}
+}
+
+export async function updateTeam(teamId: bigint, team: Partial<Team>) {
+	try {
+		await prisma.team.update({
+			where: {
+				id: teamId
+			},
+			data: {
+				...team
+			}
+		});
+	} catch (e) {
+		return false;
+	}
+}
+
+export async function deleteTeam(teamId: bigint) {
+	try {
+		await prisma.team.delete({
+			where: {
+				id: teamId
 			}
 		});
 	} catch (e) {
