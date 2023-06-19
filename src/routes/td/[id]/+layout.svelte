@@ -50,6 +50,7 @@
 		<NavLi href="/td/{data.tournament.id}/events">Events/Score Counseling</NavLi>
 		<NavLi href="/td/{data.tournament.id}/teams">Teams</NavLi>
 		<NavLi href="/td/{data.tournament.id}/results">Results</NavLi>
+		<!-- TODO: make this pretty on mobile -->
 		<NavLi
 			><Avatar id="user-drop" class="cursor-pointer"
 				>{data.user.name
