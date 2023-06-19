@@ -180,19 +180,31 @@
 		editTeamData = { ...teams.find((t) => t.id === team) };
 	}
 	function editTeam() {
-		// TODO: validate event names for canonicalization
+		// TODO: validation
+
+		const sendTeamData = {
+			number: parseInt(editTeamData.number as any),
+			school: editTeamData.school,
+			abbreviation: editTeamData.abbreviation,
+			suffix: editTeamData.suffix,
+			city: editTeamData.city,
+			state: editTeamData.state,
+			trackId: editTeamData.trackId || null,
+			exhibition: editTeamData.exhibition,
+			penalties: editTeamData.penalties ? parseInt(editTeamData.penalties as any) : null
+		};
 		fetch(`/td/${$page.params['id']}/teams`, {
 			method: 'PATCH',
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify(editTeamData) // TODO: validate
+			body: JSON.stringify({ id: editTeamData.id?.toString(), data: sendTeamData }) // TODO: validate
 		}).then((res) => {
 			if (res.status === 200) {
-				addToastMessage('Team added!', 'success');
+				addToastMessage('Team updated!', 'success');
 				invalidateAll();
 			} else {
-				addToastMessage('Failed to add team!', 'error');
+				addToastMessage('Failed to update team!', 'error');
 			}
 		});
 	}
@@ -286,6 +298,9 @@
 						<Button
 							color="alternative"
 							class="border-none p-1 font-medium text-primary-600 hover:underline dark:text-primary-500"
+							on:click={() => {
+								openEditTeam(team.id);
+							}}
 						>
 							Edit
 						</Button>

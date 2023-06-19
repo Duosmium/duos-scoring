@@ -113,7 +113,6 @@ export async function addTeams(tournamentId: string, teams: Team[]) {
 			}))
 		});
 	} catch (e) {
-		console.log(e);
 		return false;
 	}
 }
