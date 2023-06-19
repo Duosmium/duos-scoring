@@ -191,6 +191,9 @@
 		>
 	</div>
 {/if}
+<div class="w-full flex justify-end mb-4">
+	<Button color="green" on:click={openAddEvent}>Add Event</Button>
+</div>
 <Table divClass="relative overflow-x-auto" hoverable={true}>
 	<!-- top-[92px] lg:top-[116px] -->
 	<TableHead>
@@ -257,9 +260,6 @@
 		{/if}
 	</TableBody>
 </Table>
-<div class="w-full flex justify-items-end mt-8">
-	<Button color="green" class="block ml-auto" on:click={openAddEvent}>Add Event</Button>
-</div>
 
 <div class="fixed bottom-8 right-8 flex flex-col space-y-4">
 	{#each messages as message}
