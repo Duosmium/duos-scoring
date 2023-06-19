@@ -26,7 +26,7 @@
 <Navbar
 	let:hidden
 	let:toggle
-	class="py-4 mb-4 sticky top-3 z-50"
+	class="py-4 mb-4 sticky top-3 z-30"
 	navDivClass="mx-auto flex flex-wrap justify-between items-center lg:max-w-5xl xl:max-w-7xl"
 	fluid={true}
 >
