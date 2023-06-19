@@ -131,6 +131,7 @@
 		addHighScoring = 'true';
 	}
 	function addEvent() {
+		// TODO: validate event names for canonicalization
 		fetch(`/td/${$page.params['id']}/events`, {
 			method: 'PUT',
 			headers: {
@@ -210,6 +211,7 @@
 		{#if events.length === 0}
 			<TableBodyRow>
 				<p>No events have been added yet.</p>
+				<!-- TODO: Add ability to add all events from current slate -->
 			</TableBodyRow>
 		{:else}
 			{#each events as event}
@@ -237,6 +239,7 @@
 							/>
 						</Label>
 					</TableBodyCell>
+					<!-- TODO: change these placeholders -->
 					<TableBodyCell>[Audited Placeholder]</TableBodyCell>
 					<TableBodyCell>[Sorted Placeholder]</TableBodyCell>
 					<TableBodyCell>[Scores In Placeholder]</TableBodyCell>
