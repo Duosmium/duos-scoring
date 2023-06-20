@@ -98,7 +98,8 @@
 
 <main class="main">
 	<div>
-		<img src="/logo.png" alt="Duosmium Logo" />
+		<img class="dark:hidden inline-block" src="/logo_dark.png" alt="Duosmium Logo" />
+		<img class="dark:inline-block hidden" src="/logo_light.png" alt="Duosmium Logo" />
 	</div>
 	<h1>{headingText[view]}</h1>
 	<form on:submit|preventDefault={handleLogin}>

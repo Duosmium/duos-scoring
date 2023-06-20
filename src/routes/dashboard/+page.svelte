@@ -9,7 +9,8 @@
 
 <main class="main">
 	<header>
-		<img src="/logo.png" alt="Duosmium Logo" />
+		<img class="dark:hidden inline-block" src="/logo_dark.png" alt="Duosmium Logo" />
+		<img class="dark:inline-block hidden" src="/logo_light.png" alt="Duosmium Logo" />
 		<a class="btn" href="/logout">Log Out</a>
 	</header>
 	<h1>Welcome {data.user.name}!</h1>
