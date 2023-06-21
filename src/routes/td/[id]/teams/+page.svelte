@@ -16,8 +16,14 @@
 		Heading,
 		Modal,
 		Input,
-		Toast
+		Toast,
+		Textarea,
+		List,
+		Li,
+		P,
+		Alert
 	} from 'flowbite-svelte';
+	import { parse } from 'papaparse';
 	import { page } from '$app/stores';
 	import { slide } from 'svelte/transition';
 	import { invalidateAll } from '$app/navigation';
@@ -139,9 +145,9 @@
 		}).then((res) => {
 			if (res.status === 200) {
 				teams = teams.filter((t) => !ids.includes(t.id.toString()));
-				addToastMessage('Events deleted!', 'success');
+				addToastMessage('Teams deleted!', 'success');
 			} else {
-				addToastMessage('Failed to delete events!', 'error');
+				addToastMessage('Failed to delete teams!', 'error');
 			}
 		});
 	}
@@ -150,10 +156,9 @@
 	let addTeamData: Partial<Team> = {};
 	function openAddTeam() {
 		showAddTeam = true;
-		addTeamData = {};
 	}
 	function addTeam() {
-		// TODO: validation
+		// TODO: validation, canonicalization
 
 		addTeamData.number = parseInt(addTeamData.number as any);
 		addTeamData.trackId = addTeamData.trackId || null;
@@ -165,6 +170,7 @@
 			body: JSON.stringify([addTeamData]) // TODO: validate
 		}).then((res) => {
 			if (res.status === 200) {
+				addTeamData = {};
 				addToastMessage('Team added!', 'success');
 				invalidateAll();
 			} else {
@@ -180,14 +186,14 @@
 		editTeamData = { ...teams.find((t) => t.id === team) };
 	}
 	function editTeam() {
-		// TODO: validation
+		// TODO: validation, canonicalization
 
 		const sendTeamData = {
 			number: parseInt(editTeamData.number as any),
 			school: editTeamData.school,
-			abbreviation: editTeamData.abbreviation,
-			suffix: editTeamData.suffix,
-			city: editTeamData.city,
+			abbreviation: editTeamData.abbreviation || null,
+			suffix: editTeamData.suffix || null,
+			city: editTeamData.city || null,
 			state: editTeamData.state,
 			trackId: editTeamData.trackId || null,
 			exhibition: editTeamData.exhibition,
@@ -205,6 +211,81 @@
 				invalidateAll();
 			} else {
 				addToastMessage('Failed to update team!', 'error');
+			}
+		});
+	}
+
+	let showImportTeams = false;
+	let importTeamsData = '';
+	let importGenerateNumbers = true;
+	$: nextNumber = teams.reduce((acc, t) => Math.max(acc, t.number), 0) + 1;
+	let parsedImportTeams: {
+		Number: string;
+		School: string;
+		Abbreviation: string;
+		Suffix: string;
+		City: string;
+		State: string;
+		Track: string;
+		Exhibition: string;
+	}[] = [];
+	let parsedError = '';
+	$: {
+		parsedImportTeams = parse(importTeamsData, { header: true }).data as any;
+		const missingFields: Set<string> = new Set();
+		// TODO: validate numbers, suffix, exhibition; canonicalization
+		parsedImportTeams.forEach((t) => {
+			if (!importGenerateNumbers && !t.Number) {
+				missingFields.add('Number');
+			}
+			if (!t.School) {
+				missingFields.add('School');
+			}
+			if (!t.State) {
+				missingFields.add('State');
+			}
+		});
+		if (missingFields.size > 0) {
+			parsedError = `Missing fields: ${[...missingFields].join(', ')}`;
+		} else {
+			parsedError = '';
+		}
+		if (importGenerateNumbers) {
+			parsedImportTeams.forEach((t, i) => {
+				t.Number = (nextNumber + i).toString();
+			});
+		}
+	}
+	function openImportTeams() {
+		showImportTeams = true;
+	}
+	function importTeams() {
+		if (parsedError) return;
+		fetch(`/td/${$page.params['id']}/teams`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(
+				parsedImportTeams.map((t) => ({
+					number: parseInt(t.Number),
+					school: t.School,
+					abbreviation: t.Abbreviation || null,
+					suffix: t.Suffix || null,
+					city: t.City || null,
+					state: t.State,
+					// TODO: implement tracks
+					// trackId: ,
+					exhibition: !!t.Exhibition
+				}))
+			)
+		}).then((res) => {
+			if (res.status === 200) {
+				importTeamsData = '';
+				addToastMessage('Team added!', 'success');
+				invalidateAll();
+			} else {
+				addToastMessage('Failed to add team!', 'error');
 			}
 		});
 	}
@@ -249,7 +330,7 @@
 	</div>
 {/if}
 <div class="w-full flex justify-end mb-8 space-x-4">
-	<Button color="green">Import Teams</Button>
+	<Button color="green" on:click={openImportTeams}>Import Teams</Button>
 	<Button color="green" on:click={openAddTeam}>Add Team</Button>
 </div>
 <Table divClass="relative overflow-x-auto" hoverable={true}>
@@ -413,7 +494,7 @@
 	</Label>
 	<Label>
 		Exhibition Team
-		<Checkbox class="mt-2" bind:checked={addTeamData.exhibition} />
+		<Checkbox class="ml-2" bind:checked={addTeamData.exhibition} />
 	</Label>
 
 	<svelte:fragment slot="footer">
@@ -456,7 +537,7 @@
 	</Label>
 	<Label>
 		Exhibition Team
-		<Checkbox class="mt-2" bind:checked={editTeamData.exhibition} />
+		<Checkbox class="ml-2" bind:checked={editTeamData.exhibition} />
 	</Label>
 	<Label>
 		Penalties
@@ -466,6 +547,89 @@
 	<svelte:fragment slot="footer">
 		<!-- TODO: validation -->
 		<Button color="green" disabled={false} on:click={editTeam}>Save</Button>
+		<Button color="alternative">Cancel</Button>
+	</svelte:fragment>
+</Modal>
+
+<Modal title="Import Teams" bind:open={showImportTeams} autoclose outsideclose>
+	<P>
+		To import teams, paste in a CSV or TSV of team data. Include the following headings:
+		<List tag="ul" class="space-y-1 mt-2">
+			<Li
+				><code>Number</code>
+				<i>(Optional if using "Generate Team Numbers")</i></Li
+			>
+			<Li
+				><code class="dark:text-green-300 text-green-700">School</code>
+				<i>(Required)</i>: The school's name</Li
+			>
+			<Li
+				><code class="dark:text-blue-300 text-blue-700">Abbreviation</code>
+				<i>(Optional)</i>: If a school name is long and has a common abbreviation</Li
+			>
+			<Li
+				><code class="dark:text-pink-300 text-pink-700">Suffix</code>
+				<i>(Required if the school has multiple teams)</i>: A team name
+			</Li>
+			<Li
+				><code class="dark:text-violet-300 text-violet-700">City</code>
+				<i>(Optional but recommended)</i>: The school's city
+			</Li>
+			<Li
+				><code class="dark:text-violet-300 text-violet-700">State</code>
+				<i>(Required)</i>: The school's state, 2-letter postal abbreviation
+			</Li>
+			<Li
+				><code class="dark:text-red-300 text-red-700">Track</code>
+				<i>(Optional)</i>: The name of the track the team is competing in
+			</Li>
+			<Li
+				><code class="dark:text-orange-300 text-orange-700">Exhibition</code>
+				<i>(Optional)</i>: Whether a team is an exhibition team, leave blank for non exhibition
+				teams</Li
+			>
+		</List>
+	</P>
+	<Label>
+		Generate Team Numbers
+		<Checkbox class="ml-2" required bind:checked={importGenerateNumbers} />
+	</Label>
+	<Label>
+		Teams
+		<Textarea class="mt-2" required bind:value={importTeamsData} />
+	</Label>
+
+	<Heading tag="h3" class="text-md">Preview</Heading>
+
+	{#if parsedError}
+		<Alert class="mt-2" color="red">{parsedError}</Alert>
+	{:else if parsedImportTeams.length !== 0}
+		<ol>
+			{#each parsedImportTeams as team}
+				<li>
+					<span class="tabular-nums">#{team.Number}:</span>
+					<span class="dark:text-red-300 text-red-700">{team.Track ? `[${team.Track}] ` : ''}</span
+					><span class="dark:text-green-300 text-green-700">{team.School}</span><span
+						class="dark:text-blue-300 text-blue-700"
+						>{team.Abbreviation ? ` (${team.Abbreviation})` : ''}</span
+					><span class="dark:text-pink-300 text-pink-700"
+						>{team.Suffix ? ` ${team.Suffix}` : ''}</span
+					>
+					<span class="dark:text-violet-300 text-violet-700"
+						>[{team.City ? `${team.City}, ` : ''}{team.State}]</span
+					><span class="dark:text-orange-300 text-orange-700"
+						>{team.Exhibition ? ' [Exhib.]' : ''}</span
+					>
+				</li>
+			{/each}
+		</ol>
+	{:else}
+		<P>Waiting for teams input...</P>
+	{/if}
+
+	<svelte:fragment slot="footer">
+		<!-- TODO: validation -->
+		<Button color="green" disabled={parsedError.length !== 0} on:click={importTeams}>Save</Button>
 		<Button color="alternative">Cancel</Button>
 	</svelte:fragment>
 </Modal>
