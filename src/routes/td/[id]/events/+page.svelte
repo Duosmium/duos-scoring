@@ -168,7 +168,12 @@
 
 <svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} />
 
-<Heading tag="h2">Events</Heading>
+<div class="w-full flex justify-between flex-wrap mb-2">
+	<Heading tag="h2" class="w-fit">Events</Heading>
+	<span class="space-x-4">
+		<Button color="green" on:click={openAddEvent}>Add Event</Button>
+	</span>
+</div>
 {#if selected.length > 0}
 	<div
 		class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-slate-300 dark:bg-slate-700 z-40 rounded-lg p-4 flex items-center space-x-4"
@@ -191,9 +196,6 @@
 		>
 	</div>
 {/if}
-<div class="w-full flex justify-end mb-4">
-	<Button color="green" on:click={openAddEvent}>Add Event</Button>
-</div>
 <Table divClass="relative overflow-x-auto" hoverable={true}>
 	<!-- top-[92px] lg:top-[116px] -->
 	<TableHead>
