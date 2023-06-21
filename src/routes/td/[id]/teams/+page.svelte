@@ -369,7 +369,10 @@
 					</TableBodyCell>
 					<TableBodyCell>{team.number}</TableBodyCell>
 					<TableBodyCell
-						>{team.abbreviation ?? team.school}{team.suffix ? ' ' + team.suffix : ''}</TableBodyCell
+						>{team.abbreviation ??
+							team.school.slice(0, 45) + (team.school.length > 45 ? '…' : '')}{team.suffix
+							? ' ' + team.suffix.slice(0, 38) + (team.suffix.length > 38 ? '…' : '')
+							: ''}</TableBodyCell
 					>
 					<TableBodyCell>{team.city ? team.city + ', ' : ''}{team.state}</TableBodyCell>
 					<TableBodyCell>{team.trackId ?? 'None'}</TableBodyCell>
