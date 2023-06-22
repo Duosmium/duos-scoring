@@ -48,6 +48,7 @@
 		ulClass="flex flex-col p-4 mt-4 lg:flex-row lg:space-x-8 lg:mt-0 lg:text-md lg:font-medium items-baseline"
 	>
 		<NavLi href="/td/{data.tournament.id}/events">Events/Score Counseling</NavLi>
+		<NavLi href="/td/{data.tournament.id}/tracks">Tracks</NavLi>
 		<NavLi href="/td/{data.tournament.id}/teams">Teams</NavLi>
 		<NavLi href="/td/{data.tournament.id}/results">Results</NavLi>
 		<!-- TODO: make this pretty on mobile -->

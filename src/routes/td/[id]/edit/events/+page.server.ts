@@ -3,7 +3,7 @@ import type { Actions } from './$types';
 import { fail } from '@sveltejs/kit';
 import defaultEventData from '$lib/data/events';
 import slugify from 'slugify';
-import type { EventStatus } from '@prisma/client';
+import type { TrialStatus } from '@prisma/client';
 
 export const actions = {
 	default: async ({ request, params }) => {
@@ -45,7 +45,7 @@ export const actions = {
 							strict: true,
 							trim: true
 						}),
-						status: (formData.get(`${eventId}_status`)?.toString() as EventStatus) ?? undefined
+						trialStatus: (formData.get(`${eventId}_status`)?.toString() as TrialStatus) ?? undefined
 					}
 				]);
 			} else {
@@ -53,7 +53,7 @@ export const actions = {
 				await updateEvent(BigInt(eventId), {
 					name,
 					slug: name ? slugify(name, { lower: true, strict: true, trim: true }) : undefined,
-					status: (formData.get(`${eventId}_status`)?.toString() as EventStatus) ?? undefined
+					trialStatus: (formData.get(`${eventId}_status`)?.toString() as TrialStatus) ?? undefined
 				});
 			}
 		});

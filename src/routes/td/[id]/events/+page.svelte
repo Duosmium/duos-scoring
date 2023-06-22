@@ -24,7 +24,7 @@
 
 	export let data: PageData;
 
-	const scoringStatus = [
+	const trialStatus = [
 		{ value: 'SCORING', name: 'Scoring' },
 		{ value: 'TRIAL', name: 'Trial' },
 		{ value: 'TRIALED', name: 'Trialed' }
@@ -98,7 +98,7 @@
 		});
 	}
 
-	function changeStatus(id: bigint) {
+	function changeTrialStatus(id: bigint) {
 		const event = events.find((ev) => ev.id === id);
 		if (!event) return;
 
@@ -109,11 +109,13 @@
 			},
 			body: JSON.stringify({
 				event: event.id.toString(),
-				status: event.status
+				trialStatus: event.trialStatus
 			})
 		}).then((res) => {
 			if (res.status === 200) {
+				events = events;
 				addToastMessage('Event status updated!', 'success');
+				invalidateAll();
 			} else {
 				addToastMessage('Failed to update event status!', 'error');
 			}
@@ -122,12 +124,12 @@
 
 	let showAddEvent = false;
 	let addEventName = '';
-	let addEventStatus = 'SCORING';
+	let addEventTrialStatus = 'SCORING';
 	let addHighScoring = 'true';
 	function openAddEvent() {
 		showAddEvent = true;
 		addEventName = '';
-		addEventStatus = 'SCORING';
+		addEventTrialStatus = 'SCORING';
 		addHighScoring = 'true';
 	}
 	function addEvent() {
@@ -139,7 +141,7 @@
 			},
 			body: JSON.stringify({
 				name: addEventName,
-				status: addEventStatus,
+				trialStatus: addEventTrialStatus,
 				highScoring: addHighScoring
 			})
 		}).then((res) => {
@@ -203,7 +205,7 @@
 			<Checkbox on:click={toggleAll} checked={selectAll} />
 		</TableHeadCell>
 		<TableHeadCell>Event Name</TableHeadCell>
-		<TableHeadCell>Status</TableHeadCell>
+		<TableHeadCell>Trial Status</TableHeadCell>
 		<TableHeadCell>Audited</TableHeadCell>
 		<TableHeadCell>Sorted</TableHeadCell>
 		<TableHeadCell>Scores In</TableHeadCell>
@@ -232,15 +234,15 @@
 					<TableBodyCell>{event.name}</TableBodyCell>
 					<TableBodyCell>
 						<Label>
-							<span class="sr-only">Status</span>
+							<span class="sr-only">Trial Status</span>
 							<Select
 								on:change={() => {
-									changeStatus(event.id);
+									changeTrialStatus(event.id);
 								}}
 								underline
 								class="mt-2"
-								items={scoringStatus}
-								bind:value={event.status}
+								items={trialStatus}
+								bind:value={event.trialStatus}
 							/>
 						</Label>
 					</TableBodyCell>
@@ -344,8 +346,8 @@
 		/>
 	</Label>
 	<Label>
-		Status
-		<Select underline class="mt-2" items={scoringStatus} bind:value={addEventStatus} />
+		Trial Status
+		<Select underline class="mt-2" items={trialStatus} bind:value={addEventTrialStatus} />
 	</Label>
 	<Label>
 		High Scoring

@@ -3,7 +3,7 @@ import {
 	type Tournament,
 	type Event,
 	type TournamentRoles,
-	type EventStatus,
+	type TrialStatus,
 	type Team
 } from '@prisma/client';
 const prisma = new PrismaClient();
@@ -60,7 +60,7 @@ export async function addUserToRole(
 
 export async function addEvents(
 	tournamentId: string,
-	events: { slug: string; name: string; status?: EventStatus; highScoring?: boolean }[]
+	events: { slug: string; name: string; trialStatus?: TrialStatus; highScoring?: boolean }[]
 ) {
 	try {
 		await prisma.event.createMany({
@@ -76,7 +76,7 @@ export async function addEvents(
 
 export async function updateEvent(
 	eventId: bigint,
-	event: { name?: string; slug?: string; status?: EventStatus }
+	event: { name?: string; slug?: string; trialStatus?: TrialStatus }
 ) {
 	try {
 		await prisma.event.update({

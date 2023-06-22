@@ -1,5 +1,5 @@
 import { addEvents, deleteEvent, updateEvent } from '$lib/db';
-import { EventStatus } from '@prisma/client';
+import { TrialStatus } from '@prisma/client';
 import type { RequestHandler } from './$types';
 import slugify from 'slugify';
 
@@ -29,15 +29,15 @@ export const DELETE: RequestHandler = async ({ request }) => {
 export const PATCH: RequestHandler = async ({ request }) => {
 	const payload: {
 		event?: string;
-		status?: EventStatus;
+		trialStatus?: TrialStatus;
 	} = await request.json();
 	if (!payload.event || typeof payload.event !== 'string')
 		return new Response('missing event', { status: 404 });
-	if (!payload.status || !Object.values(EventStatus).includes(payload.status))
+	if (!payload.trialStatus || !Object.values(TrialStatus).includes(payload.trialStatus))
 		return new Response('invalid status', { status: 400 });
 
 	const eventId = BigInt(payload.event);
-	await updateEvent(eventId, { status: payload.status });
+	await updateEvent(eventId, { trialStatus: payload.trialStatus });
 
 	return new Response('ok');
 };
@@ -45,12 +45,12 @@ export const PATCH: RequestHandler = async ({ request }) => {
 export const PUT: RequestHandler = async ({ params, request }) => {
 	const payload: {
 		name?: string;
-		status?: EventStatus;
+		trialStatus?: TrialStatus;
 		highScoring?: 'true' | 'false';
 	} = await request.json();
 	if (!payload.name || typeof payload.name !== 'string')
 		return new Response('missing name', { status: 400 });
-	if (!payload.status || !Object.values(EventStatus).includes(payload.status))
+	if (!payload.trialStatus || !Object.values(TrialStatus).includes(payload.trialStatus))
 		return new Response('invalid status', { status: 400 });
 	if (!payload.highScoring || !['true', 'false'].includes(payload.highScoring))
 		return new Response('invalid highScoring', { status: 400 });
@@ -63,7 +63,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 				strict: true,
 				trim: true
 			}),
-			status: payload.status,
+			trialStatus: payload.trialStatus,
 			highScoring: payload.highScoring === 'true'
 		}
 	]);
