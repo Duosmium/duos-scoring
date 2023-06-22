@@ -10,11 +10,11 @@ datasource db {
 
 model Event {
   id           BigInt      @id @default(autoincrement())
-  slug         String
   tournamentId String
   name         String
   status       EventStatus @default(SCORING)
   highScoring  Boolean     @default(true)
+  slug         String
   tournament   Tournament  @relation(fields: [tournamentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   roles        Role[]
   scores       Score[]
@@ -23,31 +23,30 @@ model Event {
 model Role {
   id           BigInt          @id @default(autoincrement())
   userId       String          @db.Uuid
-  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   tournamentId String
-  tournament   Tournament      @relation(fields: [tournamentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   eventId      BigInt?
-  event        Event?          @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   role         TournamentRoles
+  event        Event?          @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  tournament   Tournament      @relation(fields: [tournamentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model Score {
   id       BigInt      @id @default(autoincrement())
   teamId   BigInt
-  team     Team        @relation(fields: [teamId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   eventId  BigInt
-  event    Event       @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   rawScore Float
   tier     Int?        @db.SmallInt
   tiebreak Float?      @db.Real
   status   ScoreStatus
   notes    String?
+  event    Event       @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  team     Team        @relation(fields: [teamId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model Team {
   id           BigInt     @id @default(autoincrement())
   tournamentId String
-  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   number       Int        @db.SmallInt
   school       String
   abbreviation String?
@@ -55,29 +54,30 @@ model Team {
   city         String?
   state        States
   trackId      BigInt?
-  tracks       Track?     @relation(fields: [trackId], references: [id], onUpdate: NoAction)
   exhibition   Boolean    @default(false)
   penalties    Int?       @db.SmallInt
   scores       Score[]
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  tracks       Track?     @relation(fields: [trackId], references: [id], onUpdate: NoAction)
 }
 
 model Tournament {
   id         String           @id
   name       String
-  shortName  String?
   location   String
   state      States
   level      TournamentLevels
-  division   Divisions
   year       Int              @db.SmallInt
-  startDate  DateTime         @db.Date
-  endDate    DateTime         @db.Date
-  awardsDate DateTime         @db.Date
   medals     Int?             @db.SmallInt
   trophies   Int?             @db.SmallInt
   bids       Int?             @db.SmallInt
-  nOffset    Int?             @db.SmallInt
   drops      Int?             @db.SmallInt
+  shortName  String?
+  awardsDate DateTime         @db.Date
+  endDate    DateTime         @db.Date
+  nOffset    Int?             @db.SmallInt
+  startDate  DateTime         @db.Date
+  division   Divisions
   events     Event[]
   roles      Role[]
   teams      Team[]
@@ -87,23 +87,17 @@ model Tournament {
 model Track {
   id           BigInt     @id @default(autoincrement())
   tournamentId String
-  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   name         String
   medals       Int?       @db.SmallInt
   trophies     Int?       @db.SmallInt
   teams        Team[]
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model User {
   id    String @id @db.Uuid
   name  String
   roles Role[]
-}
-
-enum EventStatus {
-  SCORING
-  TRIAL
-  TRIALED
 }
 
 enum ScoreStatus {
@@ -186,6 +180,11 @@ enum States {
   WV
   WI
   WY
-
   INTERNATIONAL
+}
+
+enum EventStatus {
+  SCORING
+  TRIAL
+  TRIALED
 }
