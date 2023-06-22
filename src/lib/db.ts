@@ -4,7 +4,8 @@ import {
 	type Event,
 	type TournamentRoles,
 	type TrialStatus,
-	type Team
+	type Team,
+	type Track
 } from '@prisma/client';
 const prisma = new PrismaClient();
 
@@ -144,6 +145,46 @@ export async function deleteTeam(teamId: bigint) {
 	}
 }
 
+export async function addTracks(tournamentId: string, tracks: Track[]) {
+	try {
+		await prisma.track.createMany({
+			data: tracks.map((track) => ({
+				...track,
+				tournamentId
+			}))
+		});
+	} catch (e) {
+		return false;
+	}
+}
+
+export async function updateTrack(trackId: bigint, track: Partial<Track>) {
+	try {
+		await prisma.track.update({
+			where: {
+				id: trackId
+			},
+			data: {
+				...track
+			}
+		});
+	} catch (e) {
+		return false;
+	}
+}
+
+export async function deleteTrack(trackId: bigint) {
+	try {
+		await prisma.track.delete({
+			where: {
+				id: trackId
+			}
+		});
+	} catch (e) {
+		return false;
+	}
+}
+
 export async function getUserInfo(userId: string) {
 	const user = await prisma.user.findUnique({
 		where: { id: userId },
@@ -192,7 +233,11 @@ export async function getTournamentInfo(tournamentId: string) {
 			events: true,
 			roles: true,
 			teams: true,
-			tracks: true
+			tracks: {
+				include: {
+					teams: true
+				}
+			}
 		}
 	});
 
