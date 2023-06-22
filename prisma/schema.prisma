@@ -12,12 +12,14 @@ model Event {
   id           BigInt      @id @default(autoincrement())
   tournamentId String
   name         String
-  status       EventStatus @default(SCORING)
+  trialStatus  TrialStatus @default(SCORING)
   highScoring  Boolean     @default(true)
   slug         String
   tournament   Tournament  @relation(fields: [tournamentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   roles        Role[]
   scores       Score[]
+  audited      User[]      @relation("AuditedEvents")
+  sorted       User[]      @relation("SortedEvents")
 }
 
 model Role {
@@ -62,26 +64,27 @@ model Team {
 }
 
 model Tournament {
-  id         String           @id
-  name       String
-  location   String
-  state      States
-  level      TournamentLevels
-  year       Int              @db.SmallInt
-  medals     Int?             @db.SmallInt
-  trophies   Int?             @db.SmallInt
-  bids       Int?             @db.SmallInt
-  drops      Int?             @db.SmallInt
-  shortName  String?
-  awardsDate DateTime         @db.Date
-  endDate    DateTime         @db.Date
-  nOffset    Int?             @db.SmallInt
-  startDate  DateTime         @db.Date
-  division   Divisions
-  events     Event[]
-  roles      Role[]
-  teams      Team[]
-  tracks     Track[]
+  id           String           @id
+  name         String
+  location     String
+  state        States
+  level        TournamentLevels
+  year         Int              @db.SmallInt
+  medals       Int?             @db.SmallInt
+  trophies     Int?             @db.SmallInt
+  bids         Int?             @db.SmallInt
+  drops        Int?             @db.SmallInt
+  shortName    String?
+  awardsDate   DateTime         @db.Date
+  endDate      DateTime         @db.Date
+  nOffset      Int?             @db.SmallInt
+  startDate    DateTime         @db.Date
+  division     Divisions
+  enableTracks Boolean          @default(false)
+  events       Event[]
+  roles        Role[]
+  teams        Team[]
+  tracks       Track[]
 }
 
 model Track {
@@ -95,9 +98,11 @@ model Track {
 }
 
 model User {
-  id    String @id @db.Uuid
-  name  String
-  roles Role[]
+  id            String  @id @db.Uuid
+  name          String
+  roles         Role[]
+  auditedEvents Event[] @relation("AuditedEvents")
+  sortedEvents  Event[] @relation("SortedEvents")
 }
 
 enum ScoreStatus {
@@ -183,7 +188,7 @@ enum States {
   INTERNATIONAL
 }
 
-enum EventStatus {
+enum TrialStatus {
   SCORING
   TRIAL
   TRIALED
