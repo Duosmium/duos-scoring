@@ -1,4 +1,4 @@
-import { addUserToRole, createTournament } from '$lib/db';
+import { addUserToRole, addUserToTournament, createTournament } from '$lib/db';
 import type { Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import type { Divisions, States, TournamentLevels } from '@prisma/client';
@@ -21,6 +21,8 @@ export const actions = {
 		const endDate = new Date(formData.get('endDate')?.toString() ?? '');
 		const awardsDate = new Date(formData.get('awardsDate')?.toString() ?? '');
 
+		const enableTracks = !!formData.get('enableTracks') || false;
+
 		const medals = parseInt(formData.get('medals')?.toString() ?? '') || null;
 		const trophies = parseInt(formData.get('trophies')?.toString() ?? '') || null;
 		const bids = parseInt(formData.get('bids')?.toString() ?? '') || null;
@@ -40,12 +42,14 @@ export const actions = {
 				startDate,
 				endDate,
 				awardsDate,
+				enableTracks,
 				medals,
 				trophies,
 				bids,
 				nOffset,
 				drops
 			});
+			await addUserToTournament(locals.userId, slug);
 			await addUserToRole(locals.userId, slug, 'DIRECTOR', null);
 		} catch (e) {
 			console.error(e);
@@ -62,6 +66,7 @@ export const actions = {
 					startDate,
 					endDate,
 					awardsDate,
+					enableTracks,
 					medals,
 					trophies,
 					bids,

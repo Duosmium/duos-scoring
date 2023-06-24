@@ -3,6 +3,7 @@
 	import slugify from 'slugify';
 	import Head from '$lib/components/Head.svelte';
 	import { enhance } from '$app/forms';
+	import { Button, Checkbox, Input, Label, Select } from 'flowbite-svelte';
 
 	export let form: ActionData;
 
@@ -12,13 +13,81 @@
 		strict: true,
 		trim: true
 	});
+
+	const states = [
+		{ value: 'AL', name: 'Alabama' },
+		{ value: 'AK', name: 'Alaska' },
+		{ value: 'AZ', name: 'Arizona' },
+		{ value: 'AR', name: 'Arkansas' },
+		{ value: 'CA', name: 'California' },
+		{ value: 'nCA', name: 'Northern California (for regionals/states only)' },
+		{ value: 'sCA', name: 'Southern California (for regionals/states only)' },
+		{ value: 'CO', name: 'Colorado' },
+		{ value: 'CT', name: 'Connecticut' },
+		{ value: 'DE', name: 'Delaware' },
+		{ value: 'DC', name: 'District of Columbia' },
+		{ value: 'FL', name: 'Florida' },
+		{ value: 'GA', name: 'Georgia' },
+		{ value: 'HI', name: 'Hawaii' },
+		{ value: 'ID', name: 'Idaho' },
+		{ value: 'IL', name: 'Illinois' },
+		{ value: 'IN', name: 'Indiana' },
+		{ value: 'IA', name: 'Iowa' },
+		{ value: 'KS', name: 'Kansas' },
+		{ value: 'KY', name: 'Kentucky' },
+		{ value: 'LA', name: 'Louisiana' },
+		{ value: 'ME', name: 'Maine' },
+		{ value: 'MD', name: 'Maryland' },
+		{ value: 'MA', name: 'Massachusetts' },
+		{ value: 'MI', name: 'Michigan' },
+		{ value: 'MN', name: 'Minnesota' },
+		{ value: 'MS', name: 'Mississippi' },
+		{ value: 'MO', name: 'Missouri' },
+		{ value: 'MT', name: 'Montana' },
+		{ value: 'NE', name: 'Nebraska' },
+		{ value: 'NV', name: 'Nevada' },
+		{ value: 'NH', name: 'New Hampshire' },
+		{ value: 'NJ', name: 'New Jersey' },
+		{ value: 'NM', name: 'New Mexico' },
+		{ value: 'NY', name: 'New York' },
+		{ value: 'NC', name: 'North Carolina' },
+		{ value: 'ND', name: 'North Dakota' },
+		{ value: 'OH', name: 'Ohio' },
+		{ value: 'OK', name: 'Oklahoma' },
+		{ value: 'OR', name: 'Oregon' },
+		{ value: 'PA', name: 'Pennsylvania' },
+		{ value: 'RI', name: 'Rhode Island' },
+		{ value: 'SC', name: 'South Carolina' },
+		{ value: 'SD', name: 'South Dakota' },
+		{ value: 'TN', name: 'Tennessee' },
+		{ value: 'TX', name: 'Texas' },
+		{ value: 'UT', name: 'Utah' },
+		{ value: 'VT', name: 'Vermont' },
+		{ value: 'VA', name: 'Virginia' },
+		{ value: 'WA', name: 'Washington' },
+		{ value: 'WV', name: 'West Virginia' },
+		{ value: 'WI', name: 'Wisconsin' },
+		{ value: 'WY', name: 'Wyoming' }
+	];
+	const levels = [
+		{ value: 'INVITATIONAL', name: 'Invitational' },
+		{ value: 'REGIONAL', name: 'Regional' },
+		{ value: 'STATE', name: 'State' },
+		{ value: 'NATIONAL', name: 'National' }
+	];
+	const divisions = [
+		{ value: 'C', name: 'High School (Div. C)' },
+		{ value: 'B', name: 'Middle School (Div. B)' },
+		{ value: 'A', name: 'Elementary School (Div. A)' }
+	];
 </script>
 
 <Head title="Create Tournament | Duosmium Scoring" />
 
 <main class="main">
 	<header>
-		<img src="/logo.png" alt="Duosmium Logo" />
+		<img class="dark:hidden inline-block" src="/logo_dark.png" alt="Duosmium Logo" />
+		<img class="dark:inline-block hidden" src="/logo_light.png" alt="Duosmium Logo" />
 		<a class="btn" href="/logout">Log Out</a>
 	</header>
 	<h1>Create a new tournament!</h1>
@@ -30,126 +99,66 @@
 	<h2>General Info</h2>
 
 	<form use:enhance method="post">
-		<label>
-			Name: <input type="text" name="name" value={form?.returned.name} required />
-		</label>
-		<label>
-			Short Name: <input type="text" name="shortName" bind:value={shortName} required />
-		</label>
-		<label>
-			Slug: <input type="text" name="slug" bind:value={slug} required />
-		</label>
-		<label>
-			Location: <input type="text" name="location" value={form?.returned.location} required />
-		</label>
-		<label>
+		<Label>
+			Name: <Input type="text" name="name" value={form?.returned.name} required />
+		</Label>
+		<Label>
+			Short Name: <Input type="text" name="shortName" value={form?.returned.shortName} required />
+		</Label>
+		<Label>
+			Slug: <Input type="text" name="slug" bind:value={slug} required />
+		</Label>
+		<Label>
+			Location: <Input type="text" name="location" value={form?.returned.location} required />
+		</Label>
+		<Label>
 			State:
-			<select name="state" value={form?.returned.state} required>
-				<option value="AL">Alabama</option>
-				<option value="AK">Alaska</option>
-				<option value="AZ">Arizona</option>
-				<option value="AR">Arkansas</option>
-				<option value="CA">California</option>
-				<option value="nCA">Northern California (for regionals/states only)</option>
-				<option value="sCA">Southern California (for regionals/states only)</option>
-				<option value="CO">Colorado</option>
-				<option value="CT">Connecticut</option>
-				<option value="DE">Delaware</option>
-				<option value="DC">District of Columbia</option>
-				<option value="FL">Florida</option>
-				<option value="GA">Georgia</option>
-				<option value="HI">Hawaii</option>
-				<option value="ID">Idaho</option>
-				<option value="IL">Illinois</option>
-				<option value="IN">Indiana</option>
-				<option value="IA">Iowa</option>
-				<option value="KS">Kansas</option>
-				<option value="KY">Kentucky</option>
-				<option value="LA">Louisiana</option>
-				<option value="ME">Maine</option>
-				<option value="MD">Maryland</option>
-				<option value="MA">Massachusetts</option>
-				<option value="MI">Michigan</option>
-				<option value="MN">Minnesota</option>
-				<option value="MS">Mississippi</option>
-				<option value="MO">Missouri</option>
-				<option value="MT">Montana</option>
-				<option value="NE">Nebraska</option>
-				<option value="NV">Nevada</option>
-				<option value="NH">New Hampshire</option>
-				<option value="NJ">New Jersey</option>
-				<option value="NM">New Mexico</option>
-				<option value="NY">New York</option>
-				<option value="NC">North Carolina</option>
-				<option value="ND">North Dakota</option>
-				<option value="OH">Ohio</option>
-				<option value="OK">Oklahoma</option>
-				<option value="OR">Oregon</option>
-				<option value="PA">Pennsylvania</option>
-				<option value="RI">Rhode Island</option>
-				<option value="SC">South Carolina</option>
-				<option value="SD">South Dakota</option>
-				<option value="TN">Tennessee</option>
-				<option value="TX">Texas</option>
-				<option value="UT">Utah</option>
-				<option value="VT">Vermont</option>
-				<option value="VA">Virginia</option>
-				<option value="WA">Washington</option>
-				<option value="WV">West Virginia</option>
-				<option value="WI">Wisconsin</option>
-				<option value="WY">Wyoming</option>
-			</select>
-		</label>
-		<label>
+			<Select name="state" items={states} value={form?.returned.state} required />
+		</Label>
+		<Label>
 			Level:
-			<select name="level" value={form?.returned.level} required>
-				<option value="INVITATIONAL">Invitational</option>
-				<option value="REGIONAL">Regional</option>
-				<option value="STATE">State</option>
-				<option value="NATIONAL">National</option>
-			</select>
-		</label>
-		<label>
+			<Select name="level" items={levels} value={form?.returned.level} required />
+		</Label>
+		<Label>
 			Division:
-			<select name="division" value={form?.returned.division} required>
-				<option value="C">High School (Div. C)</option>
-				<option value="B">Middle School (Div. B)</option>
-				<option value="A">Elementary School (Div. A)</option>
-			</select>
-		</label>
-		<label>
-			Year: <input type="number" name="year" value={form?.returned.year} required />
-		</label>
-		<label>
-			Start Date: <input type="date" name="startDate" value={form?.returned.startDate} required />
-		</label>
-		<label>
-			End Date: <input type="date" name="endDate" value={form?.returned.endDate} required />
-		</label>
-		<label>
-			Awards Date: <input
+			<Select name="division" items={divisions} value={form?.returned.division} required />
+		</Label>
+		<Label>
+			Year: <Input type="number" name="year" value={form?.returned.year} required />
+		</Label>
+		<Label>
+			Start Date: <Input type="date" name="startDate" value={form?.returned.startDate} required />
+		</Label>
+		<Label>
+			End Date: <Input type="date" name="endDate" value={form?.returned.endDate} required />
+		</Label>
+		<Label>
+			Awards Date: <Input
 				type="date"
 				name="awardsDate"
 				value={form?.returned.awardsDate}
 				required
 			/>
-		</label>
-		<label>
-			Medals: <input type="number" name="medals" value={form?.returned.medals} />
-		</label>
-		<label>
-			Trophies: <input type="number" name="trophies" value={form?.returned.trophies} />
-		</label>
-		<label>
-			Bids: <input type="number" name="bids" value={form?.returned.bids} />
-		</label>
-		<label>
-			N-Offset: <input type="number" name="nOffset" value={form?.returned.nOffset} />
-		</label>
-		<label>
-			Drops: <input type="number" name="drops" value={form?.returned.drops} />
-		</label>
-		<button type="submit">Save</button>
+		</Label>
+		<Label>
+			Enable Tracks: <Checkbox name="enableTracks" checked={form?.returned.enableTracks} />
+		</Label>
+		<Label>
+			Medals: <Input type="number" name="medals" value={form?.returned.medals} />
+		</Label>
+		<Label>
+			Trophies: <Input type="number" name="trophies" value={form?.returned.trophies} />
+		</Label>
+		<Label>
+			Bids: <Input type="number" name="bids" value={form?.returned.bids} />
+		</Label>
+		<Label>
+			N-Offset: <Input type="number" name="nOffset" value={form?.returned.nOffset} />
+		</Label>
+		<Label>
+			Drops: <Input type="number" name="drops" value={form?.returned.drops} />
+		</Label>
+		<Button type="submit">Save</Button>
 	</form>
 </main>
 

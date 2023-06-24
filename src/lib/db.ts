@@ -43,6 +43,21 @@ export async function updateTournament(tournamentId: string, tournament: Tournam
 	});
 }
 
+export async function addUserToTournament(userId: string, tournamentId: string) {
+	await prisma.user.update({
+		where: {
+			id: userId
+		},
+		data: {
+			tournaments: {
+				connect: {
+					id: tournamentId
+				}
+			}
+		}
+	});
+}
+
 export async function addUserToRole(
 	userId: string,
 	tournamentId: string,

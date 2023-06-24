@@ -269,5 +269,5 @@
 	<Label>
 		Drops: <Input type="number" name="drops" value={data.tournament.drops} />
 	</Label>
-	<Button type="submit">Save</Button>
+	<Button>Save</Button>
 </Modal>
