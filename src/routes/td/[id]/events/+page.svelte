@@ -16,7 +16,8 @@
 		Heading,
 		Modal,
 		Input,
-		Toast
+		Toast,
+		Avatar
 	} from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import { slide } from 'svelte/transition';
@@ -246,10 +247,36 @@
 							/>
 						</Label>
 					</TableBodyCell>
+					<TableBodyCell>
+						<span class="flex">
+							{#each event.audited as audited}
+								<Avatar stacked
+									>{audited.name
+										.split(' ')
+										.map((w) => w[0].toUpperCase())
+										.join('')}</Avatar
+								>
+							{:else}
+								No
+							{/each}
+						</span>
+					</TableBodyCell>
+					<TableBodyCell>
+						<span class="flex">
+							{#each event.sorted as sorted}
+								<Avatar stacked
+									>{sorted.name
+										.split(' ')
+										.map((w) => w[0].toUpperCase())
+										.join('')}</Avatar
+								>
+							{:else}
+								No
+							{/each}
+						</span>
+					</TableBodyCell>
+					<TableBodyCell>{event.scores.length}</TableBodyCell>
 					<!-- TODO: change these placeholders -->
-					<TableBodyCell>[Audited Placeholder]</TableBodyCell>
-					<TableBodyCell>[Sorted Placeholder]</TableBodyCell>
-					<TableBodyCell>[Scores In Placeholder]</TableBodyCell>
 					<TableBodyCell>[ES Placeholder]</TableBodyCell>
 					<TableBodyCell>
 						<a
