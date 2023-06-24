@@ -232,6 +232,11 @@ export async function getTournamentInfo(tournamentId: string) {
 		include: {
 			events: {
 				include: {
+					roles: {
+						include: {
+							user: true
+						}
+					},
 					audited: true,
 					sorted: true,
 					scores: true

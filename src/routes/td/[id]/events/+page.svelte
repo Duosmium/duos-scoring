@@ -250,6 +250,7 @@
 					<TableBodyCell>
 						<span class="flex">
 							{#each event.audited as audited}
+								<!-- TODO: name popover -->
 								<Avatar stacked
 									>{audited.name
 										.split(' ')
@@ -276,8 +277,20 @@
 						</span>
 					</TableBodyCell>
 					<TableBodyCell>{event.scores.length}</TableBodyCell>
-					<!-- TODO: change these placeholders -->
-					<TableBodyCell>[ES Placeholder]</TableBodyCell>
+					<TableBodyCell
+						><span class="flex">
+							{#each event.roles as { user }}
+								<Avatar stacked
+									>{user.name
+										.split(' ')
+										.map((w) => w[0].toUpperCase())
+										.join('')}</Avatar
+								>
+							{:else}
+								Not Assigned
+							{/each}
+						</span></TableBodyCell
+					>
 					<TableBodyCell>
 						<a
 							href="/td/{data.tournament.id}/events/{event.slug}/"
