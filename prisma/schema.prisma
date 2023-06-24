@@ -85,6 +85,7 @@ model Tournament {
   roles        Role[]
   teams        Team[]
   tracks       Track[]
+  users        User[]           @relation("UserTournaments")
 }
 
 model Track {
@@ -98,11 +99,12 @@ model Track {
 }
 
 model User {
-  id            String  @id @db.Uuid
+  id            String       @id @db.Uuid
   name          String
   roles         Role[]
-  auditedEvents Event[] @relation("AuditedEvents")
-  sortedEvents  Event[] @relation("SortedEvents")
+  auditedEvents Event[]      @relation("AuditedEvents")
+  sortedEvents  Event[]      @relation("SortedEvents")
+  tournaments   Tournament[] @relation("UserTournaments")
 }
 
 enum ScoreStatus {
