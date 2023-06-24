@@ -274,8 +274,7 @@
 					suffix: t.Suffix || null,
 					city: t.City || null,
 					state: t.State,
-					// TODO: implement tracks
-					// trackId: ,
+					trackId: data.tournament.enableTracks ? (tracks.find((track) => track.name === t.Track)?.value ?? null) : null,
 					exhibition: !!t.Exhibition
 				}))
 			)
@@ -344,7 +343,9 @@
 		<TableHeadCell>Team #</TableHeadCell>
 		<TableHeadCell>Team Name</TableHeadCell>
 		<TableHeadCell>Location</TableHeadCell>
-		<TableHeadCell>Track</TableHeadCell>
+		{#if data.tournament.enableTracks}
+			<TableHeadCell>Track</TableHeadCell>
+		{/if}
 		<TableHeadCell>Exhibition</TableHeadCell>
 		<TableHeadCell>Penalties</TableHeadCell>
 		<TableHeadCell>
@@ -377,7 +378,9 @@
 							: ''}</TableBodyCell
 					>
 					<TableBodyCell>{team.city ? team.city + ', ' : ''}{team.state}</TableBodyCell>
-					<TableBodyCell>{team.trackId ?? 'None'}</TableBodyCell>
+					{#if data.tournament.enableTracks}
+						<TableBodyCell>{team.trackId ?? 'None'}</TableBodyCell>
+					{/if}
 					<TableBodyCell>{team.exhibition ? 'Exhib. Team' : 'No'}</TableBodyCell>
 					<TableBodyCell>{team.penalties ?? 'None'}</TableBodyCell>
 					<TableBodyCell>
@@ -493,10 +496,12 @@
 		State
 		<Select underline class="mt-2" items={states} bind:value={addTeamData.state} />
 	</Label>
-	<Label>
-		Track
-		<Select underline class="mt-2" items={tracks} bind:value={addTeamData.trackId} />
-	</Label>
+	{#if data.tournament.enableTracks}
+		<Label>
+			Track
+			<Select underline class="mt-2" items={tracks} bind:value={addTeamData.trackId} />
+		</Label>
+	{/if}
 	<Label>
 		Exhibition Team
 		<Checkbox class="ml-2" bind:checked={addTeamData.exhibition} />
@@ -536,10 +541,12 @@
 		State
 		<Select underline class="mt-2" items={states} bind:value={editTeamData.state} />
 	</Label>
-	<Label>
-		Track
-		<Select underline class="mt-2" items={tracks} bind:value={editTeamData.trackId} />
-	</Label>
+	{#if data.tournament.enableTracks}
+		<Label>
+			Track
+			<Select underline class="mt-2" items={tracks} bind:value={editTeamData.trackId} />
+		</Label>
+	{/if}
 	<Label>
 		Exhibition Team
 		<Checkbox class="ml-2" bind:checked={editTeamData.exhibition} />
@@ -584,10 +591,12 @@
 				><code class="dark:text-violet-300 text-violet-700">State</code>
 				<i>(Required)</i>: The school's state, 2-letter postal abbreviation
 			</Li>
+			{#if data.tournament.enableTracks}
 			<Li
 				><code class="dark:text-red-300 text-red-700">Track</code>
 				<i>(Optional)</i>: The name of the track the team is competing in
 			</Li>
+			{/if}
 			<Li
 				><code class="dark:text-orange-300 text-orange-700">Exhibition</code>
 				<i>(Optional)</i>: Whether a team is an exhibition team, leave blank for non exhibition
@@ -613,7 +622,7 @@
 			{#each parsedImportTeams as team}
 				<li>
 					<span class="tabular-nums">#{team.Number}:</span>
-					<span class="dark:text-red-300 text-red-700">{team.Track ? `[${team.Track}] ` : ''}</span
+					<span class="dark:text-red-300 text-red-700">{team.Track && data.tournament.enableTracks ? `[${team.Track}] ` : ''}</span
 					><span class="dark:text-green-300 text-green-700">{team.School}</span><span
 						class="dark:text-blue-300 text-blue-700"
 						>{team.Abbreviation ? ` (${team.Abbreviation})` : ''}</span

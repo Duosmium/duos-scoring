@@ -34,7 +34,7 @@ export const PATCH: RequestHandler = async ({ request }) => {
 		return new Response('missing team', { status: 404 });
 	}
 	if (!payload.data) {
-		// TODO: validate data
+		// TODO: validate data including whether tracks are enabled
 		return new Response('invalid payload', { status: 400 });
 	}
 
@@ -47,7 +47,7 @@ export const PATCH: RequestHandler = async ({ request }) => {
 export const PUT: RequestHandler = async ({ params, request }) => {
 	const payload: Team[] = await request.json();
 
-	// TODO: validate data
+	// TODO: validate data including whether tracks are enabled
 
 	await addTeams(params.id, payload);
 
