@@ -230,7 +230,13 @@ export async function getTournamentInfo(tournamentId: string) {
 	const tournament = await prisma.tournament.findUnique({
 		where: { id: tournamentId },
 		include: {
-			events: true,
+			events: {
+				include: {
+					audited: true,
+					sorted: true,
+					scores: true
+				}
+			},
 			roles: true,
 			teams: true,
 			tracks: {
