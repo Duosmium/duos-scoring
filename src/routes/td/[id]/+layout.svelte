@@ -53,8 +53,7 @@
 		{/if}
 		<NavLi href="/td/{data.tournament.id}/teams">Teams</NavLi>
 		<NavLi href="/td/{data.tournament.id}/results">Results</NavLi>
-		<!-- TODO: make this pretty on mobile -->
-		<NavLi
+		<NavLi class="lg:block hidden"
 			><Avatar id="user-drop" class="cursor-pointer"
 				>{data.user.name
 					.split(' ')
@@ -67,12 +66,23 @@
 					<span class="block text-sm"> {data.user.name} </span>
 					<span class="block truncate text-sm font-medium"> {data.session?.user.email} </span>
 				</DropdownHeader>
-				<DropdownItem>Dashboard</DropdownItem>
-				<DropdownItem>Settings</DropdownItem>
+				<DropdownItem href="/dashboard">Dashboard</DropdownItem>
+				<DropdownItem href="/settings">Settings</DropdownItem>
 				<DropdownDivider />
-				<DropdownItem>Sign out</DropdownItem>
+				<DropdownItem href="/logout">Sign Out</DropdownItem>
 			</Dropdown></NavLi
 		>
+		<div class="w-full my-2 lg:hidden border border-gray-600 dark:border-gray-400" />
+		<div class="lg:hidden">
+			<NavLi href="/dashboard">Dashboard</NavLi>
+		</div>
+		<div class="lg:hidden">
+			<NavLi href="/settings">Settings</NavLi>
+		</div>
+		<div class="w-full my-2 lg:hidden border border-gray-600 dark:border-gray-400" />
+		<div class="lg:hidden">
+			<NavLi href="/logout">Sign Out</NavLi>
+		</div>
 	</NavUl>
 </Navbar>
 
