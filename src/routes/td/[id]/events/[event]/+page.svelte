@@ -27,7 +27,7 @@
 	import { page } from '$app/stores';
 	import { slide } from 'svelte/transition';
 	import { invalidateAll } from '$app/navigation';
-	import type { Score, ScoreStatus, Team } from '@prisma/client';
+	import type { Score, ScoreStatus } from '@prisma/client';
 	import { parse } from 'papaparse';
 
 	export let data: PageData;
@@ -52,10 +52,6 @@
 		acc.set(s.team.id, s);
 		return acc;
 	}, new Map<bigint, Score>());
-	let teamLookup = data.tournament.teams.reduce((acc, t) => {
-		acc.set(t.number, t);
-		return acc;
-	}, new Map<number, Team>());
 	let modifiedTeams = data.tournament.teams.map((t, i) => {
 		let origScore = scores.get(t.id);
 		let score = origScore
@@ -80,6 +76,10 @@
 			  };
 		return { ...t, index: i, checked: false, score };
 	});
+	let teamLookup = modifiedTeams.reduce((acc, t) => {
+		acc.set(t.number, t);
+		return acc;
+	}, new Map<number, (typeof modifiedTeams)[0]>());
 	$: modifiedTeams.sort((a, b) => {
 		switch (sortBy) {
 			case 'number':
@@ -220,21 +220,21 @@
 	}
 	function importScores() {
 		if (parsedError) return;
-		fetch(`/td/${$page.params['id']}/events/${$page.params['event']}`, {
-			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(parsedImportScores.map((t) => ({})))
-		}).then((res) => {
-			if (res.status === 200) {
-				importScoresData = '';
-				addToastMessage('Scores imported!', 'success');
-				invalidateAll();
-			} else {
-				addToastMessage('Failed to add scores!', 'error');
-			}
+		parsedImportScores.forEach((parsedScore) => {
+			const team = teamLookup.get(parseInt(parsedScore.Number));
+			if (!team) return;
+			team.score.rawScore.new = parseFloat(parsedScore['Raw Score']) || null;
+			team.score.tier.new = parseInt(parsedScore.Tier) || null;
+			team.score.tiebreak.new = parseFloat(parsedScore.Tiebreak) || null;
+			team.score.status.new = (scoreStatuses.find((s) => s.name === parsedScore.Status)?.value ??
+				'NA') as any;
+
+			team.score.rawScore.dirty = team.score.rawScore.new !== team.score.rawScore.old;
+			team.score.tier.dirty = team.score.tier.new !== team.score.tier.old;
+			team.score.tiebreak.dirty = team.score.tiebreak.new !== team.score.tiebreak.old;
+			team.score.status.dirty = team.score.status.new !== team.score.status.old;
 		});
+		modifiedTeams = modifiedTeams;
 	}
 </script>
 
