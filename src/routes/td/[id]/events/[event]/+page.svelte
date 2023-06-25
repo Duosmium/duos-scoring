@@ -32,6 +32,13 @@
 
 	export let data: PageData;
 
+	const statusLookup = {
+		NA: 'N/A' as 'N/A',
+		COMPETED: 'CO' as 'CO',
+		PARTICIPATION: 'PO' as 'PO',
+		NOSHOW: 'NS' as 'NS',
+		DISQUALIFICATION: 'DQ' as 'DQ'
+	};
 	const scoreStatuses = [
 		{ value: 'NA', name: 'N/A' },
 		{ value: 'COMPETED', name: 'CO' },
@@ -44,7 +51,12 @@
 		PARTICIPATION: 1,
 		NOSHOW: 2,
 		DISQUALIFICATION: 3,
-		NA: 4
+		NA: 4,
+		CO: 0,
+		PO: 1,
+		NS: 2,
+		DQ: 3,
+		'N/A': 4
 	};
 
 	let sortBy = 'number';
@@ -74,12 +86,43 @@
 					status: { old: 'NA' as 'NA', new: 'NA' as 'NA', dirty: false },
 					notes: { old: null, new: null, dirty: false }
 			  };
-		return { ...t, index: i, checked: false, score };
+		return {
+			...t,
+			index: i,
+			checked: false,
+			score,
+			ranking: null as unknown as number | keyof typeof statusOrder
+		};
 	});
-	let teamLookup = modifiedTeams.reduce((acc, t) => {
+	$: teamLookup = modifiedTeams.reduce((acc, t) => {
 		acc.set(t.number, t);
 		return acc;
 	}, new Map<number, (typeof modifiedTeams)[0]>());
+	$: modifiedTeams = modifiedTeams
+		.map((t) => ({
+			...t,
+			ranking:
+				t.score.status.new === 'COMPETED'
+					? t.score.rawScore.new
+						? t.score.rawScore.new +
+						  ((t.score.tiebreak.new || 0) - 1000000 * (t.score.tier.new || 1)) *
+								(data.event.highScoring ? 1 : -1)
+						: 'PARTICIPATION'
+					: t.score.status.new
+		}))
+		.sort((a, b) =>
+			typeof a.ranking === 'number' && typeof b.ranking === 'number'
+				? (b.ranking - a.ranking) * (data.event.highScoring ? 1 : -1)
+				: typeof a.ranking === 'string' && typeof b.ranking === 'string'
+				? statusOrder[a.ranking] - statusOrder[b.ranking]
+				: typeof a.ranking === 'number'
+				? -1
+				: 1
+		)
+		.map((t, i) => ({
+			...t,
+			ranking: typeof t.ranking === 'string' ? statusLookup[t.ranking] : i + 1
+		}));
 	$: modifiedTeams = modifiedTeams.sort((a, b) => {
 		switch (sortBy) {
 			case 'number':
@@ -88,18 +131,24 @@
 				return a.school.localeCompare(b.school);
 			case 'score':
 				return (
-					((b.score?.rawScore.new ?? 0) - (a.score?.rawScore.new ?? 0)) *
+					((b.score?.rawScore.new ?? (data.event.highScoring ? 0 : Infinity)) -
+						(a.score?.rawScore.new ?? (data.event.highScoring ? 0 : Infinity))) *
 						(data.event.highScoring ? 1 : -1) ||
 					(a.score?.tier.new ?? Infinity) - (b.score?.tier.new ?? Infinity) ||
 					(b.score?.tiebreak.new ?? 0) - (a.score?.tiebreak.new ?? 0)
 				);
 			case 'tier':
-				return (a.score?.tier.new ?? 0) - (b.score?.tier.new ?? 0);
+				return (a.score?.tier.new ?? Infinity) - (b.score?.tier.new ?? Infinity);
 			case 'status':
 				return statusOrder[a.score?.status.new ?? 'NA'] - statusOrder[b.score?.status.new ?? 'NA'];
 			case 'ranking':
-				// TODO: implement ranking
-				return 0;
+				return typeof a.ranking === 'number' && typeof b.ranking === 'number'
+					? a.ranking - b.ranking
+					: typeof a.ranking === 'string' && typeof b.ranking === 'string'
+					? statusOrder[a.ranking] - statusOrder[b.ranking]
+					: typeof a.ranking === 'number'
+					? -1
+					: 1;
 			default:
 				return 0;
 		}
@@ -383,7 +432,7 @@
 							on:change={updateData(team, 'status')}
 						/>
 					</TableBodyCell>
-					<TableBodyCell class="px-4">[Rank]</TableBodyCell>
+					<TableBodyCell class="px-4">{team.ranking}</TableBodyCell>
 					<TableBodyCell class="p-0">
 						<Textarea
 							class={`rounded-none !bg-transparent p-2 w-36 !border-orange-500 ${
