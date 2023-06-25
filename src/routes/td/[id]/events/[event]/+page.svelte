@@ -19,12 +19,16 @@
 		Select,
 		Textarea,
 		ButtonGroup,
-		Label
+		Label,
+		List,
+		Li,
+		Alert
 	} from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import { slide } from 'svelte/transition';
 	import { invalidateAll } from '$app/navigation';
-	import type { Score } from '@prisma/client';
+	import type { Score, ScoreStatus, Team } from '@prisma/client';
+	import { parse } from 'papaparse';
 
 	export let data: PageData;
 
@@ -44,55 +48,76 @@
 	};
 
 	let sortBy = 'number';
-	$: scores = (typeof data.scores === 'boolean' ? [] : data.scores).reduce((acc, s) => {
+	let scores = (typeof data.scores === 'boolean' ? [] : data.scores).reduce((acc, s) => {
 		acc.set(s.team.id, s);
 		return acc;
 	}, new Map<bigint, Score>());
-	$: teams = data.tournament.teams
-		.map((t, i) => ({
-			...t,
-			index: i,
-			checked: false,
-			score: scores.get(t.id) ?? null
-		}))
-		.sort((a, b) => {
-			switch (sortBy) {
-				case 'number':
-					return a.number - b.number;
-				case 'school':
-					return a.school.localeCompare(b.school);
-				case 'score':
-					return (
-						((b.score?.rawScore ?? 0) - (a.score?.rawScore ?? 0)) *
-						(data.event.highScoring ? 1 : -1)
-					);
-				case 'tier':
-					return (a.score?.tier ?? 0) - (b.score?.tier ?? 0);
-				case 'status':
-					return statusOrder[a.score?.status ?? 'NA'] - statusOrder[b.score?.status ?? 'NA'];
-				case 'ranking':
-					// TODO: implement ranking
-					return 0;
-				default:
-					return 0;
-			}
-		});
+	let teamLookup = data.tournament.teams.reduce((acc, t) => {
+		acc.set(t.number, t);
+		return acc;
+	}, new Map<number, Team>());
+	let modifiedTeams = data.tournament.teams.map((t, i) => {
+		let origScore = scores.get(t.id);
+		let score = origScore
+			? {
+					...origScore,
+					rawScore: { old: origScore.rawScore, new: origScore.rawScore, dirty: false },
+					tier: { old: origScore.tier, new: origScore.tier, dirty: false },
+					tiebreak: { old: origScore.tiebreak, new: origScore.tiebreak, dirty: false },
+					status: {
+						old: origScore.status ?? ('NA' as ScoreStatus & 'NA'),
+						new: origScore.status ?? ('NA' as ScoreStatus & 'NA'),
+						dirty: false
+					},
+					notes: { old: origScore.notes, new: origScore.notes, dirty: false }
+			  }
+			: {
+					rawScore: { old: null, new: null, dirty: false },
+					tier: { old: null, new: null, dirty: false },
+					tiebreak: { old: null, new: null, dirty: false },
+					status: { old: 'NA' as 'NA', new: 'NA' as 'NA', dirty: false },
+					notes: { old: null, new: null, dirty: false }
+			  };
+		return { ...t, index: i, checked: false, score };
+	});
+	$: modifiedTeams.sort((a, b) => {
+		switch (sortBy) {
+			case 'number':
+				return a.number - b.number;
+			case 'school':
+				return a.school.localeCompare(b.school);
+			case 'score':
+				return (
+					((b.score?.rawScore.new ?? 0) - (a.score?.rawScore.new ?? 0)) *
+					(data.event.highScoring ? 1 : -1)
+				);
+			case 'tier':
+				return (a.score?.tier.new ?? 0) - (b.score?.tier.new ?? 0);
+			case 'status':
+				return statusOrder[a.score?.status.new ?? 'NA'] - statusOrder[b.score?.status.new ?? 'NA'];
+			case 'ranking':
+				// TODO: implement ranking
+				return 0;
+			default:
+				return 0;
+		}
+	});
 
 	let selectAll = false;
 	let lastIndex = -1;
 	function toggleCheck(id: bigint) {
 		selectAll = false;
 		if (!shiftDown) {
-			lastIndex = teams.findIndex((t) => t.id === id);
-			teams = teams.map((t) => (t.id === id ? { ...t, checked: !t.checked } : t));
+			lastIndex = modifiedTeams.findIndex((t) => t.id === id);
+			modifiedTeams = modifiedTeams.map((t) => (t.id === id ? { ...t, checked: !t.checked } : t));
 		} else {
-			const currentTrack = teams.find((t) => t.id === id);
+			const currentTrack = modifiedTeams.find((t) => t.id === id);
 			if (!currentTrack) return;
 			const currentIndex = currentTrack.index;
 			const currentStatus = currentTrack.checked;
 			const minIndex = Math.min(currentIndex, lastIndex);
 			const maxIndex = Math.max(currentIndex, lastIndex);
-			teams = teams.map((t, i) =>
+			modifiedTeams = modifiedTeams.map((t, i) =>
 				i >= minIndex && i <= maxIndex ? { ...t, checked: !currentStatus } : t
 			);
 			lastIndex = currentIndex;
@@ -101,10 +126,10 @@
 
 	function toggleAll() {
 		selectAll = !selectAll;
-		teams = teams.map((t) => ({ ...t, checked: selectAll }));
+		modifiedTeams = modifiedTeams.map((t) => ({ ...t, checked: selectAll }));
 	}
 
-	$: selected = teams.filter((t) => t.checked);
+	$: selected = modifiedTeams.filter((t) => t.checked);
 
 	let shiftDown = false;
 	function handleKeydown(event: KeyboardEvent) {
@@ -126,9 +151,91 @@
 		}, 3000);
 	}
 
-	let openHelp = false;
+	function updateData(
+		team: (typeof modifiedTeams)[0],
+		field: 'rawScore' | 'tier' | 'tiebreak' | 'status' | 'notes'
+	) {
+		return (e: Event) => {
+			switch (field) {
+				case 'rawScore':
+					team.score[field].new = parseFloat((e.target as HTMLInputElement).value) || null;
+					break;
+				case 'tier':
+					team.score[field].new = parseInt((e.target as HTMLInputElement).value) || null;
+					break;
+				case 'tiebreak':
+					team.score[field].new = parseFloat((e.target as HTMLInputElement).value) || null;
+					break;
+				case 'status':
+					team.score[field].new = (e.target as HTMLSelectElement).value as any;
+					break;
+				case 'notes':
+					team.score[field].new = (e.target as HTMLTextAreaElement).innerText;
+					break;
+				default:
+					break;
+			}
+			team.score[field].dirty = team.score[field].new !== team.score[field].old;
+			modifiedTeams = modifiedTeams;
+		};
+	}
 
-	let openImportScores = false;
+	let showHelp = false;
+
+	let showImportScores = false;
+	let importScoresData = '';
+	let parsedImportScores: {
+		Number: string;
+		'Raw Score': string;
+		Tier: string;
+		Tiebreak: string;
+		Status: string;
+	}[] = [];
+	let parsedError = '';
+	$: {
+		parsedImportScores = parse(importScoresData, { header: true }).data as any;
+		parsedError = '';
+		const missingFields: Set<string> = new Set();
+		const invalidStatuses: Set<string> = new Set();
+		// TODO: validate stuff
+		parsedImportScores.forEach((t) => {
+			if (!t.Number) {
+				missingFields.add('Number');
+			}
+			if (!t.Status) {
+				missingFields.add('Status');
+			} else if (scoreStatuses.every((s) => s.name !== t.Status)) {
+				invalidStatuses.add(t.Status);
+			}
+			if (!t['Raw Score'] && t.Status === 'CO') {
+				missingFields.add('Raw Score');
+			}
+		});
+		if (missingFields.size > 0) {
+			parsedError += `Missing fields: ${[...missingFields].join(', ')}; `;
+		}
+		if (invalidStatuses.size > 0) {
+			parsedError += `Invalid statuses: ${[...invalidStatuses].join(', ')}`;
+		}
+	}
+	function importScores() {
+		if (parsedError) return;
+		fetch(`/td/${$page.params['id']}/events/${$page.params['event']}`, {
+			method: 'PATCH',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(parsedImportScores.map((t) => ({})))
+		}).then((res) => {
+			if (res.status === 200) {
+				importScoresData = '';
+				addToastMessage('Scores imported!', 'success');
+				invalidateAll();
+			} else {
+				addToastMessage('Failed to add scores!', 'error');
+			}
+		});
+	}
 </script>
 
 <Head
@@ -156,7 +263,7 @@
 		<Button
 			color="green"
 			on:click={() => {
-				openImportScores = true;
+				showImportScores = true;
 			}}>Import</Button
 		>
 		<ButtonGroup>
@@ -169,7 +276,7 @@
 			color="blue"
 			pill
 			on:click={() => {
-				openHelp = true;
+				showHelp = true;
 			}}>?</Button
 		>
 	</span>
@@ -184,7 +291,7 @@
 			color="alternative"
 			btnClass="bg-transparent border-none underline p-2"
 			on:click={() => {
-				teams = teams.map((t) => ({ ...t, checked: false }));
+				modifiedTeams = modifiedTeams.map((t) => ({ ...t, checked: false }));
 			}}>Clear</Button
 		>
 	</div>
@@ -206,14 +313,14 @@
 		<TableHeadCell class="px-0">Notes</TableHeadCell>
 	</TableHead>
 	<TableBody tableBodyClass="divide-y">
-		{#if teams.length === 0}
+		{#if modifiedTeams.length === 0}
 			<TableBodyRow>
 				<TableBodyCell colspan="7" class="text-center">
 					<p>No teams have been added yet.</p>
 				</TableBodyCell>
 			</TableBodyRow>
 		{:else}
-			{#each teams as team}
+			{#each modifiedTeams as team}
 				<TableBodyRow>
 					<TableBodyCell class="!p-4">
 						<Checkbox
@@ -233,39 +340,57 @@
 					</TableBodyCell>
 					<TableBodyCell class="p-0">
 						<Input
-							class="rounded-none !bg-transparent !border-0 p-2 w-24"
+							class={`rounded-none !bg-transparent p-2 w-24 !border-orange-500 ${
+								team.score.rawScore.dirty ? '!border-2' : '!border-0'
+							}`}
 							type="text"
 							inputmode="numeric"
-							value={team.score?.rawScore ?? ''}
+							value={team.score.rawScore.new ?? ''}
+							on:change={updateData(team, 'rawScore')}
 						/>
 					</TableBodyCell>
 					<TableBodyCell class="p-0">
 						<Input
-							class="rounded-none !bg-transparent !border-0 p-2 w-12"
+							class={`rounded-none !bg-transparent p-2 w-12 !border-orange-500 ${
+								team.score.tier.dirty ? '!border-2' : '!border-0'
+							}`}
 							type="text"
 							inputmode="numeric"
-							value={team.score?.tier ?? ''}
+							value={team.score.tier.new ?? ''}
+							on:change={updateData(team, 'tier')}
 						/>
 					</TableBodyCell>
 					<TableBodyCell class="p-0">
 						<Input
-							class="rounded-none !bg-transparent !border-0 p-2 w-16"
+							class={`rounded-none !bg-transparent p-2 w-16 !border-orange-500 ${
+								team.score.tiebreak.dirty ? '!border-2' : '!border-0'
+							}`}
 							type="text"
 							inputmode="numeric"
-							value={team.score?.tiebreak ?? ''}
+							value={team.score.tiebreak.new ?? ''}
+							on:change={updateData(team, 'tiebreak')}
 						/>
 					</TableBodyCell>
 					<TableBodyCell class="p-0">
 						<Select
 							items={scoreStatuses}
-							class="rounded-none !bg-transparent !border-0 w-20 p-2"
-							value={team.score?.status ?? 'NA'}
+							class={`rounded-none !bg-transparent w-20 p-2 !border-orange-500 ${
+								team.score.status.dirty ? '!border-2' : '!border-0'
+							}`}
+							value={team.score.status.new ?? 'NA'}
+							on:change={updateData(team, 'status')}
 						/>
 					</TableBodyCell>
 					<TableBodyCell class="px-4">[Rank]</TableBodyCell>
 					<TableBodyCell class="p-0">
-						<Textarea class="rounded-none !bg-transparent !border-0 p-2 w-36" rows="1">
-							{team.score?.notes || ''}
+						<Textarea
+							class={`rounded-none !bg-transparent p-2 w-36 !border-orange-500 ${
+								team.score.notes.dirty ? '!border-2' : '!border-0'
+							}`}
+							rows="1"
+							on:change={updateData(team, 'notes')}
+						>
+							{team.score.notes.new || ''}
 						</Textarea>
 					</TableBodyCell>
 				</TableBodyRow>
@@ -311,7 +436,7 @@
 	{/each}
 </div>
 
-<Modal title="Scoring Help" bind:open={openHelp} autoclose outsideclose>
+<Modal title="Scoring Help" bind:open={showHelp} autoclose outsideclose>
 	<P class="dark:text-gray-300">
 		Welcome to scoring! Enter scores for your event here.
 
@@ -343,6 +468,76 @@
 			</div>
 		</dl>
 	</P>
+</Modal>
+
+<Modal title="Import Teams" bind:open={showImportScores} autoclose outsideclose>
+	<P>
+		To import teams, paste in a CSV or TSV of team data. Include the following headings:
+		<List tag="ul" class="space-y-1 mt-2">
+			<Li
+				><code>Number</code>
+				<i>(Required)</i>: Team Number
+			</Li>
+			<Li
+				><code class="dark:text-green-300 text-green-700">Raw Score</code>
+				<i>(Required)</i>: The team's score.
+			</Li>
+			<Li
+				><code class="dark:text-blue-300 text-blue-700">Tier</code>
+				<i>(Optional)</i>: Only used in some build/hybrid events. Lower number tier is better than
+				higher number.
+			</Li>
+			<Li
+				><code class="dark:text-pink-300 text-pink-700">Tiebreak</code>
+				<i>(Optional unless there's a tie)</i>: A number between 0-1. Give the tiebreaker to the
+				better ranked team.
+			</Li>
+			<Li
+				><code class="dark:text-violet-300 text-violet-700">Status</code>
+				<i>(Required)</i>: CO, PO, NS, or DQ for Competed, Participation Only, No Show, or
+				Disqualified, respectively.
+			</Li>
+		</List>
+	</P>
+	<Label>
+		Teams
+		<Textarea class="mt-2" required bind:value={importScoresData} />
+	</Label>
+
+	<Heading tag="h3" class="text-md">Preview</Heading>
+
+	{#if parsedError}
+		<Alert class="mt-2" color="red">{parsedError}</Alert>
+	{:else if parsedImportScores.length !== 0}
+		<ol>
+			{#each parsedImportScores as score}
+				{@const t = teamLookup.get(parseInt(score.Number))}
+				<li>
+					<span class="tabular-nums">#{score.Number}:</span>
+					<span
+						>{t
+							? `${t.abbreviation || t.school}${t.suffix ? ' ' + t.suffix : ''}`
+							: 'Team Not Found'}</span
+					>
+					<span class="dark:text-green-300 text-green-700">{score['Raw Score']}</span><span
+						class="dark:text-blue-300 text-blue-700"
+						>{score.Tier ? ` [Tier ${score.Tier}]` : ''}</span
+					><span class="dark:text-pink-300 text-pink-700"
+						>{score.Tiebreak ? ` (*${score.Tiebreak})` : ''}</span
+					>
+					<span class="dark:text-violet-300 text-violet-700">{score.Status}</span>
+				</li>
+			{/each}
+		</ol>
+	{:else}
+		<P>Waiting for score input...</P>
+	{/if}
+
+	<svelte:fragment slot="footer">
+		<!-- TODO: validation -->
+		<Button color="green" disabled={parsedError.length !== 0} on:click={importScores}>Save</Button>
+		<Button color="alternative">Cancel</Button>
+	</svelte:fragment>
 </Modal>
 
 <style lang="postcss">
