@@ -24,7 +24,7 @@
 	});
 </script>
 
-<div class="min-h-screen py-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-200">
+<div class="min-h-screen pb-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-200">
 	<div class="bar" />
 	<slot />
 </div>
