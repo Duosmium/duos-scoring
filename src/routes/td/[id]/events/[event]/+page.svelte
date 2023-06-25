@@ -80,7 +80,7 @@
 		acc.set(t.number, t);
 		return acc;
 	}, new Map<number, (typeof modifiedTeams)[0]>());
-	$: modifiedTeams.sort((a, b) => {
+	$: modifiedTeams = modifiedTeams.sort((a, b) => {
 		switch (sortBy) {
 			case 'number':
 				return a.number - b.number;
@@ -89,7 +89,9 @@
 			case 'score':
 				return (
 					((b.score?.rawScore.new ?? 0) - (a.score?.rawScore.new ?? 0)) *
-					(data.event.highScoring ? 1 : -1)
+						(data.event.highScoring ? 1 : -1) ||
+					(a.score?.tier.new ?? Infinity) - (b.score?.tier.new ?? Infinity) ||
+					(b.score?.tiebreak.new ?? 0) - (a.score?.tiebreak.new ?? 0)
 				);
 			case 'tier':
 				return (a.score?.tier.new ?? 0) - (b.score?.tier.new ?? 0);
