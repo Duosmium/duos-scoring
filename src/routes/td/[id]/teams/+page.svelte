@@ -274,7 +274,9 @@
 					suffix: t.Suffix || null,
 					city: t.City || null,
 					state: t.State,
-					trackId: data.tournament.enableTracks ? (tracks.find((track) => track.name === t.Track)?.value ?? null) : null,
+					trackId: data.tournament.enableTracks
+						? tracks.find((track) => track.name === t.Track)?.value ?? null
+						: null,
 					exhibition: !!t.Exhibition
 				}))
 			)
@@ -337,18 +339,18 @@
 <Table divClass="relative overflow-x-auto" hoverable={true}>
 	<!-- top-[92px] lg:top-[116px] -->
 	<TableHead>
-		<TableHeadCell class="!p-4">
+		<TableHeadCell class="py-4 pl-4 pr-2">
 			<Checkbox on:click={toggleAll} checked={selectAll} />
 		</TableHeadCell>
-		<TableHeadCell>Team #</TableHeadCell>
-		<TableHeadCell>Team Name</TableHeadCell>
-		<TableHeadCell>Location</TableHeadCell>
+		<TableHeadCell class="px-2">Team #</TableHeadCell>
+		<TableHeadCell class="px-2">Team Name</TableHeadCell>
+		<TableHeadCell class="px-2">Location</TableHeadCell>
 		{#if data.tournament.enableTracks}
-			<TableHeadCell>Track</TableHeadCell>
+			<TableHeadCell class="px-2">Track</TableHeadCell>
 		{/if}
-		<TableHeadCell>Exhibition</TableHeadCell>
-		<TableHeadCell>Penalties</TableHeadCell>
-		<TableHeadCell>
+		<TableHeadCell class="px-2">Exhibition</TableHeadCell>
+		<TableHeadCell class="px-2">Penalties</TableHeadCell>
+		<TableHeadCell class="px-2">
 			<span class="sr-only"> Edit </span>
 		</TableHeadCell>
 	</TableHead>
@@ -362,7 +364,7 @@
 		{:else}
 			{#each teams as team}
 				<TableBodyRow>
-					<TableBodyCell class="!p-4">
+					<TableBodyCell class="py-4 pl-4 pr-2">
 						<Checkbox
 							on:click={() => {
 								toggleCheck(team.id);
@@ -370,20 +372,21 @@
 							checked={team.checked}
 						/>
 					</TableBodyCell>
-					<TableBodyCell>{team.number}</TableBodyCell>
-					<TableBodyCell
+					<TableBodyCell class="px-2">{team.number}</TableBodyCell>
+					<TableBodyCell class="px-2"
 						>{team.abbreviation ??
 							team.school.slice(0, 45) + (team.school.length > 45 ? '…' : '')}{team.suffix
 							? ' ' + team.suffix.slice(0, 38) + (team.suffix.length > 38 ? '…' : '')
 							: ''}</TableBodyCell
 					>
-					<TableBodyCell>{team.city ? team.city + ', ' : ''}{team.state}</TableBodyCell>
+					<TableBodyCell class="px-2">{team.city ? team.city + ', ' : ''}{team.state}</TableBodyCell
+					>
 					{#if data.tournament.enableTracks}
-						<TableBodyCell>{team.trackId ?? 'None'}</TableBodyCell>
+						<TableBodyCell class="px-2">{team.trackId ?? 'None'}</TableBodyCell>
 					{/if}
-					<TableBodyCell>{team.exhibition ? 'Exhib. Team' : 'No'}</TableBodyCell>
-					<TableBodyCell>{team.penalties ?? 'None'}</TableBodyCell>
-					<TableBodyCell>
+					<TableBodyCell class="px-2">{team.exhibition ? 'Exhib. Team' : 'No'}</TableBodyCell>
+					<TableBodyCell class="px-2">{team.penalties ?? 'None'}</TableBodyCell>
+					<TableBodyCell class="px-2">
 						<Button
 							color="alternative"
 							class="border-none p-1 font-medium text-primary-600 hover:underline dark:text-primary-500"
@@ -592,10 +595,10 @@
 				<i>(Required)</i>: The school's state, 2-letter postal abbreviation
 			</Li>
 			{#if data.tournament.enableTracks}
-			<Li
-				><code class="dark:text-red-300 text-red-700">Track</code>
-				<i>(Optional)</i>: The name of the track the team is competing in
-			</Li>
+				<Li
+					><code class="dark:text-red-300 text-red-700">Track</code>
+					<i>(Optional)</i>: The name of the track the team is competing in
+				</Li>
 			{/if}
 			<Li
 				><code class="dark:text-orange-300 text-orange-700">Exhibition</code>
@@ -622,7 +625,8 @@
 			{#each parsedImportTeams as team}
 				<li>
 					<span class="tabular-nums">#{team.Number}:</span>
-					<span class="dark:text-red-300 text-red-700">{team.Track && data.tournament.enableTracks ? `[${team.Track}] ` : ''}</span
+					<span class="dark:text-red-300 text-red-700"
+						>{team.Track && data.tournament.enableTracks ? `[${team.Track}] ` : ''}</span
 					><span class="dark:text-green-300 text-green-700">{team.School}</span><span
 						class="dark:text-blue-300 text-blue-700"
 						>{team.Abbreviation ? ` (${team.Abbreviation})` : ''}</span

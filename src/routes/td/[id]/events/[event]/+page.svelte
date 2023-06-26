@@ -350,7 +350,7 @@
 <Table divClass="relative overflow-x-auto" hoverable={true}>
 	<!-- top-[92px] lg:top-[116px] -->
 	<TableHead>
-		<TableHeadCell class="!p-4">
+		<TableHeadCell class="py-4 pl-4 pr-2">
 			<Checkbox on:click={toggleAll} checked={selectAll} />
 		</TableHeadCell>
 		<TableHeadCell class="px-2">#</TableHeadCell>
@@ -373,7 +373,7 @@
 		{:else}
 			{#each modifiedTeams as team}
 				<TableBodyRow>
-					<TableBodyCell class="!p-4">
+					<TableBodyCell class="py-4 pl-4 pr-2">
 						<Checkbox
 							on:click={() => {
 								toggleCheck(team.id);
