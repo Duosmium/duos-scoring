@@ -367,7 +367,7 @@
 					</TableBodyCell>
 					<TableBodyCell class="py-0 px-2">
 						<a
-							href="/td/{data.tournament.id}/events/{event.slug}/"
+							href="/td/{data.tournament.id}/events/{event.id.toString()}/"
 							class="font-medium text-primary-600 hover:underline dark:text-primary-500"
 						>
 							View

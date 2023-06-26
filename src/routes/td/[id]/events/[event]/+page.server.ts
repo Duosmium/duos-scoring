@@ -9,7 +9,7 @@ export const load: PageLoad = async ({ params }) => {
 		throw error(404, 'Tournament not found');
 	}
 
-	const event = tournament.events.find((event) => event.slug === params.event);
+	const event = tournament.events.find((event) => event.id.toString() === params.event);
 
 	if (event == undefined) {
 		throw error(404, 'Event not found');

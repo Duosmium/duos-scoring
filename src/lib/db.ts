@@ -77,7 +77,6 @@ export async function addUserToRole(
 export async function addEvents(
 	tournamentId: string,
 	events: {
-		slug: string;
 		name: string;
 		trialStatus?: TrialStatus;
 		highScoring?: boolean;
@@ -100,7 +99,6 @@ export async function updateEvent(
 	eventId: bigint,
 	event: {
 		name?: string;
-		slug?: string;
 		trialStatus?: TrialStatus;
 		highScoring?: boolean;
 		medals?: number;

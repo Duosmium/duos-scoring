@@ -1,7 +1,6 @@
 import { addEvents, deleteEvent, updateEvent } from '$lib/db';
 import { TrialStatus } from '@prisma/client';
 import type { RequestHandler } from './$types';
-import slugify from 'slugify';
 
 export const DELETE: RequestHandler = async ({ request }) => {
 	const payload: {
@@ -75,11 +74,6 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 	await addEvents(params.id, [
 		{
 			name: payload.name,
-			slug: slugify(payload.name, {
-				lower: true,
-				strict: true,
-				trim: true
-			}),
 			trialStatus: payload.trialStatus,
 			highScoring: payload.highScoring === 'true',
 			medals: payload.medals
