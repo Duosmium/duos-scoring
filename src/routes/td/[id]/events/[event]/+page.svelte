@@ -39,6 +39,11 @@
 		}
 	});
 
+	const highScoring = [
+		{ value: 'true', name: 'High Score Wins' },
+		{ value: 'false', name: 'Low Score Wins' }
+	];
+
 	const statusLookup = {
 		NA: 'N/A',
 		COMPETED: 'CO',
@@ -332,6 +337,34 @@
 			}
 		}));
 	}
+
+	let showEditEvent = false;
+	let editHighScoring = 'true';
+	let editEventMedals = '';
+	function openEditEvent() {
+		showEditEvent = true;
+		editHighScoring = data.event.highScoring ? 'true' : 'false';
+		editEventMedals = data.event.medals?.toString() || '';
+	}
+	function editEvent() {
+		fetch(`/td/${$page.params['id']}/events/${$page.params['event']}`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				highScoring: editHighScoring,
+				medals: parseInt(editEventMedals) || undefined
+			})
+		}).then((res) => {
+			if (res.status === 200) {
+				addToastMessage('Event edited!', 'success');
+				invalidateAll();
+			} else {
+				addToastMessage('Failed to edit event!', 'error');
+			}
+		});
+	}
 </script>
 
 <Head
@@ -384,7 +417,7 @@
 		</ButtonGroup>
 		<ButtonGroup>
 			<Button color="yellow">Lock</Button>
-			<Button color="alternative">Settings</Button>
+			<Button color="alternative" on:click={openEditEvent}>Settings</Button>
 		</ButtonGroup>
 		<Button
 			color="blue"
@@ -690,6 +723,22 @@
 				}
 			}}>Confirm</Button
 		>
+		<Button color="alternative">Cancel</Button>
+	</svelte:fragment>
+</Modal>
+
+<Modal title="Edit Event" bind:open={showEditEvent} autoclose outsideclose>
+	<Label>
+		High Scoring
+		<Select underline class="mt-2" items={highScoring} bind:value={editHighScoring} />
+	</Label>
+	<Label>
+		Medals (Optional)
+		<Input class="mt-2" type="text" required bind:value={editEventMedals} />
+	</Label>
+
+	<svelte:fragment slot="footer">
+		<Button color="green" on:click={editEvent}>Save</Button>
 		<Button color="alternative">Cancel</Button>
 	</svelte:fragment>
 </Modal>
