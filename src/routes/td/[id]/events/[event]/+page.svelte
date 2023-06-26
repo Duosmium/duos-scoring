@@ -26,19 +26,26 @@
 	} from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import { slide } from 'svelte/transition';
-	import { invalidateAll } from '$app/navigation';
+	import { beforeNavigate, invalidateAll } from '$app/navigation';
 	import type { Score, ScoreStatus } from '@prisma/client';
 	import { parse } from 'papaparse';
 
 	export let data: PageData;
 
+	beforeNavigate(({ cancel }) => {
+		if (!clean) {
+			showConfirmDiscard = true;
+			cancel();
+		}
+	});
+
 	const statusLookup = {
-		NA: 'N/A' as 'N/A',
-		COMPETED: 'CO' as 'CO',
-		PARTICIPATION: 'PO' as 'PO',
-		NOSHOW: 'NS' as 'NS',
-		DISQUALIFICATION: 'DQ' as 'DQ'
-	};
+		NA: 'N/A',
+		COMPETED: 'CO',
+		PARTICIPATION: 'PO',
+		NOSHOW: 'NS',
+		DISQUALIFICATION: 'DQ'
+	} as const;
 	const scoreStatuses = [
 		{ value: 'NA', name: 'N/A' },
 		{ value: 'COMPETED', name: 'CO' },
@@ -57,7 +64,7 @@
 		NS: 2,
 		DQ: 3,
 		'N/A': 4
-	};
+	} as const;
 
 	let sortBy = 'number';
 	let scores = (typeof data.scores === 'boolean' ? [] : data.scores).reduce((acc, s) => {
@@ -73,18 +80,38 @@
 					tier: { old: origScore.tier, new: origScore.tier, dirty: false },
 					tiebreak: { old: origScore.tiebreak, new: origScore.tiebreak, dirty: false },
 					status: {
-						old: origScore.status ?? ('NA' as ScoreStatus & 'NA'),
-						new: origScore.status ?? ('NA' as ScoreStatus & 'NA'),
+						old: (origScore.status ?? 'NA') as ScoreStatus | 'NA',
+						new: (origScore.status ?? 'NA') as ScoreStatus | 'NA',
 						dirty: false
 					},
 					notes: { old: origScore.notes, new: origScore.notes, dirty: false }
 			  }
 			: {
-					rawScore: { old: null, new: null, dirty: false },
-					tier: { old: null, new: null, dirty: false },
-					tiebreak: { old: null, new: null, dirty: false },
-					status: { old: 'NA' as 'NA', new: 'NA' as 'NA', dirty: false },
-					notes: { old: null, new: null, dirty: false }
+					rawScore: { old: null, new: null, dirty: false } as {
+						old: number | null;
+						new: number | null;
+						dirty: boolean;
+					},
+					tier: { old: null, new: null, dirty: false } as {
+						old: number | null;
+						new: number | null;
+						dirty: boolean;
+					},
+					tiebreak: { old: null, new: null, dirty: false } as {
+						old: number | null;
+						new: number | null;
+						dirty: boolean;
+					},
+					status: { old: 'NA', new: 'NA', dirty: false } as {
+						old: ScoreStatus | 'NA';
+						new: ScoreStatus | 'NA';
+						dirty: boolean;
+					},
+					notes: { old: null, new: null, dirty: false } as {
+						old: string | null;
+						new: string | null;
+						dirty: boolean;
+					}
 			  };
 		return {
 			...t,
@@ -153,6 +180,9 @@
 				return 0;
 		}
 	});
+	$: clean = modifiedTeams.every((t) =>
+		(['rawScore', 'tier', 'tiebreak', 'status', 'notes'] as const).every((a) => !t.score[a].dirty)
+	);
 
 	let selectAll = false;
 	let lastIndex = -1;
@@ -287,6 +317,21 @@
 		});
 		modifiedTeams = modifiedTeams;
 	}
+
+	let showConfirmDiscard = false;
+	let confirmDiscardText = '';
+	function discardChanges() {
+		modifiedTeams = modifiedTeams.map((t) => ({
+			...t,
+			score: {
+				rawScore: { old: t.score.rawScore.old, new: t.score.rawScore.old, dirty: false },
+				tier: { old: t.score.tier.old, new: t.score.tier.old, dirty: false },
+				tiebreak: { old: t.score.tiebreak.old, new: t.score.tiebreak.old, dirty: false },
+				status: { old: t.score.status.old, new: t.score.status.old, dirty: false },
+				notes: { old: t.score.notes.old, new: t.score.notes.old, dirty: false }
+			}
+		}));
+	}
 </script>
 
 <Head
@@ -294,7 +339,17 @@
 		.division} | Duosmium Scoring"
 />
 
-<svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} />
+<svelte:window
+	on:keydown={handleKeydown}
+	on:keyup={handleKeyup}
+	on:beforeunload={(e) => {
+		if (!clean) {
+			const msg = 'You have unsaved changes. Are you sure you want to leave?';
+			(e || window.event).returnValue = msg;
+			return msg;
+		}
+	}}
+/>
 
 <div class="w-full flex justify-between flex-wrap mb-2">
 	<Heading tag="h2" class="w-fit">{data.event.name}</Heading>
@@ -318,9 +373,17 @@
 			}}>Import</Button
 		>
 		<ButtonGroup>
-			<Button color="alternative">Save</Button>
-			<Button color="alternative">Lock</Button>
-			<Button color="alternative">Discard</Button>
+			<Button disabled={clean} color="green">Save</Button>
+			<Button
+				disabled={clean}
+				on:click={() => {
+					showConfirmDiscard = true;
+				}}
+				color="red">Discard</Button
+			>
+		</ButtonGroup>
+		<ButtonGroup>
+			<Button color="yellow">Lock</Button>
 			<Button color="alternative">Settings</Button>
 		</ButtonGroup>
 		<Button
@@ -587,6 +650,46 @@
 	<svelte:fragment slot="footer">
 		<!-- TODO: validation -->
 		<Button color="green" disabled={parsedError.length !== 0} on:click={importScores}>Save</Button>
+		<Button color="alternative">Cancel</Button>
+	</svelte:fragment>
+</Modal>
+
+<Modal
+	title="Discard Changes"
+	bind:open={showConfirmDiscard}
+	autoclose
+	outsideclose
+	on:open={() => {
+		confirmDiscardText = '';
+	}}
+	on:close={() => {
+		confirmDiscardText = '';
+	}}
+>
+	<p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+		Are you sure you want to discard your changes? This action cannot be undone.
+	</p>
+	<Label>
+		Type "confirm" to discard changes.
+		<Input
+			class="mt-2"
+			type="text"
+			required
+			placeholder="confirm"
+			bind:value={confirmDiscardText}
+		/>
+	</Label>
+	<svelte:fragment slot="footer">
+		<Button
+			color="red"
+			disabled={confirmDiscardText !== 'confirm'}
+			on:click={() => {
+				if (confirmDiscardText === 'confirm') {
+					discardChanges();
+					confirmDiscardText = '';
+				}
+			}}>Confirm</Button
+		>
 		<Button color="alternative">Cancel</Button>
 	</svelte:fragment>
 </Modal>
