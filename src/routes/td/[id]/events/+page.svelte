@@ -442,7 +442,7 @@
 					confirmDelete();
 					confirmDeleteText = '';
 				}
-			}}>I accept</Button
+			}}>Confirm</Button
 		>
 		<Button color="alternative">Cancel</Button>
 	</svelte:fragment>
