@@ -22,6 +22,7 @@
 	import { page } from '$app/stores';
 	import { slide } from 'svelte/transition';
 	import { invalidateAll } from '$app/navigation';
+	import type { TrialStatus } from '@prisma/client';
 
 	export let data: PageData;
 
@@ -100,27 +101,32 @@
 	}
 
 	function changeTrialStatus(id: bigint) {
-		const event = events.find((ev) => ev.id === id);
-		if (!event) return;
+		return (e: Event) => {
+			const newStatus = (e.target as HTMLSelectElement).value;
+			if (!newStatus) return;
+			
+			events = events.map((ev) =>
+				ev.id === id ? { ...ev, trialStatus: newStatus as TrialStatus } : ev
+			);
 
-		fetch(`/td/${$page.params['id']}/events`, {
-			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				event: event.id.toString(),
-				trialStatus: event.trialStatus
-			})
-		}).then((res) => {
-			if (res.status === 200) {
-				events = events;
-				addToastMessage('Event status updated!', 'success');
-				invalidateAll();
-			} else {
-				addToastMessage('Failed to update event status!', 'error');
-			}
-		});
+			fetch(`/td/${$page.params['id']}/events`, {
+				method: 'PATCH',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					event: id.toString(),
+					trialStatus: newStatus
+				})
+			}).then((res) => {
+				if (res.status === 200) {
+					addToastMessage('Event status updated!', 'success');
+					invalidateAll();
+				} else {
+					addToastMessage('Failed to update event status!', 'error');
+				}
+			});
+		};
 	}
 
 	let showAddEvent = false;
@@ -202,16 +208,16 @@
 <Table divClass="relative overflow-x-auto" hoverable={true}>
 	<!-- top-[92px] lg:top-[116px] -->
 	<TableHead>
-		<TableHeadCell class="!p-4">
+		<TableHeadCell class="py-4 pl-4 pr-2">
 			<Checkbox on:click={toggleAll} checked={selectAll} />
 		</TableHeadCell>
-		<TableHeadCell>Event Name</TableHeadCell>
-		<TableHeadCell>Trial Status</TableHeadCell>
-		<TableHeadCell>Audited</TableHeadCell>
-		<TableHeadCell>Sorted</TableHeadCell>
-		<TableHeadCell>Scores In</TableHeadCell>
-		<TableHeadCell>ES & Volunteers</TableHeadCell>
-		<TableHeadCell>
+		<TableHeadCell class="px-2">Event Name</TableHeadCell>
+		<TableHeadCell class="px-2">Trial Status</TableHeadCell>
+		<TableHeadCell class="px-2">Audited</TableHeadCell>
+		<TableHeadCell class="px-2">Sorted</TableHeadCell>
+		<TableHeadCell class="px-2">Scores In</TableHeadCell>
+		<TableHeadCell class="px-2">ES & Volunteers</TableHeadCell>
+		<TableHeadCell class="px-2">
 			<span class="sr-only"> View </span>
 		</TableHeadCell>
 	</TableHead>
@@ -224,7 +230,7 @@
 		{:else}
 			{#each events as event}
 				<TableBodyRow>
-					<TableBodyCell class="!p-4">
+					<TableBodyCell class="py-4 pl-4 pr-2">
 						<Checkbox
 							on:click={() => {
 								toggleCheck(event.id);
@@ -232,22 +238,20 @@
 							checked={event.checked}
 						/>
 					</TableBodyCell>
-					<TableBodyCell>{event.name}</TableBodyCell>
-					<TableBodyCell>
+					<TableBodyCell class="py-0 px-2">{event.name}</TableBodyCell>
+					<TableBodyCell class="py-0 px-2">
 						<Label>
 							<span class="sr-only">Trial Status</span>
 							<Select
-								on:change={() => {
-									changeTrialStatus(event.id);
-								}}
+								on:change={changeTrialStatus(event.id)}
 								underline
-								class="mt-2"
+								class="min-w-[5.25rem] !border-0"
 								items={trialStatus}
-								bind:value={event.trialStatus}
+								value={event.trialStatus}
 							/>
 						</Label>
 					</TableBodyCell>
-					<TableBodyCell>
+					<TableBodyCell class="py-0 px-2">
 						<span class="flex">
 							{#each event.audited as audited}
 								<!-- TODO: name popover -->
@@ -262,7 +266,7 @@
 							{/each}
 						</span>
 					</TableBodyCell>
-					<TableBodyCell>
+					<TableBodyCell class="py-0 px-2">
 						<span class="flex">
 							{#each event.sorted as sorted}
 								<Avatar stacked
@@ -276,8 +280,8 @@
 							{/each}
 						</span>
 					</TableBodyCell>
-					<TableBodyCell>{event.scores.length}</TableBodyCell>
-					<TableBodyCell
+					<TableBodyCell class="py-0 px-2">{event.scores.length}</TableBodyCell>
+					<TableBodyCell class="py-0 px-2"
 						><span class="flex">
 							{#each event.roles as { user }}
 								<Avatar stacked
@@ -291,7 +295,7 @@
 							{/each}
 						</span></TableBodyCell
 					>
-					<TableBodyCell>
+					<TableBodyCell class="py-0 px-2">
 						<a
 							href="/td/{data.tournament.id}/events/{event.slug}/"
 							class="font-medium text-primary-600 hover:underline dark:text-primary-500"
