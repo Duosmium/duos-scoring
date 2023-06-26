@@ -29,15 +29,29 @@ export const DELETE: RequestHandler = async ({ request }) => {
 export const PATCH: RequestHandler = async ({ request }) => {
 	const payload: {
 		event?: string;
+		name?: string;
 		trialStatus?: TrialStatus;
+		highScoring?: 'true' | 'false';
+		medals?: number;
 	} = await request.json();
 	if (!payload.event || typeof payload.event !== 'string')
 		return new Response('missing event', { status: 404 });
-	if (!payload.trialStatus || !Object.values(TrialStatus).includes(payload.trialStatus))
+	if (payload.name && typeof payload.name !== 'string')
+		return new Response('invalid name', { status: 400 });
+	if (payload.trialStatus && !Object.values(TrialStatus).includes(payload.trialStatus))
 		return new Response('invalid status', { status: 400 });
+	if (payload.highScoring && !['true', 'false'].includes(payload.highScoring))
+		return new Response('invalid highScoring', { status: 400 });
+	if (payload.medals && typeof payload.medals !== 'number')
+		return new Response('invalid medals', { status: 400 });
 
 	const eventId = BigInt(payload.event);
-	await updateEvent(eventId, { trialStatus: payload.trialStatus });
+	await updateEvent(eventId, {
+		name: payload.name,
+		trialStatus: payload.trialStatus,
+		highScoring: payload.highScoring ? payload.highScoring === 'true' : undefined,
+		medals: payload.medals
+	});
 
 	return new Response('ok');
 };
@@ -47,6 +61,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 		name?: string;
 		trialStatus?: TrialStatus;
 		highScoring?: 'true' | 'false';
+		medals?: number;
 	} = await request.json();
 	if (!payload.name || typeof payload.name !== 'string')
 		return new Response('missing name', { status: 400 });
@@ -54,6 +69,8 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 		return new Response('invalid status', { status: 400 });
 	if (!payload.highScoring || !['true', 'false'].includes(payload.highScoring))
 		return new Response('invalid highScoring', { status: 400 });
+	if (payload.medals && typeof payload.medals !== 'number')
+		return new Response('invalid medals', { status: 400 });
 
 	await addEvents(params.id, [
 		{
@@ -64,7 +81,8 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 				trim: true
 			}),
 			trialStatus: payload.trialStatus,
-			highScoring: payload.highScoring === 'true'
+			highScoring: payload.highScoring === 'true',
+			medals: payload.medals
 		}
 	]);
 

@@ -82,7 +82,8 @@
 	let confirmDeleteText = '';
 	function confirmDelete() {
 		const ids = selected.map((ev) => ev.id.toString());
-		fetch('.', {
+		events = events.filter((ev) => !ids.includes(ev.id.toString()));
+		fetch(`/td/${$page.params['id']}/events`, {
 			method: 'DELETE',
 			headers: {
 				'Content-Type': 'application/json'
@@ -92,7 +93,6 @@
 			})
 		}).then((res) => {
 			if (res.status === 200) {
-				events = events.filter((ev) => !ids.includes(ev.id.toString()));
 				addToastMessage('Events deleted!', 'success');
 			} else {
 				addToastMessage('Failed to delete events!', 'error');
@@ -104,7 +104,7 @@
 		return (e: Event) => {
 			const newStatus = (e.target as HTMLSelectElement).value;
 			if (!newStatus) return;
-			
+
 			events = events.map((ev) =>
 				ev.id === id ? { ...ev, trialStatus: newStatus as TrialStatus } : ev
 			);
@@ -133,11 +133,13 @@
 	let addEventName = '';
 	let addEventTrialStatus = 'SCORING';
 	let addHighScoring = 'true';
+	let addEventMedals = '';
 	function openAddEvent() {
 		showAddEvent = true;
 		addEventName = '';
 		addEventTrialStatus = 'SCORING';
 		addHighScoring = 'true';
+		addEventMedals = '';
 	}
 	function addEvent() {
 		// TODO: validate event names for canonicalization
@@ -149,7 +151,8 @@
 			body: JSON.stringify({
 				name: addEventName,
 				trialStatus: addEventTrialStatus,
-				highScoring: addHighScoring
+				highScoring: addHighScoring,
+				medals: parseInt(addEventMedals) || undefined
 			})
 		}).then((res) => {
 			if (res.status === 200) {
@@ -157,6 +160,57 @@
 				invalidateAll();
 			} else {
 				addToastMessage('Failed to add event!', 'error');
+			}
+		});
+	}
+
+	let showEditEvent = false;
+	let editEventName = '';
+	let editEventTrialStatus = 'SCORING';
+	let editHighScoring = 'true';
+	let editEventMedals = '';
+	let editEventId: bigint;
+	function openEditEvent(event: bigint) {
+		showEditEvent = true;
+		const ev = events.find((ev) => ev.id === event);
+		if (!ev) return;
+		editEventId = ev.id;
+		editEventName = ev.name;
+		editEventTrialStatus = ev.trialStatus;
+		editHighScoring = ev.highScoring ? 'true' : 'false';
+		editEventMedals = ev.medals?.toString() || '';
+	}
+	function editEvent() {
+		events = events.map((ev) =>
+			ev.id === editEventId
+				? {
+						...ev,
+						name: editEventName,
+						trialStatus: editEventTrialStatus as any,
+						highScoring: editHighScoring === 'true',
+						medals: parseInt(editEventMedals) || undefined
+				  }
+				: ev
+		);
+		// TODO: validate event names for canonicalization
+		fetch(`/td/${$page.params['id']}/events`, {
+			method: 'PATCH',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				event: editEventId.toString(),
+				name: editEventName,
+				trialStatus: editEventTrialStatus,
+				highScoring: editHighScoring,
+				medals: parseInt(editEventMedals) || undefined
+			})
+		}).then((res) => {
+			if (res.status === 200) {
+				addToastMessage('Event edited!', 'success');
+				invalidateAll();
+			} else {
+				addToastMessage('Failed to edit event!', 'error');
 			}
 		});
 	}
@@ -212,11 +266,15 @@
 			<Checkbox on:click={toggleAll} checked={selectAll} />
 		</TableHeadCell>
 		<TableHeadCell class="px-2">Event Name</TableHeadCell>
+		<TableHeadCell class="px-2">Medals</TableHeadCell>
 		<TableHeadCell class="px-2">Trial Status</TableHeadCell>
 		<TableHeadCell class="px-2">Audited</TableHeadCell>
 		<TableHeadCell class="px-2">Sorted</TableHeadCell>
 		<TableHeadCell class="px-2">Scores In</TableHeadCell>
 		<TableHeadCell class="px-2">ES & Volunteers</TableHeadCell>
+		<TableHeadCell class="px-2">
+			<span class="sr-only"> Edit </span>
+		</TableHeadCell>
 		<TableHeadCell class="px-2">
 			<span class="sr-only"> View </span>
 		</TableHeadCell>
@@ -239,6 +297,7 @@
 						/>
 					</TableBodyCell>
 					<TableBodyCell class="py-0 px-2">{event.name}</TableBodyCell>
+					<TableBodyCell class="py-0 px-2">{event.medals ?? data.tournament.medals}</TableBodyCell>
 					<TableBodyCell class="py-0 px-2">
 						<Label>
 							<span class="sr-only">Trial Status</span>
@@ -295,6 +354,17 @@
 							{/each}
 						</span></TableBodyCell
 					>
+					<TableBodyCell class="py-0 px-2">
+						<Button
+							color="alternative"
+							class="border-none p-1 font-medium text-primary-600 hover:underline dark:text-primary-500"
+							on:click={() => {
+								openEditEvent(event.id);
+							}}
+						>
+							Edit
+						</Button>
+					</TableBodyCell>
 					<TableBodyCell class="py-0 px-2">
 						<a
 							href="/td/{data.tournament.id}/events/{event.slug}/"
@@ -397,9 +467,43 @@
 		High Scoring
 		<Select underline class="mt-2" items={highScoring} bind:value={addHighScoring} />
 	</Label>
+	<Label>
+		Medals (Optional)
+		<Input class="mt-2" type="text" required bind:value={addEventMedals} />
+	</Label>
 
 	<svelte:fragment slot="footer">
 		<Button color="green" disabled={addEventName === ''} on:click={addEvent}>Add Event</Button>
+		<Button color="alternative">Cancel</Button>
+	</svelte:fragment>
+</Modal>
+
+<Modal title="Edit Event" bind:open={showEditEvent} autoclose outsideclose>
+	<Label>
+		Event Name
+		<Input
+			class="mt-2"
+			type="text"
+			required
+			placeholder="Anatomy and Physiology"
+			bind:value={editEventName}
+		/>
+	</Label>
+	<Label>
+		Trial Status
+		<Select underline class="mt-2" items={trialStatus} bind:value={editEventTrialStatus} />
+	</Label>
+	<Label>
+		High Scoring
+		<Select underline class="mt-2" items={highScoring} bind:value={editHighScoring} />
+	</Label>
+	<Label>
+		Medals (Optional)
+		<Input class="mt-2" type="text" required bind:value={editEventMedals} />
+	</Label>
+
+	<svelte:fragment slot="footer">
+		<Button color="green" on:click={editEvent}>Save</Button>
 		<Button color="alternative">Cancel</Button>
 	</svelte:fragment>
 </Modal>
