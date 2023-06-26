@@ -13,8 +13,13 @@
 		List,
 		Modal,
 		P,
-		Select
+		Select,
+		Toast
 	} from 'flowbite-svelte';
+	import type { Tournament } from '@prisma/client';
+	import { page } from '$app/stores';
+	import { invalidateAll } from '$app/navigation';
+	import { slide } from 'svelte/transition';
 
 	export let data: PageData;
 
@@ -86,7 +91,62 @@
 	];
 
 	let showEditTournament = false;
-	// TODO: implement this
+	let editTournamentData: Partial<Tournament> = {};
+	function openEditTournament() {
+		showEditTournament = true;
+		editTournamentData = {
+			...data.tournament,
+			startDate: data.tournament.startDate?.toISOString().slice(0, 10) as any,
+			endDate: data.tournament.endDate?.toISOString().slice(0, 10) as any,
+			awardsDate: data.tournament.awardsDate?.toISOString().slice(0, 10) as any
+		};
+	}
+	function editTournament() {
+		// TODO: validation, canonicalization
+
+		const sendTournamentData = {
+			name: editTournamentData.name || undefined,
+			shortName: editTournamentData.shortName || undefined,
+			location: editTournamentData.location || undefined,
+			state: editTournamentData.state || undefined,
+			level: editTournamentData.level || undefined,
+			division: editTournamentData.division || undefined,
+			year: parseInt(editTournamentData.year as any) || undefined,
+			startDate: editTournamentData.startDate ? new Date(editTournamentData.startDate) : undefined,
+			endDate: editTournamentData.endDate ? new Date(editTournamentData.endDate) : undefined,
+			awardsDate: editTournamentData.awardsDate
+				? new Date(editTournamentData.awardsDate)
+				: undefined,
+			enableTracks: editTournamentData.enableTracks || undefined,
+			medals: parseInt(editTournamentData.medals as any) || undefined,
+			trophies: parseInt(editTournamentData.trophies as any) || undefined,
+			bids: parseInt(editTournamentData.bids as any) || undefined,
+			drops: parseInt(editTournamentData.drops as any) || undefined,
+			nOffset: parseInt(editTournamentData.nOffset as any) || undefined
+		};
+		fetch(`/td/${$page.params['id']}`, {
+			method: 'PATCH',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(sendTournamentData) // TODO: validate
+		}).then((res) => {
+			if (res.status === 200) {
+				addToastMessage('Tournament updated!', 'success');
+				invalidateAll();
+			} else {
+				addToastMessage('Failed to update tournament!', 'error');
+			}
+		});
+	}
+
+	let messages: { text: string; type: 'success' | 'error' }[] = [];
+	function addToastMessage(message: string, type: 'success' | 'error' = 'success') {
+		messages = [...messages, { text: message, type }];
+		setTimeout(() => {
+			messages = messages.slice(1);
+		}, 3000);
+	}
 </script>
 
 <Head
@@ -122,12 +182,7 @@
 	<Card size="lg">
 		<span class="flex justify-between flex-row">
 			<Heading tag="h2" class="mb-2 text-2xl w-fit">About Tournament</Heading>
-			<Button
-				size="sm"
-				on:click={() => {
-					showEditTournament = true;
-				}}>Edit</Button
-			>
+			<Button size="sm" on:click={openEditTournament}>Edit</Button>
 		</span>
 		<!-- TODO: Make this pretty -->
 		<List
@@ -204,70 +259,117 @@
 
 <Modal title="Edit Tournament Info" bind:open={showEditTournament} autoclose outsideclose>
 	<Label>
-		Name: <Input type="text" name="name" value={data.tournament.name} required />
+		Name: <Input type="text" name="name" bind:value={editTournamentData.name} required />
 	</Label>
 	<Label>
-		Short Name: <Input type="text" name="shortName" value={data.tournament.shortName} required />
+		Short Name: <Input
+			type="text"
+			name="shortName"
+			bind:value={editTournamentData.shortName}
+			required
+		/>
 	</Label>
 	<Label>
-		Location: <Input type="text" name="location" value={data.tournament.location} required />
+		Location: <Input
+			type="text"
+			name="location"
+			bind:value={editTournamentData.location}
+			required
+		/>
 	</Label>
 	<Label>
 		State:
-		<Select name="state" items={states} value={data.tournament.state} required />
+		<Select name="state" items={states} bind:value={editTournamentData.state} required />
 	</Label>
 	<Label>
 		Level:
-		<Select name="level" items={levels} value={data.tournament.level} required />
+		<Select name="level" items={levels} bind:value={editTournamentData.level} required />
 	</Label>
 	<Label>
 		Division:
-		<Select name="division" items={divisions} value={data.tournament.division} required />
+		<Select name="division" items={divisions} bind:value={editTournamentData.division} required />
 	</Label>
 	<Label>
-		Year: <Input type="number" name="year" value={data.tournament.year} required />
+		Year: <Input type="number" name="year" bind:value={editTournamentData.year} required />
 	</Label>
 	<Label>
 		Start Date: <Input
 			type="date"
 			name="startDate"
-			value={data.tournament.startDate.toISOString().slice(0, 10)}
+			bind:value={editTournamentData.startDate}
 			required
 		/>
 	</Label>
 	<Label>
-		End Date: <Input
-			type="date"
-			name="endDate"
-			value={data.tournament.endDate.toISOString().slice(0, 10)}
-			required
-		/>
+		End Date: <Input type="date" name="endDate" bind:value={editTournamentData.endDate} required />
 	</Label>
 	<Label>
 		Awards Date: <Input
 			type="date"
 			name="awardsDate"
-			value={data.tournament.awardsDate.toISOString().slice(0, 10)}
+			bind:value={editTournamentData.awardsDate}
 			required
 		/>
 	</Label>
 	<Label>
-		Enable Tracks: <Checkbox name="enableTracks" checked={data.tournament.enableTracks} />
+		Enable Tracks: <Checkbox name="enableTracks" bind:checked={editTournamentData.enableTracks} />
 	</Label>
 	<Label>
-		Medals: <Input type="number" name="medals" value={data.tournament.medals} />
+		Medals: <Input type="number" name="medals" bind:value={editTournamentData.medals} />
 	</Label>
 	<Label>
-		Trophies: <Input type="number" name="trophies" value={data.tournament.trophies} />
+		Trophies: <Input type="number" name="trophies" bind:value={editTournamentData.trophies} />
 	</Label>
 	<Label>
-		Bids: <Input type="number" name="bids" value={data.tournament.bids} />
+		Bids: <Input type="number" name="bids" bind:value={editTournamentData.bids} />
 	</Label>
 	<Label>
-		N-Offset: <Input type="number" name="nOffset" value={data.tournament.nOffset} />
+		N-Offset: <Input type="number" name="nOffset" bind:value={editTournamentData.nOffset} />
 	</Label>
 	<Label>
-		Drops: <Input type="number" name="drops" value={data.tournament.drops} />
+		Drops: <Input type="number" name="drops" bind:value={editTournamentData.drops} />
 	</Label>
-	<Button>Save</Button>
+
+	<svelte:fragment slot="footer">
+		<!-- TODO: validation -->
+		<Button color="green" on:click={editTournament}>Save</Button>
+		<Button color="alternative">Cancel</Button>
+	</svelte:fragment>
 </Modal>
+
+<div class="fixed bottom-8 right-8 flex flex-col space-y-4">
+	{#each messages as message}
+		<Toast color={message.type === 'success' ? 'green' : 'red'} transition={slide}>
+			<svelte:fragment slot="icon">
+				{#if message.type === 'success'}
+					<svg
+						aria-hidden="true"
+						class="w-5 h-5"
+						fill="currentColor"
+						viewBox="0 0 20 20"
+						xmlns="http://www.w3.org/2000/svg"
+						><path
+							fill-rule="evenodd"
+							d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+							clip-rule="evenodd"
+						/></svg
+					>
+					<span class="sr-only">Check icon</span>
+				{:else}
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 20 20"
+						fill="currentColor"
+						class="w-5 h-5"
+					>
+						<path
+							d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
+						/>
+					</svg>
+					<span class="sr-only">X icon</span>
+				{/if}
+			</svelte:fragment>
+			{message.text}
+		</Toast>
+	{/each}
+</div>

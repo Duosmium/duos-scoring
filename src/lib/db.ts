@@ -32,7 +32,7 @@ export async function createTournament(tournament: Tournament) {
 	});
 }
 
-export async function updateTournament(tournamentId: string, tournament: Tournament) {
+export async function updateTournament(tournamentId: string, tournament: Partial<Tournament>) {
 	await prisma.tournament.update({
 		where: {
 			id: tournamentId
@@ -76,7 +76,13 @@ export async function addUserToRole(
 
 export async function addEvents(
 	tournamentId: string,
-	events: { slug: string; name: string; trialStatus?: TrialStatus; highScoring?: boolean }[]
+	events: {
+		slug: string;
+		name: string;
+		trialStatus?: TrialStatus;
+		highScoring?: boolean;
+		medals?: number;
+	}[]
 ) {
 	try {
 		await prisma.event.createMany({
@@ -92,7 +98,13 @@ export async function addEvents(
 
 export async function updateEvent(
 	eventId: bigint,
-	event: { name?: string; slug?: string; trialStatus?: TrialStatus }
+	event: {
+		name?: string;
+		slug?: string;
+		trialStatus?: TrialStatus;
+		highScoring?: boolean;
+		medals?: number;
+	}
 ) {
 	try {
 		await prisma.event.update({
