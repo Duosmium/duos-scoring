@@ -5,7 +5,8 @@ import {
 	type TournamentRoles,
 	type TrialStatus,
 	type Team,
-	type Track
+	type Track,
+	type Score
 } from '@prisma/client';
 const prisma = new PrismaClient();
 
@@ -319,4 +320,32 @@ export async function getEventScores(eventId: bigint) {
 	}
 
 	return scores;
+}
+
+export async function updateScores(scores: Partial<Score>[]) {
+	try {
+		await Promise.all(
+			scores.map(
+				async (score) =>
+					await prisma.score.update({
+						where: {
+							id: score.id
+						},
+						data: score
+					})
+			)
+		);
+	} catch (e) {
+		return false;
+	}
+}
+
+export async function addScores(scores: Omit<Score, 'id'>[]) {
+	try {
+		await prisma.score.createMany({
+			data: scores
+		});
+	} catch (e) {
+		return false;
+	}
 }

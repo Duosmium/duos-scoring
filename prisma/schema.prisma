@@ -38,7 +38,7 @@ model Score {
   id       BigInt      @id @default(autoincrement())
   teamId   BigInt
   eventId  BigInt
-  rawScore Float
+  rawScore Float?
   tier     Int?        @db.SmallInt
   tiebreak Float?      @db.Real
   status   ScoreStatus

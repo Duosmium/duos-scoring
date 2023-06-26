@@ -71,123 +71,136 @@
 		'N/A': 4
 	} as const;
 
+	function generateModifiedTeams(data: PageData) {
+		const scores = (typeof data.scores === 'boolean' ? [] : data.scores).reduce((acc, s) => {
+			acc.set(s.team.id, s);
+			return acc;
+		}, new Map<bigint, Score>());
+		return data.tournament.teams.map((t, i) => {
+			let origScore = scores.get(t.id);
+			let score = origScore
+				? {
+						...origScore,
+						rawScore: { old: origScore.rawScore, new: origScore.rawScore, dirty: false },
+						tier: { old: origScore.tier, new: origScore.tier, dirty: false },
+						tiebreak: { old: origScore.tiebreak, new: origScore.tiebreak, dirty: false },
+						status: {
+							old: (origScore.status ?? 'NA') as ScoreStatus | 'NA',
+							new: (origScore.status ?? 'NA') as ScoreStatus | 'NA',
+							dirty: false
+						},
+						notes: { old: origScore.notes, new: origScore.notes, dirty: false }
+				  }
+				: {
+						id: undefined as bigint | undefined,
+						rawScore: { old: null, new: null, dirty: false } as {
+							old: number | null;
+							new: number | null;
+							dirty: boolean;
+						},
+						tier: { old: null, new: null, dirty: false } as {
+							old: number | null;
+							new: number | null;
+							dirty: boolean;
+						},
+						tiebreak: { old: null, new: null, dirty: false } as {
+							old: number | null;
+							new: number | null;
+							dirty: boolean;
+						},
+						status: { old: 'NA', new: 'NA', dirty: false } as {
+							old: ScoreStatus | 'NA';
+							new: ScoreStatus | 'NA';
+							dirty: boolean;
+						},
+						notes: { old: null, new: null, dirty: false } as {
+							old: string | null;
+							new: string | null;
+							dirty: boolean;
+						}
+				  };
+			return {
+				...t,
+				index: i,
+				checked: false,
+				score,
+				ranking: null as unknown as number | keyof typeof statusOrder
+			};
+		});
+	}
+
 	let sortBy = 'number';
-	let scores = (typeof data.scores === 'boolean' ? [] : data.scores).reduce((acc, s) => {
-		acc.set(s.team.id, s);
-		return acc;
-	}, new Map<bigint, Score>());
-	let modifiedTeams = data.tournament.teams.map((t, i) => {
-		let origScore = scores.get(t.id);
-		let score = origScore
-			? {
-					...origScore,
-					rawScore: { old: origScore.rawScore, new: origScore.rawScore, dirty: false },
-					tier: { old: origScore.tier, new: origScore.tier, dirty: false },
-					tiebreak: { old: origScore.tiebreak, new: origScore.tiebreak, dirty: false },
-					status: {
-						old: (origScore.status ?? 'NA') as ScoreStatus | 'NA',
-						new: (origScore.status ?? 'NA') as ScoreStatus | 'NA',
-						dirty: false
-					},
-					notes: { old: origScore.notes, new: origScore.notes, dirty: false }
-			  }
-			: {
-					rawScore: { old: null, new: null, dirty: false } as {
-						old: number | null;
-						new: number | null;
-						dirty: boolean;
-					},
-					tier: { old: null, new: null, dirty: false } as {
-						old: number | null;
-						new: number | null;
-						dirty: boolean;
-					},
-					tiebreak: { old: null, new: null, dirty: false } as {
-						old: number | null;
-						new: number | null;
-						dirty: boolean;
-					},
-					status: { old: 'NA', new: 'NA', dirty: false } as {
-						old: ScoreStatus | 'NA';
-						new: ScoreStatus | 'NA';
-						dirty: boolean;
-					},
-					notes: { old: null, new: null, dirty: false } as {
-						old: string | null;
-						new: string | null;
-						dirty: boolean;
-					}
-			  };
-		return {
-			...t,
-			index: i,
-			checked: false,
-			score,
-			ranking: null as unknown as number | keyof typeof statusOrder
-		};
-	});
-	$: teamLookup = modifiedTeams.reduce((acc, t) => {
-		acc.set(t.number, t);
-		return acc;
-	}, new Map<number, (typeof modifiedTeams)[0]>());
-	$: modifiedTeams = modifiedTeams
-		.map((t) => ({
-			...t,
-			ranking:
-				t.score.status.new === 'COMPETED'
-					? t.score.rawScore.new
-						? t.score.rawScore.new +
-						  ((t.score.tiebreak.new || 0) - 1000000 * (t.score.tier.new || 1)) *
-								(data.event.highScoring ? 1 : -1)
-						: 'PARTICIPATION'
-					: t.score.status.new
-		}))
-		.sort((a, b) =>
-			typeof a.ranking === 'number' && typeof b.ranking === 'number'
-				? (b.ranking - a.ranking) * (data.event.highScoring ? 1 : -1)
-				: typeof a.ranking === 'string' && typeof b.ranking === 'string'
-				? statusOrder[a.ranking] - statusOrder[b.ranking]
-				: typeof a.ranking === 'number'
-				? -1
-				: 1
-		)
-		.map((t, i) => ({
-			...t,
-			ranking: typeof t.ranking === 'string' ? statusLookup[t.ranking] : i + 1
-		}));
-	$: modifiedTeams = modifiedTeams.sort((a, b) => {
-		switch (sortBy) {
-			case 'number':
-				return a.number - b.number;
-			case 'school':
-				return a.school.localeCompare(b.school);
-			case 'score':
-				return (
-					((b.score?.rawScore.new ?? (data.event.highScoring ? 0 : Infinity)) -
-						(a.score?.rawScore.new ?? (data.event.highScoring ? 0 : Infinity))) *
-						(data.event.highScoring ? 1 : -1) ||
-					(a.score?.tier.new ?? Infinity) - (b.score?.tier.new ?? Infinity) ||
-					(b.score?.tiebreak.new ?? 0) - (a.score?.tiebreak.new ?? 0)
-				);
-			case 'tier':
-				return (a.score?.tier.new ?? Infinity) - (b.score?.tier.new ?? Infinity);
-			case 'status':
-				return statusOrder[a.score?.status.new ?? 'NA'] - statusOrder[b.score?.status.new ?? 'NA'];
-			case 'ranking':
-				return typeof a.ranking === 'number' && typeof b.ranking === 'number'
-					? a.ranking - b.ranking
+	let modifiedTeams = generateModifiedTeams(data);
+	$: {
+		// update rankings when things change
+		modifiedTeams = modifiedTeams
+			.map((t) => ({
+				...t,
+				ranking:
+					t.score.status.new === 'COMPETED'
+						? t.score.rawScore.new
+							? t.score.rawScore.new +
+							  ((t.score.tiebreak.new || 0) - 1000000 * (t.score.tier.new || 1)) *
+									(data.event.highScoring ? 1 : -1)
+							: 'PARTICIPATION'
+						: t.score.status.new
+			}))
+			.sort((a, b) =>
+				typeof a.ranking === 'number' && typeof b.ranking === 'number'
+					? (b.ranking - a.ranking) * (data.event.highScoring ? 1 : -1)
 					: typeof a.ranking === 'string' && typeof b.ranking === 'string'
 					? statusOrder[a.ranking] - statusOrder[b.ranking]
 					: typeof a.ranking === 'number'
 					? -1
-					: 1;
-			default:
-				return 0;
-		}
-	});
+					: 1
+			)
+			.map((t, i) => ({
+				...t,
+				ranking: typeof t.ranking === 'string' ? statusLookup[t.ranking] : i + 1
+			}));
+	}
+	$: {
+		// update sorting when things change
+		modifiedTeams = modifiedTeams.sort((a, b) => {
+			switch (sortBy) {
+				case 'number':
+					return a.number - b.number;
+				case 'school':
+					return a.school.localeCompare(b.school);
+				case 'score':
+					return (
+						((b.score?.rawScore.new ?? (data.event.highScoring ? 0 : Infinity)) -
+							(a.score?.rawScore.new ?? (data.event.highScoring ? 0 : Infinity))) *
+							(data.event.highScoring ? 1 : -1) ||
+						(a.score?.tier.new ?? Infinity) - (b.score?.tier.new ?? Infinity) ||
+						(b.score?.tiebreak.new ?? 0) - (a.score?.tiebreak.new ?? 0)
+					);
+				case 'tier':
+					return (a.score?.tier.new ?? Infinity) - (b.score?.tier.new ?? Infinity);
+				case 'status':
+					return (
+						statusOrder[a.score?.status.new ?? 'NA'] - statusOrder[b.score?.status.new ?? 'NA']
+					);
+				case 'ranking':
+					return typeof a.ranking === 'number' && typeof b.ranking === 'number'
+						? a.ranking - b.ranking
+						: typeof a.ranking === 'string' && typeof b.ranking === 'string'
+						? statusOrder[a.ranking] - statusOrder[b.ranking]
+						: typeof a.ranking === 'number'
+						? -1
+						: 1;
+				default:
+					return 0;
+			}
+		});
+	}
 	$: clean = modifiedTeams.every((t) =>
 		(['rawScore', 'tier', 'tiebreak', 'status', 'notes'] as const).every((a) => !t.score[a].dirty)
 	);
+	$: teamLookup = modifiedTeams.reduce((acc, t) => {
+		acc.set(t.number, t);
+		return acc;
+	}, new Map<number, (typeof modifiedTeams)[0]>());
 
 	let selectAll = false;
 	let lastIndex = -1;
@@ -238,10 +251,12 @@
 	}
 
 	function updateData(
-		team: (typeof modifiedTeams)[0],
+		teamNumber: number,
 		field: 'rawScore' | 'tier' | 'tiebreak' | 'status' | 'notes'
 	) {
 		return (e: Event) => {
+			const team = teamLookup.get(teamNumber);
+			if (!team) return;
 			switch (field) {
 				case 'rawScore':
 					team.score[field].new = parseFloat((e.target as HTMLInputElement).value) || null;
@@ -329,6 +344,7 @@
 		modifiedTeams = modifiedTeams.map((t) => ({
 			...t,
 			score: {
+				...t.score,
 				rawScore: { old: t.score.rawScore.old, new: t.score.rawScore.old, dirty: false },
 				tier: { old: t.score.tier.old, new: t.score.tier.old, dirty: false },
 				tiebreak: { old: t.score.tiebreak.old, new: t.score.tiebreak.old, dirty: false },
@@ -348,7 +364,7 @@
 	}
 	function editEvent() {
 		fetch(`/td/${$page.params['id']}/events/${$page.params['event']}`, {
-			method: 'POST',
+			method: 'PATCH',
 			headers: {
 				'Content-Type': 'application/json'
 			},
@@ -364,6 +380,53 @@
 				addToastMessage('Failed to edit event!', 'error');
 			}
 		});
+	}
+
+	function saveScores() {
+		fetch(`/td/${$page.params['id']}/events/${$page.params['event']}`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(
+				modifiedTeams
+					.filter((t) =>
+						(['rawScore', 'tier', 'tiebreak', 'status', 'notes'] as const).some(
+							(a) => t.score[a].dirty
+						)
+					)
+					.map((t) => ({
+						id: t.score.id?.toString(),
+						teamId: t.id.toString(),
+						rawScore: t.score.rawScore.dirty ? t.score.rawScore.new : undefined,
+						tier: t.score.tier.dirty ? t.score.tier.new : undefined,
+						tiebreak: t.score.tiebreak.dirty ? t.score.tiebreak.new : undefined,
+						status:
+							t.score.status.dirty && t.score.status.new !== 'NA' ? t.score.status.new : undefined,
+						notes: t.score.notes.dirty ? t.score.notes.new : undefined
+					}))
+			)
+		}).then((res) => {
+			if (res.status === 200) {
+				addToastMessage('Scores saved!', 'success');
+				invalidateAll().then(() => {
+					modifiedTeams = generateModifiedTeams(data);
+				});
+			} else {
+				addToastMessage('Failed to save scores!', 'error');
+			}
+		});
+		modifiedTeams = modifiedTeams.map((t) => ({
+			...t,
+			score: {
+				...t.score,
+				rawScore: { old: t.score.rawScore.new, new: t.score.rawScore.new, dirty: false },
+				tier: { old: t.score.tier.new, new: t.score.tier.new, dirty: false },
+				tiebreak: { old: t.score.tiebreak.new, new: t.score.tiebreak.new, dirty: false },
+				status: { old: t.score.status.new, new: t.score.status.new, dirty: false },
+				notes: { old: t.score.notes.new, new: t.score.notes.new, dirty: false }
+			}
+		}));
 	}
 </script>
 
@@ -406,7 +469,7 @@
 			}}>Import</Button
 		>
 		<ButtonGroup>
-			<Button disabled={clean} color="green">Save</Button>
+			<Button disabled={clean} on:click={saveScores} color="green">Save</Button>
 			<Button
 				disabled={clean}
 				on:click={() => {
@@ -493,7 +556,7 @@
 							type="text"
 							inputmode="numeric"
 							value={team.score.rawScore.new ?? ''}
-							on:change={updateData(team, 'rawScore')}
+							on:change={updateData(team.number, 'rawScore')}
 						/>
 					</TableBodyCell>
 					<TableBodyCell class="p-0">
@@ -504,7 +567,7 @@
 							type="text"
 							inputmode="numeric"
 							value={team.score.tier.new ?? ''}
-							on:change={updateData(team, 'tier')}
+							on:change={updateData(team.number, 'tier')}
 						/>
 					</TableBodyCell>
 					<TableBodyCell class="p-0">
@@ -515,7 +578,7 @@
 							type="text"
 							inputmode="numeric"
 							value={team.score.tiebreak.new ?? ''}
-							on:change={updateData(team, 'tiebreak')}
+							on:change={updateData(team.number, 'tiebreak')}
 						/>
 					</TableBodyCell>
 					<TableBodyCell class="p-0">
@@ -525,7 +588,7 @@
 								team.score.status.dirty ? '!border-2' : '!border-0'
 							}`}
 							value={team.score.status.new ?? 'NA'}
-							on:change={updateData(team, 'status')}
+							on:change={updateData(team.number, 'status')}
 						/>
 					</TableBodyCell>
 					<TableBodyCell class="px-4">{team.ranking}</TableBodyCell>
@@ -535,7 +598,7 @@
 								team.score.notes.dirty ? '!border-2' : '!border-0'
 							}`}
 							rows="1"
-							on:change={updateData(team, 'notes')}
+							on:change={updateData(team.number, 'notes')}
 						>
 							{team.score.notes.new || ''}
 						</Textarea>
