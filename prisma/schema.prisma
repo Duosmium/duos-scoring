@@ -15,6 +15,8 @@ model Event {
   trialStatus  TrialStatus @default(SCORING)
   highScoring  Boolean     @default(true)
   slug         String
+  locked       Boolean     @default(false)
+  medals       Int?        @db.SmallInt
   tournament   Tournament  @relation(fields: [tournamentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   roles        Role[]
   scores       Score[]
