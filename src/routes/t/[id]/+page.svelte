@@ -159,183 +159,190 @@
 >
 
 <!-- TODO: make this pretty -->
-<div class="flex flex-row flex-wrap items-start gap-4">
-	<Card size="sm">
-		<P class="mb-2 text-2xl">{data.tournament.teams.length} Teams</P>
-		<P class="mb-2 text-2xl"
-			>{data.tournament.events.filter((e) => e.locked).length} Events Done Grading</P
-		>
-		<P class="mb-2 text-2xl"
-			>{data.tournament.events.filter((e) => e.audited.length !== 0).length} Events Audited</P
-		>
-	</Card>
-	<Card size="xs">
-		<Heading tag="h2" class="mb-2 text-2xl">Events</Heading>
-		<List tag="ul">
-			{#each data.tournament.events as event}
-				<Li>
-					{event.name}: {event.scores.length}
-				</Li>
-			{/each}
-		</List>
-	</Card>
-	<Card size="lg">
-		<span class="flex justify-between flex-row">
-			<Heading tag="h2" class="mb-2 text-2xl w-fit">About Tournament</Heading>
-			<Button size="sm" on:click={openEditTournament}>Edit</Button>
-		</span>
-		<!-- TODO: Make this pretty -->
-		<List
-			tag="dl"
-			class="text-gray-700 dark:text-gray-300 divide-y divide-gray-200 dark:divide-gray-700"
-		>
-			<div class="flex flex-col pb-3">
-				<DescriptionList tag="dt">Name</DescriptionList>
-				<DescriptionList tag="dd">{data.tournament.name}</DescriptionList>
-			</div>
-			<div class="flex flex-col pb-3">
-				<DescriptionList tag="dt">Short Name</DescriptionList>
-				<DescriptionList tag="dd">{data.tournament.shortName}</DescriptionList>
-			</div>
-			<div class="flex flex-col pb-3">
-				<DescriptionList tag="dt">Location</DescriptionList>
-				<DescriptionList tag="dd">{data.tournament.location}</DescriptionList>
-			</div>
-			<div class="flex flex-col pb-3">
-				<DescriptionList tag="dt">State</DescriptionList>
-				<DescriptionList tag="dd">{data.tournament.state}</DescriptionList>
-			</div>
-			<div class="flex flex-col pb-3">
-				<DescriptionList tag="dt">Level</DescriptionList>
-				<DescriptionList tag="dd">{data.tournament.level}</DescriptionList>
-			</div>
-			<div class="flex flex-col pb-3">
-				<DescriptionList tag="dt">Division</DescriptionList>
-				<DescriptionList tag="dd">{data.tournament.division}</DescriptionList>
-			</div>
-			<div class="flex flex-col pb-3">
-				<DescriptionList tag="dt">Year</DescriptionList>
-				<DescriptionList tag="dd">{data.tournament.year}</DescriptionList>
-			</div>
-			<div class="flex flex-col pb-3">
-				<DescriptionList tag="dt">Start Date</DescriptionList>
-				<DescriptionList tag="dd">{data.tournament.startDate}</DescriptionList>
-			</div>
-			<div class="flex flex-col pb-3">
-				<DescriptionList tag="dt">End Date</DescriptionList>
-				<DescriptionList tag="dd">{data.tournament.endDate}</DescriptionList>
-			</div>
-			<div class="flex flex-col pb-3">
-				<DescriptionList tag="dt">Awards Date</DescriptionList>
-				<DescriptionList tag="dd">{data.tournament.awardsDate}</DescriptionList>
-			</div>
-			<div class="flex flex-col pb-3">
-				<DescriptionList tag="dt">Tracks Enabled?</DescriptionList>
-				<DescriptionList tag="dd">{data.tournament.enableTracks}</DescriptionList>
-			</div>
-			<div class="flex flex-col pb-3">
-				<DescriptionList tag="dt">Medals</DescriptionList>
-				<DescriptionList tag="dd">{data.tournament.medals}</DescriptionList>
-			</div>
-			<div class="flex flex-col pb-3">
-				<DescriptionList tag="dt">Trophies</DescriptionList>
-				<DescriptionList tag="dd">{data.tournament.trophies}</DescriptionList>
-			</div>
-			<div class="flex flex-col pb-3">
-				<DescriptionList tag="dt">Bids</DescriptionList>
-				<DescriptionList tag="dd">{data.tournament.bids}</DescriptionList>
-			</div>
-			<div class="flex flex-col pb-3">
-				<DescriptionList tag="dt">Drops</DescriptionList>
-				<DescriptionList tag="dd">{data.tournament.drops}</DescriptionList>
-			</div>
-			<div class="flex flex-col pb-3">
-				<DescriptionList tag="dt">N Offset</DescriptionList>
-				<DescriptionList tag="dd">{data.tournament.nOffset}</DescriptionList>
-			</div>
-		</List>
-	</Card>
-</div>
+{#if data.isDirector}
+	<div class="flex flex-row flex-wrap items-start gap-4">
+		<Card size="sm">
+			<P class="mb-2 text-2xl">{data.tournament.teams?.length} Teams</P>
+			<P class="mb-2 text-2xl"
+				>{data.tournament.events?.filter((e) => e.locked)?.length} Events Done Grading</P
+			>
+			<P class="mb-2 text-2xl"
+				>{data.tournament.events?.filter((e) => e.audited.length !== 0)?.length} Events Audited</P
+			>
+		</Card>
+		<Card size="xs">
+			<Heading tag="h2" class="mb-2 text-2xl">Events</Heading>
+			<List tag="ul">
+				{#each data.tournament.events ?? [] as event}
+					<Li>
+						{event.name}: {event.scores.length}
+					</Li>
+				{/each}
+			</List>
+		</Card>
+		<Card size="lg">
+			<span class="flex justify-between flex-row">
+				<Heading tag="h2" class="mb-2 text-2xl w-fit">About Tournament</Heading>
+				<Button size="sm" on:click={openEditTournament}>Edit</Button>
+			</span>
+			<!-- TODO: Make this pretty -->
+			<List
+				tag="dl"
+				class="text-gray-700 dark:text-gray-300 divide-y divide-gray-200 dark:divide-gray-700"
+			>
+				<div class="flex flex-col pb-3">
+					<DescriptionList tag="dt">Name</DescriptionList>
+					<DescriptionList tag="dd">{data.tournament.name}</DescriptionList>
+				</div>
+				<div class="flex flex-col pb-3">
+					<DescriptionList tag="dt">Short Name</DescriptionList>
+					<DescriptionList tag="dd">{data.tournament.shortName}</DescriptionList>
+				</div>
+				<div class="flex flex-col pb-3">
+					<DescriptionList tag="dt">Location</DescriptionList>
+					<DescriptionList tag="dd">{data.tournament.location}</DescriptionList>
+				</div>
+				<div class="flex flex-col pb-3">
+					<DescriptionList tag="dt">State</DescriptionList>
+					<DescriptionList tag="dd">{data.tournament.state}</DescriptionList>
+				</div>
+				<div class="flex flex-col pb-3">
+					<DescriptionList tag="dt">Level</DescriptionList>
+					<DescriptionList tag="dd">{data.tournament.level}</DescriptionList>
+				</div>
+				<div class="flex flex-col pb-3">
+					<DescriptionList tag="dt">Division</DescriptionList>
+					<DescriptionList tag="dd">{data.tournament.division}</DescriptionList>
+				</div>
+				<div class="flex flex-col pb-3">
+					<DescriptionList tag="dt">Year</DescriptionList>
+					<DescriptionList tag="dd">{data.tournament.year}</DescriptionList>
+				</div>
+				<div class="flex flex-col pb-3">
+					<DescriptionList tag="dt">Start Date</DescriptionList>
+					<DescriptionList tag="dd">{data.tournament.startDate}</DescriptionList>
+				</div>
+				<div class="flex flex-col pb-3">
+					<DescriptionList tag="dt">End Date</DescriptionList>
+					<DescriptionList tag="dd">{data.tournament.endDate}</DescriptionList>
+				</div>
+				<div class="flex flex-col pb-3">
+					<DescriptionList tag="dt">Awards Date</DescriptionList>
+					<DescriptionList tag="dd">{data.tournament.awardsDate}</DescriptionList>
+				</div>
+				<div class="flex flex-col pb-3">
+					<DescriptionList tag="dt">Tracks Enabled?</DescriptionList>
+					<DescriptionList tag="dd">{data.tournament.enableTracks}</DescriptionList>
+				</div>
+				<div class="flex flex-col pb-3">
+					<DescriptionList tag="dt">Medals</DescriptionList>
+					<DescriptionList tag="dd">{data.tournament.medals}</DescriptionList>
+				</div>
+				<div class="flex flex-col pb-3">
+					<DescriptionList tag="dt">Trophies</DescriptionList>
+					<DescriptionList tag="dd">{data.tournament.trophies}</DescriptionList>
+				</div>
+				<div class="flex flex-col pb-3">
+					<DescriptionList tag="dt">Bids</DescriptionList>
+					<DescriptionList tag="dd">{data.tournament.bids}</DescriptionList>
+				</div>
+				<div class="flex flex-col pb-3">
+					<DescriptionList tag="dt">Drops</DescriptionList>
+					<DescriptionList tag="dd">{data.tournament.drops}</DescriptionList>
+				</div>
+				<div class="flex flex-col pb-3">
+					<DescriptionList tag="dt">N Offset</DescriptionList>
+					<DescriptionList tag="dd">{data.tournament.nOffset}</DescriptionList>
+				</div>
+			</List>
+		</Card>
+	</div>
 
-<Modal title="Edit Tournament Info" bind:open={showEditTournament} autoclose outsideclose>
-	<Label>
-		Name: <Input type="text" name="name" bind:value={editTournamentData.name} required />
-	</Label>
-	<Label>
-		Short Name: <Input
-			type="text"
-			name="shortName"
-			bind:value={editTournamentData.shortName}
-			required
-		/>
-	</Label>
-	<Label>
-		Location: <Input
-			type="text"
-			name="location"
-			bind:value={editTournamentData.location}
-			required
-		/>
-	</Label>
-	<Label>
-		State:
-		<Select name="state" items={states} bind:value={editTournamentData.state} required />
-	</Label>
-	<Label>
-		Level:
-		<Select name="level" items={levels} bind:value={editTournamentData.level} required />
-	</Label>
-	<Label>
-		Division:
-		<Select name="division" items={divisions} bind:value={editTournamentData.division} required />
-	</Label>
-	<Label>
-		Year: <Input type="number" name="year" bind:value={editTournamentData.year} required />
-	</Label>
-	<Label>
-		Start Date: <Input
-			type="date"
-			name="startDate"
-			bind:value={editTournamentData.startDate}
-			required
-		/>
-	</Label>
-	<Label>
-		End Date: <Input type="date" name="endDate" bind:value={editTournamentData.endDate} required />
-	</Label>
-	<Label>
-		Awards Date: <Input
-			type="date"
-			name="awardsDate"
-			bind:value={editTournamentData.awardsDate}
-			required
-		/>
-	</Label>
-	<Label>
-		Enable Tracks: <Checkbox name="enableTracks" bind:checked={editTournamentData.enableTracks} />
-	</Label>
-	<Label>
-		Medals: <Input type="number" name="medals" bind:value={editTournamentData.medals} />
-	</Label>
-	<Label>
-		Trophies: <Input type="number" name="trophies" bind:value={editTournamentData.trophies} />
-	</Label>
-	<Label>
-		Bids: <Input type="number" name="bids" bind:value={editTournamentData.bids} />
-	</Label>
-	<Label>
-		N-Offset: <Input type="number" name="nOffset" bind:value={editTournamentData.nOffset} />
-	</Label>
-	<Label>
-		Drops: <Input type="number" name="drops" bind:value={editTournamentData.drops} />
-	</Label>
+	<Modal title="Edit Tournament Info" bind:open={showEditTournament} autoclose outsideclose>
+		<Label>
+			Name: <Input type="text" name="name" bind:value={editTournamentData.name} required />
+		</Label>
+		<Label>
+			Short Name: <Input
+				type="text"
+				name="shortName"
+				bind:value={editTournamentData.shortName}
+				required
+			/>
+		</Label>
+		<Label>
+			Location: <Input
+				type="text"
+				name="location"
+				bind:value={editTournamentData.location}
+				required
+			/>
+		</Label>
+		<Label>
+			State:
+			<Select name="state" items={states} bind:value={editTournamentData.state} required />
+		</Label>
+		<Label>
+			Level:
+			<Select name="level" items={levels} bind:value={editTournamentData.level} required />
+		</Label>
+		<Label>
+			Division:
+			<Select name="division" items={divisions} bind:value={editTournamentData.division} required />
+		</Label>
+		<Label>
+			Year: <Input type="number" name="year" bind:value={editTournamentData.year} required />
+		</Label>
+		<Label>
+			Start Date: <Input
+				type="date"
+				name="startDate"
+				bind:value={editTournamentData.startDate}
+				required
+			/>
+		</Label>
+		<Label>
+			End Date: <Input
+				type="date"
+				name="endDate"
+				bind:value={editTournamentData.endDate}
+				required
+			/>
+		</Label>
+		<Label>
+			Awards Date: <Input
+				type="date"
+				name="awardsDate"
+				bind:value={editTournamentData.awardsDate}
+				required
+			/>
+		</Label>
+		<Label>
+			Enable Tracks: <Checkbox name="enableTracks" bind:checked={editTournamentData.enableTracks} />
+		</Label>
+		<Label>
+			Medals: <Input type="number" name="medals" bind:value={editTournamentData.medals} />
+		</Label>
+		<Label>
+			Trophies: <Input type="number" name="trophies" bind:value={editTournamentData.trophies} />
+		</Label>
+		<Label>
+			Bids: <Input type="number" name="bids" bind:value={editTournamentData.bids} />
+		</Label>
+		<Label>
+			N-Offset: <Input type="number" name="nOffset" bind:value={editTournamentData.nOffset} />
+		</Label>
+		<Label>
+			Drops: <Input type="number" name="drops" bind:value={editTournamentData.drops} />
+		</Label>
 
-	<svelte:fragment slot="footer">
-		<!-- TODO: validation -->
-		<Button color="green" on:click={editTournament}>Save</Button>
-		<Button color="alternative">Cancel</Button>
-	</svelte:fragment>
-</Modal>
+		<svelte:fragment slot="footer">
+			<!-- TODO: validation -->
+			<Button color="green" on:click={editTournament}>Save</Button>
+			<Button color="alternative">Cancel</Button>
+		</svelte:fragment>
+	</Modal>
+{/if}
 
 <div class="fixed bottom-8 right-8 flex flex-col space-y-4">
 	{#each messages as message}

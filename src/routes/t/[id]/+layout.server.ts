@@ -3,8 +3,11 @@ import { error } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 
 import * as SentryNode from '@sentry/node';
+import { checkTournamentAccess } from '$lib/utils';
 
 export const load: LayoutServerLoad = async ({ locals, request, params }) => {
+	await checkTournamentAccess(locals.userId, params.id);
+
 	const tournament = await getTournamentInfo(params.id);
 	const user = await getUserInfo(locals.userId);
 
@@ -22,5 +25,18 @@ export const load: LayoutServerLoad = async ({ locals, request, params }) => {
 		throw error(500, 'Error fetching tournament information');
 	}
 
-	return { tournament, user };
+	const isDirector = user.tournaments.find((t) => t.id === params.id)?.isDirector ?? false;
+
+	const filteredTournament = {
+		...tournament,
+		events: undefined,
+		roles: undefined,
+		tracks: undefined
+	};
+
+	return {
+		tournament: isDirector ? tournament : filteredTournament,
+		user,
+		isDirector
+	};
 };

@@ -49,3 +49,29 @@ export async function checkEventPerms(userId: string, eventId: bigint, throwErro
 
 	return true;
 }
+
+export async function checkTournamentAccess(
+	userId: string,
+	tournamentId: string,
+	throwError = true
+) {
+	const user = await getUserInfo(userId);
+
+	if (user === false) {
+		if (throwError) {
+			throw error(500, 'Error fetching user information');
+		} else {
+			return false;
+		}
+	}
+	const userRole = user.tournaments.find((tournament) => tournament.id === tournamentId);
+	if (userRole == undefined) {
+		if (throwError) {
+			throw error(403, 'You do not have permission to view this page');
+		} else {
+			return false;
+		}
+	}
+
+	return true;
+}

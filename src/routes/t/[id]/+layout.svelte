@@ -47,12 +47,14 @@
 		divClass="w-full lg:block lg:w-auto pr-8"
 		ulClass="flex flex-col p-4 mt-4 lg:flex-row lg:space-x-8 lg:mt-0 lg:text-md lg:font-medium items-baseline"
 	>
-		<NavLi href="/t/{data.tournament.id}/events">Events/Score Counseling</NavLi>
-		{#if data.tournament.enableTracks}
-			<NavLi href="/t/{data.tournament.id}/tracks">Tracks</NavLi>
+		{#if data.isDirector}
+			<NavLi href="/t/{data.tournament.id}/events">Events/Score Counseling</NavLi>
+			{#if data.tournament.enableTracks}
+				<NavLi href="/t/{data.tournament.id}/tracks">Tracks</NavLi>
+			{/if}
+			<NavLi href="/t/{data.tournament.id}/teams">Teams</NavLi>
+			<NavLi href="/t/{data.tournament.id}/results">Results</NavLi>
 		{/if}
-		<NavLi href="/t/{data.tournament.id}/teams">Teams</NavLi>
-		<NavLi href="/t/{data.tournament.id}/results">Results</NavLi>
 		<NavLi class="lg:block hidden"
 			><Avatar id="user-drop" class="cursor-pointer"
 				>{data.user.name

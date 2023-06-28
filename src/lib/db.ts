@@ -244,7 +244,10 @@ export async function getUserInfo(userId: string) {
 		...user,
 		tournaments: user.tournaments.map((tournament) => ({
 			...tournament,
-			roles: tournamentRoles.get(tournament.id) ?? []
+			roles: tournamentRoles.get(tournament.id) ?? [],
+			isDirector:
+				(tournamentRoles.get(tournament.id) ?? []).find((role) => role.role === 'DIRECTOR') !=
+				undefined
 		}))
 	};
 }
