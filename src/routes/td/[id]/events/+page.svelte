@@ -188,7 +188,7 @@
 						name: editEventName,
 						trialStatus: editEventTrialStatus as any,
 						highScoring: editHighScoring === 'true',
-						medals: parseInt(editEventMedals) || undefined
+						medals: parseInt(editEventMedals) || null
 				  }
 				: ev
 		);
@@ -268,8 +268,8 @@
 		<TableHeadCell class="px-2">Event Name</TableHeadCell>
 		<TableHeadCell class="px-2">Medals</TableHeadCell>
 		<TableHeadCell class="px-2">Trial Status</TableHeadCell>
+		<TableHeadCell class="px-2">Locked</TableHeadCell>
 		<TableHeadCell class="px-2">Audited</TableHeadCell>
-		<TableHeadCell class="px-2">Sorted</TableHeadCell>
 		<TableHeadCell class="px-2">Scores In</TableHeadCell>
 		<TableHeadCell class="px-2">ES & Volunteers</TableHeadCell>
 		<TableHeadCell class="px-2">
@@ -310,26 +310,13 @@
 							/>
 						</Label>
 					</TableBodyCell>
+					<TableBodyCell class="py-0 px-2">{event.locked ? 'Yes' : 'No'}</TableBodyCell>
 					<TableBodyCell class="py-0 px-2">
 						<span class="flex">
 							{#each event.audited as audited}
 								<!-- TODO: name popover -->
 								<Avatar stacked
 									>{audited.name
-										.split(' ')
-										.map((w) => w[0].toUpperCase())
-										.join('')}</Avatar
-								>
-							{:else}
-								No
-							{/each}
-						</span>
-					</TableBodyCell>
-					<TableBodyCell class="py-0 px-2">
-						<span class="flex">
-							{#each event.sorted as sorted}
-								<Avatar stacked
-									>{sorted.name
 										.split(' ')
 										.map((w) => w[0].toUpperCase())
 										.join('')}</Avatar

@@ -163,10 +163,10 @@
 	<Card size="sm">
 		<P class="mb-2 text-2xl">{data.tournament.teams.length} Teams</P>
 		<P class="mb-2 text-2xl"
-			>{data.tournament.events.filter((e) => e.audited.length !== 0).length} Events Audited</P
+			>{data.tournament.events.filter((e) => e.locked).length} Events Done Grading</P
 		>
 		<P class="mb-2 text-2xl"
-			>{data.tournament.events.filter((e) => e.sorted.length !== 0).length} Events Sorted</P
+			>{data.tournament.events.filter((e) => e.audited.length !== 0).length} Events Audited</P
 		>
 	</Card>
 	<Card size="xs">

@@ -20,7 +20,6 @@ model Event {
   roles        Role[]
   scores       Score[]
   audited      User[]      @relation("AuditedEvents")
-  sorted       User[]      @relation("SortedEvents")
 }
 
 model Role {
@@ -104,7 +103,6 @@ model User {
   name          String
   roles         Role[]
   auditedEvents Event[]      @relation("AuditedEvents")
-  sortedEvents  Event[]      @relation("SortedEvents")
   tournaments   Tournament[] @relation("UserTournaments")
 }
 

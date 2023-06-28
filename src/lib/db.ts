@@ -264,7 +264,6 @@ export async function getTournamentInfo(tournamentId: string) {
 						}
 					},
 					audited: true,
-					sorted: true,
 					scores: true
 				}
 			},
