@@ -70,7 +70,7 @@
 	let confirmDeleteText = '';
 	function confirmDelete() {
 		const ids = selected.map((t) => t.id.toString());
-		fetch(`/td/${$page.params['id']}/tracks`, {
+		fetch(`/t/${$page.params['id']}/tracks`, {
 			method: 'DELETE',
 			headers: {
 				'Content-Type': 'application/json'
@@ -98,7 +98,7 @@
 
 		addTrackData.medals = addTrackData.medals ? parseInt(addTrackData.medals as any) : null;
 		addTrackData.trophies = addTrackData.trophies ? parseInt(addTrackData.trophies as any) : null;
-		fetch(`/td/${$page.params['id']}/tracks`, {
+		fetch(`/t/${$page.params['id']}/tracks`, {
 			method: 'PUT',
 			headers: {
 				'Content-Type': 'application/json'
@@ -129,7 +129,7 @@
 			medals: editTrackData.medals ? parseInt(editTrackData.medals as any) : null,
 			trophies: editTrackData.trophies ? parseInt(editTrackData.trophies as any) : null
 		};
-		fetch(`/td/${$page.params['id']}/tracks`, {
+		fetch(`/t/${$page.params['id']}/tracks`, {
 			method: 'PATCH',
 			headers: {
 				'Content-Type': 'application/json'

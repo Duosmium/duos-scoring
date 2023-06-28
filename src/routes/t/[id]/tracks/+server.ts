@@ -1,8 +1,11 @@
 import { addTracks, deleteTrack, updateTrack } from '$lib/db';
 import type { Track } from '@prisma/client';
 import type { RequestHandler } from './$types';
+import { checkIsDirector } from '$lib/utils';
 
-export const DELETE: RequestHandler = async ({ request }) => {
+export const DELETE: RequestHandler = async ({ request, locals, params }) => {
+	await checkIsDirector(locals.userId, params.id);
+
 	const payload: {
 		track?: string;
 		tracks?: string[];
@@ -25,7 +28,9 @@ export const DELETE: RequestHandler = async ({ request }) => {
 	return new Response('ok');
 };
 
-export const PATCH: RequestHandler = async ({ request }) => {
+export const PATCH: RequestHandler = async ({ request, params, locals }) => {
+	await checkIsDirector(locals.userId, params.id);
+
 	const payload: {
 		id?: string;
 		data?: Partial<Track>;
@@ -44,7 +49,9 @@ export const PATCH: RequestHandler = async ({ request }) => {
 	return new Response('ok');
 };
 
-export const PUT: RequestHandler = async ({ params, request }) => {
+export const PUT: RequestHandler = async ({ params, request, locals }) => {
+	await checkIsDirector(locals.userId, params.id);
+
 	const payload: Track[] = await request.json();
 
 	// TODO: validate data

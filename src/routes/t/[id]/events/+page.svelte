@@ -83,7 +83,7 @@
 	function confirmDelete() {
 		const ids = selected.map((ev) => ev.id.toString());
 		events = events.filter((ev) => !ids.includes(ev.id.toString()));
-		fetch(`/td/${$page.params['id']}/events`, {
+		fetch(`/t/${$page.params['id']}/events`, {
 			method: 'DELETE',
 			headers: {
 				'Content-Type': 'application/json'
@@ -109,7 +109,7 @@
 				ev.id === id ? { ...ev, trialStatus: newStatus as TrialStatus } : ev
 			);
 
-			fetch(`/td/${$page.params['id']}/events`, {
+			fetch(`/t/${$page.params['id']}/events`, {
 				method: 'PATCH',
 				headers: {
 					'Content-Type': 'application/json'
@@ -143,7 +143,7 @@
 	}
 	function addEvent() {
 		// TODO: validate event names for canonicalization
-		fetch(`/td/${$page.params['id']}/events`, {
+		fetch(`/t/${$page.params['id']}/events`, {
 			method: 'PUT',
 			headers: {
 				'Content-Type': 'application/json'
@@ -193,7 +193,7 @@
 				: ev
 		);
 		// TODO: validate event names for canonicalization
-		fetch(`/td/${$page.params['id']}/events`, {
+		fetch(`/t/${$page.params['id']}/events`, {
 			method: 'PATCH',
 			headers: {
 				'Content-Type': 'application/json'
@@ -354,7 +354,7 @@
 					</TableBodyCell>
 					<TableBodyCell class="py-0 px-2">
 						<a
-							href="/td/{data.tournament.id}/events/{event.id.toString()}/"
+							href="/t/{data.tournament.id}/events/{event.id.toString()}/"
 							class="font-medium text-primary-600 hover:underline dark:text-primary-500"
 						>
 							View

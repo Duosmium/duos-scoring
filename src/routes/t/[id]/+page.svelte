@@ -124,7 +124,7 @@
 			drops: parseInt(editTournamentData.drops as any) || undefined,
 			nOffset: parseInt(editTournamentData.nOffset as any) || undefined
 		};
-		fetch(`/td/${$page.params['id']}`, {
+		fetch(`/t/${$page.params['id']}`, {
 			method: 'PATCH',
 			headers: {
 				'Content-Type': 'application/json'

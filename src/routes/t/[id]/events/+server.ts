@@ -1,8 +1,11 @@
 import { addEvents, deleteEvent, updateEvent } from '$lib/db';
 import { TrialStatus } from '@prisma/client';
 import type { RequestHandler } from './$types';
+import { checkIsDirector } from '$lib/utils';
 
-export const DELETE: RequestHandler = async ({ request }) => {
+export const DELETE: RequestHandler = async ({ request, params, locals }) => {
+	await checkIsDirector(locals.userId, params.id);
+
 	const payload: {
 		event?: string;
 		events?: string[];
@@ -25,7 +28,9 @@ export const DELETE: RequestHandler = async ({ request }) => {
 	return new Response('ok');
 };
 
-export const PATCH: RequestHandler = async ({ request }) => {
+export const PATCH: RequestHandler = async ({ request, locals, params }) => {
+	await checkIsDirector(locals.userId, params.id);
+
 	const payload: {
 		event?: string;
 		name?: string;
@@ -55,7 +60,9 @@ export const PATCH: RequestHandler = async ({ request }) => {
 	return new Response('ok');
 };
 
-export const PUT: RequestHandler = async ({ params, request }) => {
+export const PUT: RequestHandler = async ({ params, request, locals }) => {
+	await checkIsDirector(locals.userId, params.id);
+
 	const payload: {
 		name?: string;
 		trialStatus?: TrialStatus;

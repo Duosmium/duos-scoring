@@ -367,7 +367,7 @@
 		editEventMedals = data.event.medals?.toString() || '';
 	}
 	function editEvent() {
-		fetch(`/td/${$page.params['id']}/events/${$page.params['event']}`, {
+		fetch(`/t/${$page.params['id']}/events/${$page.params['event']}`, {
 			method: 'PATCH',
 			headers: {
 				'Content-Type': 'application/json'
@@ -388,7 +388,7 @@
 
 	function saveScores() {
 		if (locked) return;
-		fetch(`/td/${$page.params['id']}/events/${$page.params['event']}`, {
+		fetch(`/t/${$page.params['id']}/events/${$page.params['event']}`, {
 			method: 'PUT',
 			headers: {
 				'Content-Type': 'application/json'
@@ -441,7 +441,7 @@
 			return;
 		}
 		locked = !data.event.locked;
-		fetch(`/td/${$page.params['id']}/events/${$page.params['event']}`, {
+		fetch(`/t/${$page.params['id']}/events/${$page.params['event']}`, {
 			method: 'PATCH',
 			headers: {
 				'Content-Type': 'application/json'

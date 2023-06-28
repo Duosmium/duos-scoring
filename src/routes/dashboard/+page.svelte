@@ -24,10 +24,10 @@
 			<ul>
 				{#each roles as role}
 					{#if role.role === 'DIRECTOR'}
-						<li><a href="/td/{tournament.id}/">TD Dashboard</a></li>
+						<li><a href="/t/{tournament.id}/">TD Dashboard</a></li>
 					{:else if (role.role === 'LEAD_ES' || role.role === 'VOLUNTEER') && role.event}
 						<li>
-							<a href="/es/{tournament.id}/{role.event.slug}/">{role.event.name} Dashboard</a>
+							<a href="/s/{tournament.id}/events/{role.event.id}/">{role.event.name} Dashboard</a>
 						</li>
 					{/if}
 				{/each}

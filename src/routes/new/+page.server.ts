@@ -76,7 +76,7 @@ export const actions = {
 			};
 		}
 
-		throw redirect(303, '/td/' + slug + '/edit/events');
+		throw redirect(303, '/t/' + slug + '/edit/events');
 
 		return {
 			success: true,
