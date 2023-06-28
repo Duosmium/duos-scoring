@@ -6,16 +6,20 @@ export const PATCH: RequestHandler = async ({ request, params }) => {
 	const payload: {
 		highScoring?: 'true' | 'false';
 		medals?: number;
+		locked?: boolean;
 	} = await request.json();
 	if (payload.highScoring && !['true', 'false'].includes(payload.highScoring))
 		return new Response('invalid highScoring', { status: 400 });
 	if (payload.medals && typeof payload.medals !== 'number')
 		return new Response('invalid medals', { status: 400 });
+	if (payload.locked && typeof payload.locked !== 'boolean')
+		return new Response('invalid locked', { status: 400 });
 
 	const eventId = BigInt(params.event);
 	await updateEvent(eventId, {
 		highScoring: payload.highScoring ? payload.highScoring === 'true' : undefined,
-		medals: payload.medals
+		medals: payload.medals ?? undefined,
+		locked: payload.locked ?? undefined
 	});
 
 	return new Response('ok');

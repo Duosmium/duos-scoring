@@ -71,6 +71,8 @@
 		'N/A': 4
 	} as const;
 
+	$: locked = data.event.locked;
+
 	function generateModifiedTeams(data: PageData) {
 		const scores = (typeof data.scores === 'boolean' ? [] : data.scores).reduce((acc, s) => {
 			acc.set(s.team.id, s);
@@ -255,6 +257,7 @@
 		field: 'rawScore' | 'tier' | 'tiebreak' | 'status' | 'notes'
 	) {
 		return (e: Event) => {
+			if (locked) return;
 			const team = teamLookup.get(teamNumber);
 			if (!team) return;
 			switch (field) {
@@ -320,6 +323,7 @@
 		}
 	}
 	function importScores() {
+		if (locked) return;
 		if (parsedError) return;
 		parsedImportScores.forEach((parsedScore) => {
 			const team = teamLookup.get(parseInt(parsedScore.Number));
@@ -383,6 +387,7 @@
 	}
 
 	function saveScores() {
+		if (locked) return;
 		fetch(`/td/${$page.params['id']}/events/${$page.params['event']}`, {
 			method: 'PUT',
 			headers: {
@@ -428,6 +433,31 @@
 			}
 		}));
 	}
+
+	let showLockDirty = false;
+	function toggleLock() {
+		if (!clean) {
+			showLockDirty = true;
+			return;
+		}
+		locked = !data.event.locked;
+		fetch(`/td/${$page.params['id']}/events/${$page.params['event']}`, {
+			method: 'PATCH',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				locked: !data.event.locked
+			})
+		}).then((res) => {
+			if (res.status === 200) {
+				addToastMessage('Event marked as done grading!', 'success');
+				invalidateAll();
+			} else {
+				addToastMessage('Failed to lock event!', 'error');
+			}
+		});
+	}
 </script>
 
 <Head
@@ -464,14 +494,15 @@
 		/>
 		<Button
 			color="green"
+			disabled={locked}
 			on:click={() => {
 				showImportScores = true;
 			}}>Import</Button
 		>
 		<ButtonGroup>
-			<Button disabled={clean} on:click={saveScores} color="green">Save</Button>
+			<Button disabled={clean || locked} on:click={saveScores} color="green">Save</Button>
 			<Button
-				disabled={clean}
+				disabled={clean || locked}
 				on:click={() => {
 					showConfirmDiscard = true;
 				}}
@@ -479,7 +510,7 @@
 			>
 		</ButtonGroup>
 		<ButtonGroup>
-			<Button color="yellow">Lock</Button>
+			<Button color="yellow" on:click={toggleLock}>{locked ? 'Unlock' : 'Lock'}</Button>
 			<Button color="alternative" on:click={openEditEvent}>Settings</Button>
 		</ButtonGroup>
 		<Button
@@ -550,9 +581,10 @@
 					</TableBodyCell>
 					<TableBodyCell class="p-0">
 						<Input
+							disabled={locked}
 							class={`rounded-none !bg-transparent p-2 w-24 !border-orange-500 ${
 								team.score.rawScore.dirty ? '!border-2' : '!border-0'
-							}`}
+							} disabled:cursor-text disabled:opacity-100`}
 							type="text"
 							inputmode="numeric"
 							value={team.score.rawScore.new ?? ''}
@@ -561,9 +593,10 @@
 					</TableBodyCell>
 					<TableBodyCell class="p-0">
 						<Input
+							disabled={locked}
 							class={`rounded-none !bg-transparent p-2 w-12 !border-orange-500 ${
 								team.score.tier.dirty ? '!border-2' : '!border-0'
-							}`}
+							} disabled:cursor-text disabled:opacity-100`}
 							type="text"
 							inputmode="numeric"
 							value={team.score.tier.new ?? ''}
@@ -572,9 +605,10 @@
 					</TableBodyCell>
 					<TableBodyCell class="p-0">
 						<Input
+							disabled={locked}
 							class={`rounded-none !bg-transparent p-2 w-16 !border-orange-500 ${
 								team.score.tiebreak.dirty ? '!border-2' : '!border-0'
-							}`}
+							} disabled:cursor-text disabled:opacity-100`}
 							type="text"
 							inputmode="numeric"
 							value={team.score.tiebreak.new ?? ''}
@@ -583,6 +617,7 @@
 					</TableBodyCell>
 					<TableBodyCell class="p-0">
 						<Select
+							disabled={locked}
 							items={scoreStatuses}
 							class={`rounded-none !bg-transparent w-20 p-2 !border-orange-500 ${
 								team.score.status.dirty ? '!border-2' : '!border-0'
@@ -594,6 +629,7 @@
 					<TableBodyCell class="px-4">{team.ranking}</TableBodyCell>
 					<TableBodyCell class="p-0">
 						<Textarea
+							disabled={locked}
 							class={`rounded-none !bg-transparent p-2 w-36 !border-orange-500 ${
 								team.score.notes.dirty ? '!border-2' : '!border-0'
 							}`}
@@ -647,9 +683,40 @@
 </div>
 
 <Modal title="Scoring Help" bind:open={showHelp} autoclose outsideclose>
+	<P class="dark:text-gray-300">Welcome to scoring! Enter scores for your event here.</P>
+	<Heading tag="h2" class="text-xl">Toolbar</Heading>
 	<P class="dark:text-gray-300">
-		Welcome to scoring! Enter scores for your event here.
-
+		<dl class="space-y-3 mt-6">
+			<div>
+				<dt>Sorting:</dt>
+				<dd>Sort events by various columns.</dd>
+			</div>
+			<div>
+				<dt>Import:</dt>
+				<dd>Paste in scores from an external source, such as a Google Sheet.</dd>
+			</div>
+			<div>
+				<dt>Save/Discard</dt>
+				<dd>
+					Changes you have made will be highlighted in orange. You will need to click "Save" to
+					commit your changes, or use "Discard" to revert back to the original scores.
+				</dd>
+			</div>
+			<div>
+				<dt>Lock/Unlock:</dt>
+				<dd>
+					Locking an event will prevent scores from being edited and indicates that the event is
+					done grading.
+				</dd>
+			</div>
+			<div>
+				<dt>Settings:</dt>
+				<dd>Change the event's scoring method (high, low) or the number of medals offered.</dd>
+			</div>
+		</dl>
+	</P>
+	<Heading tag="h2" class="text-xl">About Columns</Heading>
+	<P class="dark:text-gray-300">
 		<dl class="space-y-3 mt-6">
 			<div>
 				<dt>Raw Score:</dt>
@@ -711,7 +778,7 @@
 	</P>
 	<Label>
 		Teams
-		<Textarea class="mt-2" required bind:value={importScoresData} />
+		<Textarea disabled={locked} class="mt-2" required bind:value={importScoresData} />
 	</Label>
 
 	<Heading tag="h3" class="text-md">Preview</Heading>
@@ -803,6 +870,17 @@
 	<svelte:fragment slot="footer">
 		<Button color="green" on:click={editEvent}>Save</Button>
 		<Button color="alternative">Cancel</Button>
+	</svelte:fragment>
+</Modal>
+
+<Modal title="Save Changes" bind:open={showLockDirty} autoclose outsideclose>
+	<P
+		>Locking this event will mark grading as done and prevent further edits. Please save or discard
+		your existing changes before locking this event.</P
+	>
+
+	<svelte:fragment slot="footer">
+		<Button color="green">Got it!</Button>
 	</svelte:fragment>
 </Modal>
 

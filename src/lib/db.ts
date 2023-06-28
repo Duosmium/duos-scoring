@@ -103,6 +103,7 @@ export async function updateEvent(
 		trialStatus?: TrialStatus;
 		highScoring?: boolean;
 		medals?: number;
+		locked?: boolean;
 	}
 ) {
 	try {
