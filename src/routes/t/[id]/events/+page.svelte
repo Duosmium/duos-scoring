@@ -17,7 +17,8 @@
 		Modal,
 		Input,
 		Toast,
-		Avatar
+		Avatar,
+		Tooltip
 	} from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import { slide } from 'svelte/transition';
@@ -37,7 +38,7 @@
 	];
 
 	let selectAll = false;
-	$: events = data.tournament.events.map((ev, i) => ({ ...ev, index: i, checked: false }));
+	$: events = data.tournament.events!.map((ev, i) => ({ ...ev, index: i, checked: false }));
 
 	let lastIndex = -1;
 	function toggleCheck(id: bigint) {
@@ -328,9 +329,9 @@
 					</TableBodyCell>
 					<TableBodyCell class="py-0 px-2">{event.scores.length}</TableBodyCell>
 					<TableBodyCell class="py-0 px-2"
-						><span class="flex">
+						><span class={`flex ${event.roles.length !== 0 ? 'ml-4' : ''}`}>
 							{#each event.roles as { user }}
-								<Avatar stacked
+								<Avatar id={'user_' + user.id} stacked
 									>{user.name
 										.split(' ')
 										.map((w) => w[0].toUpperCase())
@@ -365,6 +366,12 @@
 		{/if}
 	</TableBody>
 </Table>
+
+{#each events as event}
+	{#each event.roles as { user }}
+		<Tooltip triggeredBy={`#user_${user.id}`}>{user.name}</Tooltip>
+	{/each}
+{/each}
 
 <div class="fixed bottom-8 right-8 flex flex-col space-y-4">
 	{#each messages as message}
