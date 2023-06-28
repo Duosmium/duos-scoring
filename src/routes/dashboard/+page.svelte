@@ -19,17 +19,19 @@
 	{#if data.user.tournaments.length === 0}
 		<p>You have no tournaments. <a href="/new">Create one?</a></p>
 	{:else}
-		{#each data.user.tournaments as { tournament, roles }}
+		{#each data.user.tournaments as tournament}
 			<h3>{tournament.name}</h3>
 			<ul>
-				{#each roles as role}
+				{#each tournament.roles as role}
 					{#if role.role === 'DIRECTOR'}
 						<li><a href="/t/{tournament.id}/">TD Dashboard</a></li>
 					{:else if (role.role === 'LEAD_ES' || role.role === 'VOLUNTEER') && role.event}
 						<li>
-							<a href="/s/{tournament.id}/events/{role.event.id}/">{role.event.name} Dashboard</a>
+							<a href="/t/{tournament.id}/events/{role.event.id}/">{role.event.name} Dashboard</a>
 						</li>
 					{/if}
+				{:else}
+					<li>The tournament director has not assigned you a role yet.</li>
 				{/each}
 			</ul>
 		{/each}
