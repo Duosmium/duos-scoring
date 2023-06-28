@@ -216,6 +216,7 @@ export async function getUserInfo(userId: string) {
 	const user = await prisma.user.findUnique({
 		where: { id: userId },
 		include: {
+			tournaments: true,
 			roles: {
 				include: {
 					tournament: true,
@@ -229,26 +230,21 @@ export async function getUserInfo(userId: string) {
 		return false;
 	}
 
+	const tournamentRoles = user.roles.reduce((acc, role) => {
+		const obj = {
+			role: role.role,
+			event: role.event,
+			tournament: role.tournament
+		};
+		acc.get(role.tournamentId)?.push(obj) ?? acc.set(role.tournamentId, [obj]);
+		return acc;
+	}, new Map<string, { role: TournamentRoles; event: Event | null; tournament: Tournament }[]>());
+
 	return {
-		name: user.name,
-		tournaments: [
-			...user.roles
-				.reduce((acc, role) => {
-					const obj = {
-						role: role.role,
-						event: role.event,
-						tournament: role.tournament
-					};
-					acc.get(role.tournamentId)?.push(obj) ?? acc.set(role.tournamentId, [obj]);
-					return acc;
-				}, new Map<string, { role: TournamentRoles; event: Event | null; tournament: Tournament }[]>())
-				.entries()
-		].map(([_, roles]) => ({
-			tournament: roles[0].tournament,
-			roles: roles.map((role) => ({
-				role: role.role,
-				event: role.event
-			}))
+		...user,
+		tournaments: user.tournaments.map((tournament) => ({
+			...tournament,
+			roles: tournamentRoles.get(tournament.id) ?? []
 		}))
 	};
 }

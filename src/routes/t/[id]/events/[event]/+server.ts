@@ -1,8 +1,11 @@
 import { updateEvent, addScores, updateScores } from '$lib/db';
 import { ScoreStatus, type Score } from '@prisma/client';
 import type { RequestHandler } from './$types';
+import { checkEventPerms } from '$lib/utils';
 
-export const PATCH: RequestHandler = async ({ request, params }) => {
+export const PATCH: RequestHandler = async ({ request, params, locals }) => {
+	await checkEventPerms(locals.userId, BigInt(params.event));
+
 	const payload: {
 		highScoring?: 'true' | 'false';
 		medals?: number;
@@ -25,7 +28,9 @@ export const PATCH: RequestHandler = async ({ request, params }) => {
 	return new Response('ok');
 };
 
-export const PUT: RequestHandler = async ({ params, request }) => {
+export const PUT: RequestHandler = async ({ params, request, locals }) => {
+	await checkEventPerms(locals.userId, BigInt(params.event));
+
 	const payload: {
 		id?: string;
 		teamId: string;

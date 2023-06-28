@@ -1,8 +1,11 @@
 import { error } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 import { getTournamentInfo, getEventScores } from '$lib/db';
+import { checkEventPerms } from '$lib/utils';
 
-export const load: PageLoad = async ({ params }) => {
+export const load: PageLoad = async ({ params, locals }) => {
+	await checkEventPerms(locals.userId, BigInt(params.event));
+
 	const tournament = await getTournamentInfo(params.id);
 
 	if (tournament === false) {
