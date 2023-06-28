@@ -3,7 +3,6 @@
 	import Head from '$lib/components/Head.svelte';
 	import {
 		Avatar,
-		DarkMode,
 		Dropdown,
 		DropdownHeader,
 		DropdownItem,
@@ -30,15 +29,19 @@
 	navDivClass="mx-auto flex flex-wrap justify-between items-center lg:max-w-5xl xl:max-w-7xl"
 	fluid={true}
 >
-	<NavBrand href="/t/{data.tournament.id}/">
+	<NavBrand>
 		<span
 			class="self-center whitespace-nowrap text-xl font-semibold dark:text-white pl-4 flex items-center"
 		>
-			<img class="h-12 mr-6 dark:hidden inline-block" src="/logo_dark.png" alt="Duosmium Logo" />
-			<img class="h-12 mr-6 dark:inline-block hidden" src="/logo_light.png" alt="Duosmium Logo" />
-			{data.tournament.year}
-			{data.tournament.shortName}
-			{data.tournament.division}
+			<a href="/dashboard">
+				<img class="h-12 mr-6 dark:hidden inline-block" src="/logo_dark.png" alt="Duosmium Logo" />
+				<img class="h-12 mr-6 dark:inline-block hidden" src="/logo_light.png" alt="Duosmium Logo" />
+			</a>
+			<a href="/t/{data.tournament.id}">
+				{data.tournament.year}
+				{data.tournament.shortName}
+				{data.tournament.division}
+			</a>
 		</span>
 	</NavBrand>
 	<NavHamburger on:click={toggle} btnClass="ml-3 lg:hidden" />
