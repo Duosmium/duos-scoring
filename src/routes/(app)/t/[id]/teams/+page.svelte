@@ -83,7 +83,7 @@
 		{ value: 'WI', name: 'Wisconsin' },
 		{ value: 'WY', name: 'Wyoming' }
 	];
-	$: tracks = data.tournament.tracks.map((track) => ({
+	$: tracks = data.tournament.tracks?.map((track) => ({
 		value: track.id.toString(),
 		name: track.name
 	}));
@@ -275,7 +275,7 @@
 					city: t.City || null,
 					state: t.State,
 					trackId: data.tournament.enableTracks
-						? tracks.find((track) => track.name === t.Track)?.value ?? null
+						? tracks?.find((track) => track.name === t.Track)?.value ?? null
 						: null,
 					exhibition: !!t.Exhibition
 				}))
