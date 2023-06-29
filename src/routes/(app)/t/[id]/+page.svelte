@@ -342,6 +342,18 @@
 			<Button color="alternative">Cancel</Button>
 		</svelte:fragment>
 	</Modal>
+{:else if data.user.roles.filter((role) => role.tournament.id === data.tournament.id).length !== 0}
+	<Heading tag="h2" class="text-2xl">Your Events</Heading>
+	<List tag="ul">
+		{#each data.user.roles.filter((role) => role.tournament.id === data.tournament.id && role.event) as role}
+			<Li><a href="/t/{$page.params.id}/events/{role.event?.id}">{role.event?.name}</a></Li>
+		{/each}
+	</List>
+{:else}
+	<P>
+		You have not yet been assigned to any events! Contact the tournament director if you believe
+		this is an error.
+	</P>
 {/if}
 
 <div class="fixed bottom-8 right-8 flex flex-col space-y-4">
