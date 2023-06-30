@@ -398,7 +398,7 @@
 			})
 		}).then((res) => {
 			if (res.status === 200) {
-				addToastMessage('Event marked as done grading!', 'success');
+				addToastMessage(locked ? 'Event marked as done grading!' : "Event unlocked!", 'success');
 				invalidateAll();
 			} else {
 				addToastMessage('Failed to lock event!', 'error');
