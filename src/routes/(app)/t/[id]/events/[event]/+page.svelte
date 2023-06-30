@@ -5,7 +5,6 @@
 	import {
 		TableBodyCell,
 		TableHeadCell,
-		Checkbox,
 		Button,
 		Heading,
 		Modal,
@@ -25,6 +24,7 @@
 	import { parse } from 'papaparse';
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
+	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 
 	export let data: PageData;
 
@@ -290,7 +290,6 @@
 	}
 
 	let showConfirmDiscard = false;
-	let confirmDiscardText = '';
 	function discardChanges() {
 		modifiedTeams = modifiedTeams.map((t) => ({
 			...t,
@@ -686,45 +685,15 @@
 	</svelte:fragment>
 </Modal>
 
-<Modal
+<ConfirmModal
 	title="Discard Changes"
+	actionMessage="discard your changes"
 	bind:open={showConfirmDiscard}
-	autoclose
-	outsideclose
-	on:open={() => {
-		confirmDiscardText = '';
-	}}
-	on:close={() => {
-		confirmDiscardText = '';
-	}}
+	onConfirm={discardChanges}
 >
-	<p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-		Are you sure you want to discard your changes? This action cannot be undone.
-	</p>
-	<Label>
-		Type "confirm" to discard changes.
-		<Input
-			class="mt-2"
-			type="text"
-			required
-			placeholder="confirm"
-			bind:value={confirmDiscardText}
-		/>
-	</Label>
-	<svelte:fragment slot="footer">
-		<Button
-			color="red"
-			disabled={confirmDiscardText !== 'confirm'}
-			on:click={() => {
-				if (confirmDiscardText === 'confirm') {
-					discardChanges();
-					confirmDiscardText = '';
-				}
-			}}>Confirm</Button
-		>
-		<Button color="alternative">Cancel</Button>
-	</svelte:fragment>
-</Modal>
+Are you sure you want to discard your changes? This action cannot be undone.
+</ConfirmModal>
+
 
 <Modal title="Edit Event" bind:open={showEditEvent} autoclose outsideclose>
 	<Label>

@@ -24,6 +24,7 @@
 	import type { Team } from '@prisma/client';
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
+	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 
 	export let data: PageData;
 
@@ -88,7 +89,6 @@
 	$: teams = data.tournament.teams;
 
 	let showConfirmDelete = false;
-	let confirmDeleteText = '';
 	function confirmDelete() {
 		const ids = selected.map((t) => t.id.toString());
 		fetch(`/t/${$page.params['id']}/teams`, {
@@ -313,37 +313,15 @@
 	</svelte:fragment>
 </SelectableTable>
 
-<Modal
+<ConfirmModal
 	title="Delete Teams"
+	actionMessage="delete these teams"
 	bind:open={showConfirmDelete}
-	autoclose
-	outsideclose
-	on:close={() => {
-		confirmDeleteText = '';
-	}}
+	onConfirm={confirmDelete}
 >
-	<p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-		Are you sure you want to delete {selected.length} team{selected.length > 1 ? 's' : ''}? This
-		action cannot be undone.
-	</p>
-	<Label>
-		Type "confirm" to delete these teams.
-		<Input class="mt-2" type="text" required placeholder="confirm" bind:value={confirmDeleteText} />
-	</Label>
-	<svelte:fragment slot="footer">
-		<Button
-			color="red"
-			disabled={confirmDeleteText !== 'confirm'}
-			on:click={() => {
-				if (confirmDeleteText === 'confirm') {
-					confirmDelete();
-					confirmDeleteText = '';
-				}
-			}}>Confirm</Button
-		>
-		<Button color="alternative">Cancel</Button>
-	</svelte:fragment>
-</Modal>
+	Are you sure you want to delete {selected.length} team{selected.length > 1 ? 's' : ''}? This
+	action cannot be undone.
+</ConfirmModal>
 
 <Modal title="Add Team" bind:open={showAddTeam} autoclose outsideclose>
 	<Label>

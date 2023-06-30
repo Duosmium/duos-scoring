@@ -5,7 +5,6 @@
 	import {
 		TableBodyCell,
 		TableHeadCell,
-		Checkbox,
 		Label,
 		Select,
 		Button,
@@ -20,6 +19,7 @@
 	import type { TrialStatus } from '@prisma/client';
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
+	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 
 	export let data: PageData;
 
@@ -37,7 +37,6 @@
 	let selected: typeof events = [];
 
 	let showConfirmDelete = false;
-	let confirmDeleteText = '';
 	function confirmDelete() {
 		const ids = selected.map((ev) => ev.id.toString());
 		events = events.filter((ev) => !ids.includes(ev.id.toString()));
@@ -299,37 +298,15 @@
 	{/each}
 {/each}
 
-<Modal
+<ConfirmModal
 	title="Delete Events"
+	actionMessage="delete these events"
 	bind:open={showConfirmDelete}
-	autoclose
-	outsideclose
-	on:close={() => {
-		confirmDeleteText = '';
-	}}
+	onConfirm={confirmDelete}
 >
-	<p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-		Are you sure you want to delete {selected.length} event{selected.length > 1 ? 's' : ''}? This
-		action cannot be undone.
-	</p>
-	<Label>
-		Type "confirm" to delete these events.
-		<Input class="mt-2" type="text" required placeholder="confirm" bind:value={confirmDeleteText} />
-	</Label>
-	<svelte:fragment slot="footer">
-		<Button
-			color="red"
-			disabled={confirmDeleteText !== 'confirm'}
-			on:click={() => {
-				if (confirmDeleteText === 'confirm') {
-					confirmDelete();
-					confirmDeleteText = '';
-				}
-			}}>Confirm</Button
-		>
-		<Button color="alternative">Cancel</Button>
-	</svelte:fragment>
-</Modal>
+	Are you sure you want to delete {selected.length} event{selected.length > 1 ? 's' : ''}? This
+	action cannot be undone.
+</ConfirmModal>
 
 <Modal title="Add Events" bind:open={showAddEvent} autoclose outsideclose>
 	<Label>

@@ -9,14 +9,14 @@
 		Label,
 		Button,
 		Heading,
-		Modal,
-		Input
+		Modal
 	} from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import { invalidateAll } from '$app/navigation';
 	import { TournamentRoles } from '@prisma/client';
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
+	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 
 	export let data: PageData;
 
@@ -32,9 +32,9 @@
 	$: invites = data.tournament.invites!.map((i) => ({ ...i, id: i.link }));
 	let selectedInvites: typeof invites = [];
 
-	let showConfirmDelete = false;
-	let confirmDeleteText = '';
-	function confirmDelete() {
+	let showConfirmDeleteMembers = false;
+	let showConfirmDeleteInvites = false;
+	function confirmDelete(thing: 'members' | 'invites') {
 		const ids = selectedMembers.map((m) => m.id.toString());
 		fetch(`/t/${$page.params['id']}/members`, {
 			method: 'DELETE',
@@ -145,7 +145,7 @@
 			size="sm"
 			color="red"
 			on:click={() => {
-				showConfirmDelete = true;
+				showConfirmDeleteMembers = true;
 			}}>Delete</Button
 		>
 	</svelte:fragment>
@@ -189,7 +189,7 @@
 			size="sm"
 			color="red"
 			on:click={() => {
-				showConfirmDelete = true;
+				showConfirmDeleteMembers = true;
 			}}>Delete</Button
 		>
 	</svelte:fragment>
@@ -219,38 +219,39 @@
 	</svelte:fragment>
 </SelectableTable>
 
-<Modal
+<ConfirmModal
 	title="Remove Members"
-	bind:open={showConfirmDelete}
-	autoclose
-	outsideclose
-	on:close={() => {
-		confirmDeleteText = '';
+	actionMessage="remove these members"
+	bind:open={showConfirmDeleteMembers}
+	onConfirm={() => {
+		confirmDelete('members');
 	}}
 >
-	<p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-		Are you sure you want to remove {selectedMembers.length} member{selectedMembers.length > 1
-			? 's'
-			: ''}? This action cannot be undone.
-	</p>
-	<Label>
-		Type "confirm" to remove these members.
-		<Input class="mt-2" type="text" required placeholder="confirm" bind:value={confirmDeleteText} />
-	</Label>
+	Are you sure you want to remove {selectedMembers.length} member{selectedMembers.length > 1
+		? 's'
+		: ''}? This action cannot be undone.
+</ConfirmModal>
+
+<Modal title="Add Member" bind:open={showAddMember} autoclose outsideclose>
 	<svelte:fragment slot="footer">
-		<Button
-			color="red"
-			disabled={confirmDeleteText !== 'confirm'}
-			on:click={() => {
-				if (confirmDeleteText === 'confirm') {
-					confirmDelete();
-					confirmDeleteText = '';
-				}
-			}}>Confirm</Button
-		>
+		<!-- TODO: validation -->
+		<Button color="green" disabled={false} on:click={addMember}>Add Member</Button>
 		<Button color="alternative">Cancel</Button>
 	</svelte:fragment>
 </Modal>
+
+<ConfirmModal
+	title="Delete Invites"
+	actionMessage="delete these invites"
+	bind:open={showConfirmDeleteInvites}
+	onConfirm={() => {
+		confirmDelete('invites');
+	}}
+>
+	Are you sure you want to remove {selectedInvites.length} invite{selectedInvites.length > 1
+		? 's'
+		: ''}? This action cannot be undone.
+</ConfirmModal>
 
 <Modal title="Add Member" bind:open={showAddMember} autoclose outsideclose>
 	<svelte:fragment slot="footer">
