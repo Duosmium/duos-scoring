@@ -32,7 +32,8 @@ export const load: LayoutServerLoad = async ({ locals, request, params }) => {
 		events: undefined,
 		roles: undefined,
 		tracks: undefined,
-		users: undefined
+		users: undefined,
+		invites: undefined
 	};
 
 	return {

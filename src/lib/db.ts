@@ -277,10 +277,18 @@ export async function getTournamentInfo(tournamentId: string) {
 			users: {
 				include: {
 					roles: {
+						where: {
+							tournamentId
+						},
 						include: {
 							event: true
 						}
 					}
+				}
+			},
+			invites: {
+				include: {
+					events: true
 				}
 			}
 		}
