@@ -3,11 +3,7 @@
 	import Head from '$lib/components/Head.svelte';
 
 	import {
-		Table,
-		TableBody,
 		TableBodyCell,
-		TableBodyRow,
-		TableHead,
 		TableHeadCell,
 		Checkbox,
 		Label,
@@ -16,14 +12,14 @@
 		Heading,
 		Modal,
 		Input,
-		Toast,
 		Avatar,
 		Tooltip
 	} from 'flowbite-svelte';
 	import { page } from '$app/stores';
-	import { slide } from 'svelte/transition';
 	import { invalidateAll } from '$app/navigation';
 	import type { TrialStatus } from '@prisma/client';
+	import { addToastMessage } from '$lib/components/Toasts.svelte';
+	import SelectableTable from '$lib/components/SelectableTable.svelte';
 
 	export let data: PageData;
 
@@ -37,47 +33,8 @@
 		{ value: 'false', name: 'Low Score Wins' }
 	];
 
-	let selectAll = false;
-	$: events = data.tournament.events!.map((ev, i) => ({ ...ev, index: i, checked: false }));
-
-	let lastIndex = -1;
-	function toggleCheck(id: bigint) {
-		selectAll = false;
-		if (!shiftDown) {
-			lastIndex = events.findIndex((ev) => ev.id === id);
-			events = events.map((ev) => (ev.id === id ? { ...ev, checked: !ev.checked } : ev));
-		} else {
-			const currentEvent = events.find((ev) => ev.id === id);
-			if (!currentEvent) return;
-			const currentIndex = currentEvent.index;
-			const currentStatus = currentEvent.checked;
-			const minIndex = Math.min(currentIndex, lastIndex);
-			const maxIndex = Math.max(currentIndex, lastIndex);
-			events = events.map((ev, i) =>
-				i >= minIndex && i <= maxIndex ? { ...ev, checked: !currentStatus } : ev
-			);
-			lastIndex = currentIndex;
-		}
-	}
-
-	function toggleAll() {
-		selectAll = !selectAll;
-		events = events.map((ev) => ({ ...ev, checked: selectAll }));
-	}
-
-	$: selected = events.filter((ev) => ev.checked);
-
-	let shiftDown = false;
-	function handleKeydown(event: KeyboardEvent) {
-		if (event.key === 'Shift') {
-			shiftDown = true;
-		}
-	}
-	function handleKeyup(event: KeyboardEvent) {
-		if (event.key === 'Shift') {
-			shiftDown = false;
-		}
-	}
+	$: events = data.tournament.events!;
+	let selected: typeof events = [];
 
 	let showConfirmDelete = false;
 	let confirmDeleteText = '';
@@ -215,22 +172,12 @@
 			}
 		});
 	}
-
-	let messages: { text: string; type: 'success' | 'error' }[] = [];
-	function addToastMessage(message: string, type: 'success' | 'error' = 'success') {
-		messages = [...messages, { text: message, type }];
-		setTimeout(() => {
-			messages = messages.slice(1);
-		}, 3000);
-	}
 </script>
 
 <Head
 	title="Events | {data.tournament.year} {data.tournament.shortName} {data.tournament
 		.division} | Duosmium Scoring"
 />
-
-<svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} />
 
 <div class="w-full flex justify-between flex-wrap mb-2">
 	<Heading tag="h2" class="w-fit">Events</Heading>
@@ -251,6 +198,10 @@
 				events = events.map((ev) => ({ ...ev, checked: false }));
 			}}>Clear</Button
 		>
+	</div>
+{/if}
+<SelectableTable items={events} bind:selected>
+	<svelte:fragment slot="buttons">
 		<Button
 			size="sm"
 			color="red"
@@ -258,14 +209,8 @@
 				showConfirmDelete = true;
 			}}>Delete</Button
 		>
-	</div>
-{/if}
-<Table divClass="relative overflow-x-auto" hoverable={true}>
-	<!-- top-[92px] lg:top-[116px] -->
-	<TableHead>
-		<TableHeadCell class="py-4 pl-4 pr-2">
-			<Checkbox on:click={toggleAll} checked={selectAll} />
-		</TableHeadCell>
+	</svelte:fragment>
+	<svelte:fragment slot="headers">
 		<TableHeadCell class="px-2">Event Name</TableHeadCell>
 		<TableHeadCell class="px-2">Medals</TableHeadCell>
 		<TableHeadCell class="px-2">Trial Status</TableHeadCell>
@@ -279,136 +224,80 @@
 		<TableHeadCell class="px-2">
 			<span class="sr-only"> View </span>
 		</TableHeadCell>
-	</TableHead>
-	<TableBody tableBodyClass="divide-y">
-		{#if events.length === 0}
-			<TableBodyRow>
-				<p>No events have been added yet.</p>
-				<!-- TODO: Add ability to add all events from current slate -->
-			</TableBodyRow>
-		{:else}
-			{#each events as event}
-				<TableBodyRow>
-					<TableBodyCell class="py-4 pl-4 pr-2">
-						<Checkbox
-							on:click={() => {
-								toggleCheck(event.id);
-							}}
-							checked={event.checked}
-						/>
-					</TableBodyCell>
-					<TableBodyCell class="py-0 px-2">{event.name}</TableBodyCell>
-					<TableBodyCell class="py-0 px-2">{event.medals ?? data.tournament.medals}</TableBodyCell>
-					<TableBodyCell class="py-0 px-2">
-						<Label>
-							<span class="sr-only">Trial Status</span>
-							<Select
-								on:change={changeTrialStatus(event.id)}
-								underline
-								class="min-w-[5.25rem] !border-0"
-								items={trialStatus}
-								value={event.trialStatus}
-							/>
-						</Label>
-					</TableBodyCell>
-					<TableBodyCell class="py-0 px-2">{event.locked ? 'Yes' : 'No'}</TableBodyCell>
-					<TableBodyCell class="py-0 px-2">
-						<span class="flex">
-							{#each event.audited as audited}
-								<!-- TODO: name popover -->
-								<Avatar stacked
-									>{audited.name
-										.split(' ')
-										.map((w) => w[0].toUpperCase())
-										.join('')}</Avatar
-								>
-							{:else}
-								No
-							{/each}
-						</span>
-					</TableBodyCell>
-					<TableBodyCell class="py-0 px-2">{event.scores.length}</TableBodyCell>
-					<TableBodyCell class="py-0 px-2"
-						><span class={`flex ${event.roles.length !== 0 ? 'ml-4' : ''}`}>
-							{#each event.roles as { user }}
-								<Avatar id={'user_' + user.id} stacked
-									>{user.name
-										.split(' ')
-										.map((w) => w[0].toUpperCase())
-										.join('')}</Avatar
-								>
-							{:else}
-								Not Assigned
-							{/each}
-						</span></TableBodyCell
+	</svelte:fragment>
+	<svelte:fragment slot="item" let:item={event}>
+		<TableBodyCell class="py-0 px-2">{event.name}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2">{event.medals ?? data.tournament.medals}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2">
+			<Label>
+				<span class="sr-only">Trial Status</span>
+				<Select
+					on:change={changeTrialStatus(event.id)}
+					underline
+					class="min-w-[5.25rem] !border-0"
+					items={trialStatus}
+					value={event.trialStatus}
+				/>
+			</Label>
+		</TableBodyCell>
+		<TableBodyCell class="py-0 px-2">{event.locked ? 'Yes' : 'No'}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2">
+			<span class="flex">
+				{#each event.audited as audited}
+					<!-- TODO: name popover -->
+					<Avatar stacked
+						>{audited.name
+							.split(' ')
+							.map((w) => w[0].toUpperCase())
+							.join('')}</Avatar
 					>
-					<TableBodyCell class="py-0 px-2">
-						<Button
-							color="alternative"
-							class="border-none p-1 font-medium text-primary-600 hover:underline dark:text-primary-500"
-							on:click={() => {
-								openEditEvent(event.id);
-							}}
-						>
-							Edit
-						</Button>
-					</TableBodyCell>
-					<TableBodyCell class="py-0 px-2">
-						<a
-							href="/t/{data.tournament.id}/events/{event.id.toString()}/"
-							class="font-medium text-primary-600 hover:underline dark:text-primary-500"
-						>
-							View
-						</a>
-					</TableBodyCell>
-				</TableBodyRow>
-			{/each}
-		{/if}
-	</TableBody>
-</Table>
+				{:else}
+					No
+				{/each}
+			</span>
+		</TableBodyCell>
+		<TableBodyCell class="py-0 px-2">{event.scores.length}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2"
+			><span class={`flex ${event.roles.length !== 0 ? 'ml-4' : ''}`}>
+				{#each event.roles as { user }}
+					<Avatar id={'user_' + user.id} stacked
+						>{user.name
+							.split(' ')
+							.map((w) => w[0].toUpperCase())
+							.join('')}</Avatar
+					>
+				{:else}
+					Not Assigned
+				{/each}
+			</span></TableBodyCell
+		>
+		<TableBodyCell class="py-0 px-2">
+			<Button
+				color="alternative"
+				class="border-none p-1 font-medium text-primary-600 hover:underline dark:text-primary-500"
+				on:click={() => {
+					openEditEvent(event.id);
+				}}
+			>
+				Edit
+			</Button>
+		</TableBodyCell>
+		<TableBodyCell class="py-0 px-2">
+			<a
+				href="/t/{data.tournament.id}/events/{event.id.toString()}/"
+				class="font-medium text-primary-600 hover:underline dark:text-primary-500"
+			>
+				View
+			</a>
+		</TableBodyCell>
+	</svelte:fragment>
+</SelectableTable>
 
 {#each events as event}
 	{#each event.roles as { user }}
 		<Tooltip triggeredBy={`#user_${user.id}`}>{user.name}</Tooltip>
 	{/each}
 {/each}
-
-<div class="fixed bottom-8 right-8 flex flex-col space-y-4">
-	{#each messages as message}
-		<Toast color={message.type === 'success' ? 'green' : 'red'} transition={slide}>
-			<svelte:fragment slot="icon">
-				{#if message.type === 'success'}
-					<svg
-						aria-hidden="true"
-						class="w-5 h-5"
-						fill="currentColor"
-						viewBox="0 0 20 20"
-						xmlns="http://www.w3.org/2000/svg"
-						><path
-							fill-rule="evenodd"
-							d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-							clip-rule="evenodd"
-						/></svg
-					>
-					<span class="sr-only">Check icon</span>
-				{:else}
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 20 20"
-						fill="currentColor"
-						class="w-5 h-5"
-					>
-						<path
-							d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
-						/>
-					</svg>
-					<span class="sr-only">X icon</span>
-				{/if}
-			</svelte:fragment>
-			{message.text}
-		</Toast>
-	{/each}
-</div>
 
 <Modal
 	title="Delete Events"

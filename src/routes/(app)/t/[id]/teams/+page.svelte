@@ -3,11 +3,7 @@
 	import Head from '$lib/components/Head.svelte';
 
 	import {
-		Table,
-		TableBody,
 		TableBodyCell,
-		TableBodyRow,
-		TableHead,
 		TableHeadCell,
 		Checkbox,
 		Label,
@@ -16,7 +12,6 @@
 		Heading,
 		Modal,
 		Input,
-		Toast,
 		Textarea,
 		List,
 		Li,
@@ -25,9 +20,10 @@
 	} from 'flowbite-svelte';
 	import { parse } from 'papaparse';
 	import { page } from '$app/stores';
-	import { slide } from 'svelte/transition';
 	import { invalidateAll } from '$app/navigation';
 	import type { Team } from '@prisma/client';
+	import SelectableTable from '$lib/components/SelectableTable.svelte';
+	import { addToastMessage } from '$lib/components/Toasts.svelte';
 
 	export let data: PageData;
 
@@ -88,47 +84,8 @@
 		name: track.name
 	}));
 
-	let selectAll = false;
-	$: teams = data.tournament.teams.map((t, i) => ({ ...t, index: i, checked: false }));
-
-	let lastIndex = -1;
-	function toggleCheck(id: bigint) {
-		selectAll = false;
-		if (!shiftDown) {
-			lastIndex = teams.findIndex((t) => t.id === id);
-			teams = teams.map((t) => (t.id === id ? { ...t, checked: !t.checked } : t));
-		} else {
-			const currentTeam = teams.find((t) => t.id === id);
-			if (!currentTeam) return;
-			const currentIndex = currentTeam.index;
-			const currentStatus = currentTeam.checked;
-			const minIndex = Math.min(currentIndex, lastIndex);
-			const maxIndex = Math.max(currentIndex, lastIndex);
-			teams = teams.map((t, i) =>
-				i >= minIndex && i <= maxIndex ? { ...t, checked: !currentStatus } : t
-			);
-			lastIndex = currentIndex;
-		}
-	}
-
-	function toggleAll() {
-		selectAll = !selectAll;
-		teams = teams.map((t) => ({ ...t, checked: selectAll }));
-	}
-
-	$: selected = teams.filter((t) => t.checked);
-
-	let shiftDown = false;
-	function handleKeydown(event: KeyboardEvent) {
-		if (event.key === 'Shift') {
-			shiftDown = true;
-		}
-	}
-	function handleKeyup(event: KeyboardEvent) {
-		if (event.key === 'Shift') {
-			shiftDown = false;
-		}
-	}
+	let selected: typeof teams = [];
+	$: teams = data.tournament.teams;
 
 	let showConfirmDelete = false;
 	let confirmDeleteText = '';
@@ -290,22 +247,12 @@
 			}
 		});
 	}
-
-	let messages: { text: string; type: 'success' | 'error' }[] = [];
-	function addToastMessage(message: string, type: 'success' | 'error' = 'success') {
-		messages = [...messages, { text: message, type }];
-		setTimeout(() => {
-			messages = messages.slice(1);
-		}, 3000);
-	}
 </script>
 
 <Head
 	title="Teams | {data.tournament.year} {data.tournament.shortName} {data.tournament
 		.division} | Duosmium Scoring"
 />
-
-<svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} />
 
 <div class="w-full flex justify-between flex-wrap mb-2">
 	<Heading tag="h2" class="w-fit">Teams</Heading>
@@ -314,19 +261,9 @@
 		<Button color="green" on:click={openAddTeam}>Add Team</Button>
 	</span>
 </div>
-{#if selected.length > 0}
-	<div
-		class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-slate-300 dark:bg-slate-700 z-40 rounded-lg p-4 flex items-center space-x-4"
-	>
-		<span>{selected.length} selected</span>
-		<Button
-			size="sm"
-			color="alternative"
-			btnClass="bg-transparent border-none underline p-2"
-			on:click={() => {
-				teams = teams.map((t) => ({ ...t, checked: false }));
-			}}>Clear</Button
-		>
+
+<SelectableTable items={teams} bind:selected>
+	<svelte:fragment slot="buttons">
 		<Button
 			size="sm"
 			color="red"
@@ -334,14 +271,8 @@
 				showConfirmDelete = true;
 			}}>Delete</Button
 		>
-	</div>
-{/if}
-<Table divClass="relative overflow-x-auto" hoverable={true}>
-	<!-- top-[92px] lg:top-[116px] -->
-	<TableHead>
-		<TableHeadCell class="py-4 pl-4 pr-2">
-			<Checkbox on:click={toggleAll} checked={selectAll} />
-		</TableHeadCell>
+	</svelte:fragment>
+	<svelte:fragment slot="headers">
 		<TableHeadCell class="px-2">Team #</TableHeadCell>
 		<TableHeadCell class="px-2">Team Name</TableHeadCell>
 		<TableHeadCell class="px-2">Location</TableHeadCell>
@@ -353,92 +284,34 @@
 		<TableHeadCell class="px-2">
 			<span class="sr-only"> Edit </span>
 		</TableHeadCell>
-	</TableHead>
-	<TableBody tableBodyClass="divide-y">
-		{#if teams.length === 0}
-			<TableBodyRow>
-				<TableBodyCell colspan="7" class="text-center">
-					<p>No teams have been added yet.</p>
-				</TableBodyCell>
-			</TableBodyRow>
-		{:else}
-			{#each teams as team}
-				<TableBodyRow>
-					<TableBodyCell class="py-4 pl-4 pr-2">
-						<Checkbox
-							on:click={() => {
-								toggleCheck(team.id);
-							}}
-							checked={team.checked}
-						/>
-					</TableBodyCell>
-					<TableBodyCell class="px-2">{team.number}</TableBodyCell>
-					<TableBodyCell class="px-2"
-						>{team.abbreviation ??
-							team.school.slice(0, 45) + (team.school.length > 45 ? '…' : '')}{team.suffix
-							? ' ' + team.suffix.slice(0, 38) + (team.suffix.length > 38 ? '…' : '')
-							: ''}</TableBodyCell
-					>
-					<TableBodyCell class="px-2">{team.city ? team.city + ', ' : ''}{team.state}</TableBodyCell
-					>
-					{#if data.tournament.enableTracks}
-						<TableBodyCell class="px-2">{team.trackId ?? 'None'}</TableBodyCell>
-					{/if}
-					<TableBodyCell class="px-2">{team.exhibition ? 'Exhib. Team' : 'No'}</TableBodyCell>
-					<TableBodyCell class="px-2">{team.penalties ?? 'None'}</TableBodyCell>
-					<TableBodyCell class="px-2">
-						<Button
-							color="alternative"
-							class="border-none p-1 font-medium text-primary-600 hover:underline dark:text-primary-500"
-							on:click={() => {
-								openEditTeam(team.id);
-							}}
-						>
-							Edit
-						</Button>
-					</TableBodyCell>
-				</TableBodyRow>
-			{/each}
+	</svelte:fragment>
+	<svelte:fragment slot="item" let:item={team}>
+		<TableBodyCell class="px-2">{team.number}</TableBodyCell>
+		<TableBodyCell class="px-2"
+			>{team.abbreviation ??
+				team.school.slice(0, 45) + (team.school.length > 45 ? '…' : '')}{team.suffix
+				? ' ' + team.suffix.slice(0, 38) + (team.suffix.length > 38 ? '…' : '')
+				: ''}</TableBodyCell
+		>
+		<TableBodyCell class="px-2">{team.city ? team.city + ', ' : ''}{team.state}</TableBodyCell>
+		{#if data.tournament.enableTracks}
+			<TableBodyCell class="px-2">{team.trackId ?? 'None'}</TableBodyCell>
 		{/if}
-	</TableBody>
-</Table>
-
-<div class="fixed bottom-8 right-8 flex flex-col space-y-4">
-	{#each messages as message}
-		<Toast color={message.type === 'success' ? 'green' : 'red'} transition={slide}>
-			<svelte:fragment slot="icon">
-				{#if message.type === 'success'}
-					<svg
-						aria-hidden="true"
-						class="w-5 h-5"
-						fill="currentColor"
-						viewBox="0 0 20 20"
-						xmlns="http://www.w3.org/2000/svg"
-						><path
-							fill-rule="evenodd"
-							d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-							clip-rule="evenodd"
-						/></svg
-					>
-					<span class="sr-only">Check icon</span>
-				{:else}
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 20 20"
-						fill="currentColor"
-						class="w-5 h-5"
-					>
-						<path
-							d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
-						/>
-					</svg>
-					<span class="sr-only">X icon</span>
-				{/if}
-			</svelte:fragment>
-			{message.text}
-		</Toast>
-	{/each}
-</div>
+		<TableBodyCell class="px-2">{team.exhibition ? 'Exhib. Team' : 'No'}</TableBodyCell>
+		<TableBodyCell class="px-2">{team.penalties ?? 'None'}</TableBodyCell>
+		<TableBodyCell class="px-2">
+			<Button
+				color="alternative"
+				class="border-none p-1 font-medium text-primary-600 hover:underline dark:text-primary-500"
+				on:click={() => {
+					openEditTeam(team.id);
+				}}
+			>
+				Edit
+			</Button>
+		</TableBodyCell>
+	</svelte:fragment>
+</SelectableTable>
 
 <Modal
 	title="Delete Teams"

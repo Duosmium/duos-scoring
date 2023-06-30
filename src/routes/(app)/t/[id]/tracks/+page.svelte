@@ -3,68 +3,24 @@
 	import Head from '$lib/components/Head.svelte';
 
 	import {
-		Table,
-		TableBody,
 		TableBodyCell,
-		TableBodyRow,
-		TableHead,
 		TableHeadCell,
-		Checkbox,
 		Label,
 		Button,
 		Heading,
 		Modal,
-		Input,
-		Toast
+		Input
 	} from 'flowbite-svelte';
 	import { page } from '$app/stores';
-	import { slide } from 'svelte/transition';
 	import { invalidateAll } from '$app/navigation';
 	import type { Track } from '@prisma/client';
+	import SelectableTable from '$lib/components/SelectableTable.svelte';
+	import { addToastMessage } from '$lib/components/Toasts.svelte';
 
 	export let data: PageData;
 
-	let selectAll = false;
-	$: tracks = data.tournament.tracks.map((t, i) => ({ ...t, index: i, checked: false }));
-
-	let lastIndex = -1;
-	function toggleCheck(id: bigint) {
-		selectAll = false;
-		if (!shiftDown) {
-			lastIndex = tracks.findIndex((t) => t.id === id);
-			tracks = tracks.map((t) => (t.id === id ? { ...t, checked: !t.checked } : t));
-		} else {
-			const currentTrack = tracks.find((t) => t.id === id);
-			if (!currentTrack) return;
-			const currentIndex = currentTrack.index;
-			const currentStatus = currentTrack.checked;
-			const minIndex = Math.min(currentIndex, lastIndex);
-			const maxIndex = Math.max(currentIndex, lastIndex);
-			tracks = tracks.map((t, i) =>
-				i >= minIndex && i <= maxIndex ? { ...t, checked: !currentStatus } : t
-			);
-			lastIndex = currentIndex;
-		}
-	}
-
-	function toggleAll() {
-		selectAll = !selectAll;
-		tracks = tracks.map((t) => ({ ...t, checked: selectAll }));
-	}
-
-	$: selected = tracks.filter((t) => t.checked);
-
-	let shiftDown = false;
-	function handleKeydown(event: KeyboardEvent) {
-		if (event.key === 'Shift') {
-			shiftDown = true;
-		}
-	}
-	function handleKeyup(event: KeyboardEvent) {
-		if (event.key === 'Shift') {
-			shiftDown = false;
-		}
-	}
+	$: tracks = data.tournament.tracks!;
+	let selected: typeof tracks = [];
 
 	let showConfirmDelete = false;
 	let confirmDeleteText = '';
@@ -144,14 +100,6 @@
 			}
 		});
 	}
-
-	let messages: { text: string; type: 'success' | 'error' }[] = [];
-	function addToastMessage(message: string, type: 'success' | 'error' = 'success') {
-		messages = [...messages, { text: message, type }];
-		setTimeout(() => {
-			messages = messages.slice(1);
-		}, 3000);
-	}
 </script>
 
 <Head
@@ -159,27 +107,15 @@
 		.division} | Duosmium Scoring"
 />
 
-<svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} />
-
 <div class="w-full flex justify-between flex-wrap mb-2">
 	<Heading tag="h2" class="w-fit">Tracks</Heading>
 	<span class="space-x-4">
 		<Button color="green" on:click={openAddTrack}>Add Track</Button>
 	</span>
 </div>
-{#if selected.length > 0}
-	<div
-		class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-slate-300 dark:bg-slate-700 z-40 rounded-lg p-4 flex items-center space-x-4"
-	>
-		<span>{selected.length} selected</span>
-		<Button
-			size="sm"
-			color="alternative"
-			btnClass="bg-transparent border-none underline p-2"
-			on:click={() => {
-				tracks = tracks.map((t) => ({ ...t, checked: false }));
-			}}>Clear</Button
-		>
+
+<SelectableTable items={tracks} bind:selected>
+	<svelte:fragment slot="buttons">
 		<Button
 			size="sm"
 			color="red"
@@ -187,97 +123,34 @@
 				showConfirmDelete = true;
 			}}>Delete</Button
 		>
-	</div>
-{/if}
-<Table divClass="relative overflow-x-auto" hoverable={true}>
-	<!-- top-[92px] lg:top-[116px] -->
-	<TableHead>
-		<TableHeadCell class="!p-4">
-			<Checkbox on:click={toggleAll} checked={selectAll} />
-		</TableHeadCell>
-		<TableHeadCell>Track Name</TableHeadCell>
-		<TableHeadCell>Medals</TableHeadCell>
-		<TableHeadCell>Trophies</TableHeadCell>
-		<TableHeadCell># Teams</TableHeadCell>
-		<TableHeadCell>
+	</svelte:fragment>
+	<svelte:fragment slot="headers">
+		<TableHeadCell class="px-2">Track Name</TableHeadCell>
+		<TableHeadCell class="px-2">Medals</TableHeadCell>
+		<TableHeadCell class="px-2">Trophies</TableHeadCell>
+		<TableHeadCell class="px-2"># Teams</TableHeadCell>
+		<TableHeadCell class="px-2">
 			<span class="sr-only"> Edit </span>
 		</TableHeadCell>
-	</TableHead>
-	<TableBody tableBodyClass="divide-y">
-		{#if tracks.length === 0}
-			<TableBodyRow>
-				<TableBodyCell colspan="7" class="text-center">
-					<p>No tracks have been added yet.</p>
-				</TableBodyCell>
-			</TableBodyRow>
-		{:else}
-			{#each tracks as track}
-				<TableBodyRow>
-					<TableBodyCell class="!p-4">
-						<Checkbox
-							on:click={() => {
-								toggleCheck(track.id);
-							}}
-							checked={track.checked}
-						/>
-					</TableBodyCell>
-					<TableBodyCell>{track.name}</TableBodyCell>
-					<TableBodyCell>{track.medals ?? 'Default'}</TableBodyCell>
-					<TableBodyCell>{track.trophies ?? 'Default'}</TableBodyCell>
-					<TableBodyCell>{track.teams.length}</TableBodyCell>
-					<TableBodyCell>
-						<Button
-							color="alternative"
-							class="border-none p-1 font-medium text-primary-600 hover:underline dark:text-primary-500"
-							on:click={() => {
-								openEditTrack(track.id);
-							}}
-						>
-							Edit
-						</Button>
-					</TableBodyCell>
-				</TableBodyRow>
-			{/each}
-		{/if}
-	</TableBody>
-</Table>
-
-<div class="fixed bottom-8 right-8 flex flex-col space-y-4">
-	{#each messages as message}
-		<Toast color={message.type === 'success' ? 'green' : 'red'} transition={slide}>
-			<svelte:fragment slot="icon">
-				{#if message.type === 'success'}
-					<svg
-						aria-hidden="true"
-						class="w-5 h-5"
-						fill="currentColor"
-						viewBox="0 0 20 20"
-						xmlns="http://www.w3.org/2000/svg"
-						><path
-							fill-rule="evenodd"
-							d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-							clip-rule="evenodd"
-						/></svg
-					>
-					<span class="sr-only">Check icon</span>
-				{:else}
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 20 20"
-						fill="currentColor"
-						class="w-5 h-5"
-					>
-						<path
-							d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
-						/>
-					</svg>
-					<span class="sr-only">X icon</span>
-				{/if}
-			</svelte:fragment>
-			{message.text}
-		</Toast>
-	{/each}
-</div>
+	</svelte:fragment>
+	<svelte:fragment slot="item" let:item={track}>
+		<TableBodyCell class="px-2">{track.name}</TableBodyCell>
+		<TableBodyCell class="px-2">{track.medals ?? 'Default'}</TableBodyCell>
+		<TableBodyCell class="px-2">{track.trophies ?? 'Default'}</TableBodyCell>
+		<TableBodyCell class="px-2">{track.teams.length}</TableBodyCell>
+		<TableBodyCell class="px-2">
+			<Button
+				color="alternative"
+				class="border-none p-1 font-medium text-primary-600 hover:underline dark:text-primary-500"
+				on:click={() => {
+					openEditTrack(track.id);
+				}}
+			>
+				Edit
+			</Button>
+		</TableBodyCell>
+	</svelte:fragment>
+</SelectableTable>
 
 <Modal
 	title="Delete Tracks"

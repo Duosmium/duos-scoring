@@ -3,18 +3,13 @@
 	import Head from '$lib/components/Head.svelte';
 
 	import {
-		Table,
-		TableBody,
 		TableBodyCell,
-		TableBodyRow,
-		TableHead,
 		TableHeadCell,
 		Checkbox,
 		Button,
 		Heading,
 		Modal,
 		Input,
-		Toast,
 		P,
 		Select,
 		Textarea,
@@ -25,10 +20,11 @@
 		Alert
 	} from 'flowbite-svelte';
 	import { page } from '$app/stores';
-	import { slide } from 'svelte/transition';
 	import { beforeNavigate, invalidateAll } from '$app/navigation';
 	import type { Score, ScoreStatus } from '@prisma/client';
 	import { parse } from 'papaparse';
+	import { addToastMessage } from '$lib/components/Toasts.svelte';
+	import SelectableTable from '$lib/components/SelectableTable.svelte';
 
 	export let data: PageData;
 
@@ -123,8 +119,6 @@
 				  };
 			return {
 				...t,
-				index: i,
-				checked: false,
 				score,
 				ranking: null as unknown as number | keyof typeof statusOrder
 			};
@@ -133,6 +127,7 @@
 
 	let sortBy = 'number';
 	let modifiedTeams = generateModifiedTeams(data);
+	let selected: typeof modifiedTeams = [];
 	$: {
 		// update rankings when things change
 		modifiedTeams = modifiedTeams
@@ -203,54 +198,6 @@
 		acc.set(t.number, t);
 		return acc;
 	}, new Map<number, (typeof modifiedTeams)[0]>());
-
-	let selectAll = false;
-	let lastIndex = -1;
-	function toggleCheck(id: bigint) {
-		selectAll = false;
-		if (!shiftDown) {
-			lastIndex = modifiedTeams.findIndex((t) => t.id === id);
-			modifiedTeams = modifiedTeams.map((t) => (t.id === id ? { ...t, checked: !t.checked } : t));
-		} else {
-			const currentTrack = modifiedTeams.find((t) => t.id === id);
-			if (!currentTrack) return;
-			const currentIndex = currentTrack.index;
-			const currentStatus = currentTrack.checked;
-			const minIndex = Math.min(currentIndex, lastIndex);
-			const maxIndex = Math.max(currentIndex, lastIndex);
-			modifiedTeams = modifiedTeams.map((t, i) =>
-				i >= minIndex && i <= maxIndex ? { ...t, checked: !currentStatus } : t
-			);
-			lastIndex = currentIndex;
-		}
-	}
-
-	function toggleAll() {
-		selectAll = !selectAll;
-		modifiedTeams = modifiedTeams.map((t) => ({ ...t, checked: selectAll }));
-	}
-
-	$: selected = modifiedTeams.filter((t) => t.checked);
-
-	let shiftDown = false;
-	function handleKeydown(event: KeyboardEvent) {
-		if (event.key === 'Shift') {
-			shiftDown = true;
-		}
-	}
-	function handleKeyup(event: KeyboardEvent) {
-		if (event.key === 'Shift') {
-			shiftDown = false;
-		}
-	}
-
-	let messages: { text: string; type: 'success' | 'error' }[] = [];
-	function addToastMessage(message: string, type: 'success' | 'error' = 'success') {
-		messages = [...messages, { text: message, type }];
-		setTimeout(() => {
-			messages = messages.slice(1);
-		}, 3000);
-	}
 
 	function updateData(
 		teamNumber: number,
@@ -466,8 +413,6 @@
 />
 
 <svelte:window
-	on:keydown={handleKeydown}
-	on:keyup={handleKeyup}
 	on:beforeunload={(e) => {
 		if (!clean) {
 			const msg = 'You have unsaved changes. Are you sure you want to leave?';
@@ -522,27 +467,8 @@
 		>
 	</span>
 </div>
-{#if selected.length > 0}
-	<div
-		class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-slate-300 dark:bg-slate-700 z-40 rounded-lg p-4 flex items-center space-x-4"
-	>
-		<span>{selected.length} selected</span>
-		<Button
-			size="sm"
-			color="alternative"
-			btnClass="bg-transparent border-none underline p-2"
-			on:click={() => {
-				modifiedTeams = modifiedTeams.map((t) => ({ ...t, checked: false }));
-			}}>Clear</Button
-		>
-	</div>
-{/if}
-<Table divClass="relative overflow-x-auto" hoverable={true}>
-	<!-- top-[92px] lg:top-[116px] -->
-	<TableHead>
-		<TableHeadCell class="py-4 pl-4 pr-2">
-			<Checkbox on:click={toggleAll} checked={selectAll} />
-		</TableHeadCell>
+<SelectableTable items={modifiedTeams} bind:selected>
+	<svelte:fragment slot="headers">
 		<TableHeadCell class="px-2">#</TableHeadCell>
 		<TableHeadCell class="px-2">School</TableHeadCell>
 		<TableHeadCell class="pl-2 pr-4">Suffix</TableHeadCell>
@@ -552,135 +478,78 @@
 		<TableHeadCell class="px-0">Status</TableHeadCell>
 		<TableHeadCell class="px-4">Ranking</TableHeadCell>
 		<TableHeadCell class="px-0">Notes</TableHeadCell>
-	</TableHead>
-	<TableBody tableBodyClass="divide-y">
-		{#if modifiedTeams.length === 0}
-			<TableBodyRow>
-				<TableBodyCell colspan="7" class="text-center">
-					<p>No teams have been added yet.</p>
-				</TableBodyCell>
-			</TableBodyRow>
-		{:else}
-			{#each modifiedTeams as team}
-				<TableBodyRow>
-					<TableBodyCell class="py-4 pl-4 pr-2">
-						<Checkbox
-							on:click={() => {
-								toggleCheck(team.id);
-							}}
-							checked={team.checked}
-						/>
-					</TableBodyCell>
-					<TableBodyCell class="px-2">{team.number}</TableBodyCell>
-					<TableBodyCell class="px-2"
-						>{team.abbreviation ??
-							team.school.slice(0, 30) + (team.school.length > 30 ? '…' : '')}</TableBodyCell
-					>
-					<TableBodyCell class="pl-2 pr-4">
-						{team.suffix ? team.suffix.slice(0, 20) + (team.suffix.length > 20 ? '…' : '') : ''}
-					</TableBodyCell>
-					<TableBodyCell class="p-0">
-						<Input
-							disabled={locked}
-							class={`rounded-none !bg-transparent p-2 w-24 !border-orange-500 ${
-								team.score.rawScore.dirty ? '!border-2' : '!border-0'
-							} disabled:cursor-text disabled:opacity-100`}
-							type="text"
-							inputmode="numeric"
-							value={team.score.rawScore.new ?? ''}
-							on:change={updateData(team.number, 'rawScore')}
-						/>
-					</TableBodyCell>
-					<TableBodyCell class="p-0">
-						<Input
-							disabled={locked}
-							class={`rounded-none !bg-transparent p-2 w-12 !border-orange-500 ${
-								team.score.tier.dirty ? '!border-2' : '!border-0'
-							} disabled:cursor-text disabled:opacity-100`}
-							type="text"
-							inputmode="numeric"
-							value={team.score.tier.new ?? ''}
-							on:change={updateData(team.number, 'tier')}
-						/>
-					</TableBodyCell>
-					<TableBodyCell class="p-0">
-						<Input
-							disabled={locked}
-							class={`rounded-none !bg-transparent p-2 w-16 !border-orange-500 ${
-								team.score.tiebreak.dirty ? '!border-2' : '!border-0'
-							} disabled:cursor-text disabled:opacity-100`}
-							type="text"
-							inputmode="numeric"
-							value={team.score.tiebreak.new ?? ''}
-							on:change={updateData(team.number, 'tiebreak')}
-						/>
-					</TableBodyCell>
-					<TableBodyCell class="p-0">
-						<Select
-							disabled={locked}
-							items={scoreStatuses}
-							class={`rounded-none !bg-transparent w-20 p-2 !border-orange-500 ${
-								team.score.status.dirty ? '!border-2' : '!border-0'
-							}`}
-							value={team.score.status.new ?? 'NA'}
-							on:change={updateData(team.number, 'status')}
-						/>
-					</TableBodyCell>
-					<TableBodyCell class="px-4">{team.ranking}</TableBodyCell>
-					<TableBodyCell class="p-0">
-						<Textarea
-							disabled={locked}
-							class={`rounded-none !bg-transparent p-2 w-36 !border-orange-500 ${
-								team.score.notes.dirty ? '!border-2' : '!border-0'
-							}`}
-							rows="1"
-							on:change={updateData(team.number, 'notes')}
-						>
-							{team.score.notes.new || ''}
-						</Textarea>
-					</TableBodyCell>
-				</TableBodyRow>
-			{/each}
-		{/if}
-	</TableBody>
-</Table>
-
-<div class="fixed bottom-8 right-8 flex flex-col space-y-4">
-	{#each messages as message}
-		<Toast color={message.type === 'success' ? 'green' : 'red'} transition={slide}>
-			<svelte:fragment slot="icon">
-				{#if message.type === 'success'}
-					<svg
-						aria-hidden="true"
-						class="w-5 h-5"
-						fill="currentColor"
-						viewBox="0 0 20 20"
-						xmlns="http://www.w3.org/2000/svg"
-						><path
-							fill-rule="evenodd"
-							d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-							clip-rule="evenodd"
-						/></svg
-					>
-					<span class="sr-only">Check icon</span>
-				{:else}
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 20 20"
-						fill="currentColor"
-						class="w-5 h-5"
-					>
-						<path
-							d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
-						/>
-					</svg>
-					<span class="sr-only">X icon</span>
-				{/if}
-			</svelte:fragment>
-			{message.text}
-		</Toast>
-	{/each}
-</div>
+	</svelte:fragment>
+	<svelte:fragment slot="item" let:item={team}>
+		<TableBodyCell class="px-2">{team.number}</TableBodyCell>
+		<TableBodyCell class="px-2"
+			>{team.abbreviation ??
+				team.school.slice(0, 30) + (team.school.length > 30 ? '…' : '')}</TableBodyCell
+		>
+		<TableBodyCell class="pl-2 pr-4">
+			{team.suffix ? team.suffix.slice(0, 20) + (team.suffix.length > 20 ? '…' : '') : ''}
+		</TableBodyCell>
+		<TableBodyCell class="p-0">
+			<Input
+				disabled={locked}
+				class={`rounded-none !bg-transparent p-2 w-24 !border-orange-500 ${
+					team.score.rawScore.dirty ? '!border-2' : '!border-0'
+				} disabled:cursor-text disabled:opacity-100`}
+				type="text"
+				inputmode="numeric"
+				value={team.score.rawScore.new ?? ''}
+				on:change={updateData(team.number, 'rawScore')}
+			/>
+		</TableBodyCell>
+		<TableBodyCell class="p-0">
+			<Input
+				disabled={locked}
+				class={`rounded-none !bg-transparent p-2 w-12 !border-orange-500 ${
+					team.score.tier.dirty ? '!border-2' : '!border-0'
+				} disabled:cursor-text disabled:opacity-100`}
+				type="text"
+				inputmode="numeric"
+				value={team.score.tier.new ?? ''}
+				on:change={updateData(team.number, 'tier')}
+			/>
+		</TableBodyCell>
+		<TableBodyCell class="p-0">
+			<Input
+				disabled={locked}
+				class={`rounded-none !bg-transparent p-2 w-16 !border-orange-500 ${
+					team.score.tiebreak.dirty ? '!border-2' : '!border-0'
+				} disabled:cursor-text disabled:opacity-100`}
+				type="text"
+				inputmode="numeric"
+				value={team.score.tiebreak.new ?? ''}
+				on:change={updateData(team.number, 'tiebreak')}
+			/>
+		</TableBodyCell>
+		<TableBodyCell class="p-0">
+			<Select
+				disabled={locked}
+				items={scoreStatuses}
+				class={`rounded-none !bg-transparent w-20 p-2 !border-orange-500 ${
+					team.score.status.dirty ? '!border-2' : '!border-0'
+				}`}
+				value={team.score.status.new ?? 'NA'}
+				on:change={updateData(team.number, 'status')}
+			/>
+		</TableBodyCell>
+		<TableBodyCell class="px-4">{team.ranking}</TableBodyCell>
+		<TableBodyCell class="p-0">
+			<Textarea
+				disabled={locked}
+				class={`rounded-none !bg-transparent p-2 w-36 !border-orange-500 ${
+					team.score.notes.dirty ? '!border-2' : '!border-0'
+				}`}
+				rows="1"
+				on:change={updateData(team.number, 'notes')}
+			>
+				{team.score.notes.new || ''}
+			</Textarea>
+		</TableBodyCell>
+	</svelte:fragment>
+</SelectableTable>
 
 <Modal title="Scoring Help" bind:open={showHelp} autoclose outsideclose>
 	<P class="dark:text-gray-300">Welcome to scoring! Enter scores for your event here.</P>
