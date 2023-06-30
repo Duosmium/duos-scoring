@@ -38,7 +38,6 @@
 				<img class="h-12 mr-6 dark:inline-block hidden" src="/logo_light.png" alt="Duosmium Logo" />
 			</a>
 			<a href="/t/{data.tournament.id}">
-				{data.tournament.year}
 				{data.tournament.shortName}
 				{data.tournament.division}
 			</a>
@@ -51,6 +50,7 @@
 		ulClass="flex flex-col p-4 mt-4 lg:flex-row lg:space-x-8 lg:mt-0 lg:text-md lg:font-medium items-baseline"
 	>
 		{#if data.isDirector}
+			<NavLi href="/t/{data.tournament.id}/members">Members</NavLi>
 			<NavLi href="/t/{data.tournament.id}/events">Events/Score Counseling</NavLi>
 			{#if data.tournament.enableTracks}
 				<NavLi href="/t/{data.tournament.id}/tracks">Tracks</NavLi>

@@ -273,6 +273,15 @@ export async function getTournamentInfo(tournamentId: string) {
 				include: {
 					teams: true
 				}
+			},
+			users: {
+				include: {
+					roles: {
+						include: {
+							event: true
+						}
+					}
+				}
 			}
 		}
 	});
