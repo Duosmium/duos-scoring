@@ -381,10 +381,26 @@
 	}
 
 	let showLockDirty = false;
+	let showConfirmUnlockAudited = false;
+	let lockOverride = false;
+	function unlockAudited() {
+		lockOverride = true;
+		toggleLock();
+		lockOverride = false;
+	}
 	function toggleLock() {
-		if (!clean) {
+		if (!lockOverride && !clean) {
 			showLockDirty = true;
 			return;
+		}
+		if (!lockOverride && data.event.audited && data.event.locked) {
+			if (!data.isDirector) {
+				addToastMessage('Cannot unlock an audited event!', 'error');
+				return;
+			} else {
+				showConfirmUnlockAudited = true;
+				return;
+			}
 		}
 		locked = !data.event.locked;
 		fetch(`/t/${$page.params['id']}/events/${$page.params['event']}`, {
@@ -397,10 +413,41 @@
 			})
 		}).then((res) => {
 			if (res.status === 200) {
-				addToastMessage(locked ? 'Event marked as done grading!' : "Event unlocked!", 'success');
+				addToastMessage(locked ? 'Event marked as done grading!' : 'Event unlocked!', 'success');
 				invalidateAll();
 			} else {
 				addToastMessage('Failed to lock event!', 'error');
+			}
+		});
+	}
+
+	let showAuditConfirm = false;
+	function openAuditConfirm() {
+		if (locked && data.isDirector && !data.event.audited) {
+			showAuditConfirm = true;
+		} else {
+			addToastMessage('Cannot audit event!', 'error');
+		}
+	}
+	function confirmAudit() {
+		if (!locked || !data.isDirector || data.event.audited) {
+			addToastMessage('Cannot audit event!', 'error');
+			return;
+		}
+		fetch(`/t/${$page.params['id']}/events/${$page.params['event']}`, {
+			method: 'PATCH',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				audited: true
+			})
+		}).then((res) => {
+			if (res.status === 200) {
+				addToastMessage('Event audited!');
+				invalidateAll();
+			} else {
+				addToastMessage('Failed to audit event!', 'error');
 			}
 		});
 	}
@@ -436,27 +483,38 @@
 			]}
 			bind:value={sortBy}
 		/>
-		<Button
-			color="green"
-			disabled={locked}
-			on:click={() => {
-				showImportScores = true;
-			}}>Import</Button
-		>
-		<ButtonGroup>
-			<Button disabled={clean || locked} on:click={saveScores} color="green">Save</Button>
+		{#if !data.event.audited}
 			<Button
-				disabled={clean || locked}
+				color="green"
+				disabled={locked}
 				on:click={() => {
-					showConfirmDiscard = true;
-				}}
-				color="red">Discard</Button
+					showImportScores = true;
+				}}>Import</Button
 			>
-		</ButtonGroup>
-		<ButtonGroup>
-			<Button color="yellow" on:click={toggleLock}>{locked ? 'Unlock' : 'Lock'}</Button>
-			<Button color="alternative" on:click={openEditEvent}>Settings</Button>
-		</ButtonGroup>
+			<ButtonGroup>
+				<Button disabled={clean || locked} on:click={saveScores} color="green">Save</Button>
+				<Button
+					disabled={clean || locked}
+					on:click={() => {
+						showConfirmDiscard = true;
+					}}
+					color="red">Discard</Button
+				>
+			</ButtonGroup>
+		{:else}
+			<div>
+				Event audited by {data.event.audited.name} at {data.event.auditedAt?.toLocaleString()}
+			</div>
+		{/if}
+		{#if data.isDirector || !data.event.audited}
+			<ButtonGroup>
+				<Button color="yellow" on:click={toggleLock}>{locked ? 'Unlock' : 'Lock'}</Button>
+				{#if data.isDirector && !data.event.audited}
+					<Button color="purple" disabled={!locked} on:click={openAuditConfirm}>Audit</Button>
+				{/if}
+				<Button color="alternative" on:click={openEditEvent}>Settings</Button>
+			</ButtonGroup>
+		{/if}
 		<Button
 			color="blue"
 			pill
@@ -691,14 +749,42 @@
 	bind:open={showConfirmDiscard}
 	onConfirm={discardChanges}
 >
-Are you sure you want to discard your changes? This action cannot be undone.
+	Are you sure you want to discard your changes? This action cannot be undone.
 </ConfirmModal>
 
+<ConfirmModal
+	title="Unlock Audited Event"
+	actionMessage="unlock this event"
+	bind:open={showConfirmUnlockAudited}
+	onConfirm={unlockAudited}
+>
+	Unlocking this event will allow scores to be edited, but the event will need to be audited again.
+	Are you sure you want to unlock this event?
+</ConfirmModal>
+
+<ConfirmModal
+	title="Audit Event"
+	actionMessage="audit this event"
+	bind:open={showAuditConfirm}
+	onConfirm={confirmAudit}
+	confirmText={data.user.name}
+	buttonText="Audit Results"
+	color="green"
+>
+	Marking this event as audited means that you certify that the scores inputted are correct. Please
+	type your name below to certify these results.
+</ConfirmModal>
 
 <Modal title="Edit Event" bind:open={showEditEvent} autoclose outsideclose>
 	<Label>
 		High Scoring
-		<Select underline class="mt-2" items={highScoring} bind:value={editHighScoring} />
+		<Select
+			disabled={locked || data.event.audited}
+			underline
+			class="mt-2"
+			items={highScoring}
+			bind:value={editHighScoring}
+		/>
 	</Label>
 	<Label>
 		Medals (Optional)

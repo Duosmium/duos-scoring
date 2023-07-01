@@ -6,6 +6,7 @@ import {
 	type Track,
 	type Score
 } from '@prisma/client';
+import { A } from 'flowbite-svelte';
 const prisma = new PrismaClient();
 
 // TODO: double check permissions in every function
@@ -151,6 +152,14 @@ export async function deleteMembers(tournamentId: string, members: string[]) {
 	}
 }
 
+export async function getEvent(id: bigint) {
+	return await prisma.event.findUnique({
+		where: {
+			id
+		}
+	});
+}
+
 export async function addEvents(
 	tournamentId: string,
 	events: {
@@ -180,17 +189,42 @@ export async function updateEvent(
 		highScoring?: boolean;
 		medals?: number;
 		locked?: boolean;
+		auditedUserId?: string | null;
 	}
 ) {
 	try {
-		await prisma.event.update({
-			where: {
-				id: eventId
-			},
-			data: {
-				...event
-			}
-		});
+		if (event.auditedUserId != null) {
+			await prisma.event.update({
+				where: {
+					id: eventId
+				},
+				data: {
+					auditedUserId: event.auditedUserId,
+					locked: true,
+					auditedAt: new Date()
+				}
+			});
+		} else if (event.auditedUserId === null && event.locked === false) {
+			await prisma.event.update({
+				where: {
+					id: eventId
+				},
+				data: {
+					auditedUserId: null,
+					locked: false,
+					auditedAt: null
+				}
+			});
+		} else {
+			await prisma.event.update({
+				where: {
+					id: eventId
+				},
+				data: {
+					...event
+				}
+			});
+		}
 	} catch (e) {
 		return false;
 	}

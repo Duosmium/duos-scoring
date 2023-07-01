@@ -1,4 +1,4 @@
-import { updateEvent, addScores, updateScores } from '$lib/db';
+import { updateEvent, addScores, updateScores, getUserInfo, getEvent } from '$lib/db';
 import { ScoreStatus, type Score } from '@prisma/client';
 import type { RequestHandler } from './$types';
 import { checkEventPerms } from '$lib/utils';
@@ -6,30 +6,73 @@ import { checkEventPerms } from '$lib/utils';
 export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 	await checkEventPerms(locals.userId, params.id, BigInt(params.event));
 
+	const user = await getUserInfo(locals.userId);
+	if (user === false) return new Response('unauthorized user', { status: 403 });
+
+	const event = await getEvent(BigInt(params.event));
+	if (!event) return new Response('invalid event', { status: 404 });
+
 	const payload: {
 		highScoring?: 'true' | 'false';
 		medals?: number;
 		locked?: boolean;
+		audited?: boolean;
 	} = await request.json();
-	if (payload.highScoring && !['true', 'false'].includes(payload.highScoring))
+	if (
+		payload.highScoring &&
+		(!['true', 'false'].includes(payload.highScoring) ||
+			event.locked ||
+			event.auditedUserId != undefined)
+	)
 		return new Response('invalid highScoring', { status: 400 });
 	if (payload.medals && typeof payload.medals !== 'number')
 		return new Response('invalid medals', { status: 400 });
-	if (payload.locked && typeof payload.locked !== 'boolean')
+	if (payload.locked != undefined && typeof payload.locked !== 'boolean')
 		return new Response('invalid locked', { status: 400 });
+	if (
+		payload.audited === true &&
+		(!user.roles.find((role) => role.tournamentId === params.id)?.isDirector ||
+			!event.locked ||
+			event.auditedUserId != undefined)
+	)
+		return new Response('unauthorized user', { status: 403 });
+	if (
+		payload.locked === false &&
+		event.auditedUserId != undefined &&
+		!user.roles.find((role) => role.tournamentId === params.id)?.isDirector
+	)
+		return new Response('unauthorized user', { status: 403 });
 
 	const eventId = BigInt(params.event);
-	await updateEvent(eventId, {
-		highScoring: payload.highScoring ? payload.highScoring === 'true' : undefined,
-		medals: payload.medals ?? undefined,
-		locked: payload.locked ?? undefined
-	});
+	if (payload.audited === true) {
+		await updateEvent(eventId, {
+			auditedUserId: user.id
+		});
+	} else if (payload.locked === false && event.auditedUserId != undefined) {
+		await updateEvent(eventId, {
+			auditedUserId: null,
+			locked: false
+		});
+	} else {
+		await updateEvent(eventId, {
+			highScoring: payload.highScoring ? payload.highScoring === 'true' : undefined,
+			medals: payload.medals ?? undefined,
+			locked: payload.locked ?? undefined
+		});
+	}
 
 	return new Response('ok');
 };
 
 export const PUT: RequestHandler = async ({ params, request, locals }) => {
 	await checkEventPerms(locals.userId, params.id, BigInt(params.event));
+
+	const event = await getEvent(BigInt(params.event));
+	if (!event) return new Response('invalid event', { status: 404 });
+
+	if (event.locked || event.auditedUserId != undefined) {
+		return new Response('event locked', { status: 403 });
+	}
 
 	const payload: {
 		id?: string;

@@ -242,17 +242,17 @@
 		<TableBodyCell class="py-0 px-2">{event.locked ? 'Yes' : 'No'}</TableBodyCell>
 		<TableBodyCell class="py-0 px-2">
 			<span class="flex">
-				{#each event.audited as audited}
+				{#if event.audited}
 					<!-- TODO: name popover -->
-					<Avatar stacked
-						>{audited.name
+					<Avatar
+						>{event.audited.name
 							.split(' ')
 							.map((w) => w[0].toUpperCase())
 							.join('')}</Avatar
 					>
 				{:else}
 					No
-				{/each}
+				{/if}
 			</span>
 		</TableBodyCell>
 		<TableBodyCell class="py-0 px-2"

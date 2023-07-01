@@ -1,10 +1,15 @@
 <script lang="ts">
 	import { Button, Input, Label, Modal } from 'flowbite-svelte';
+	import type { ComponentProps } from 'svelte';
 
 	export let title: string;
 	export let actionMessage: string;
 	export let open: boolean;
 	export let onConfirm: () => void;
+
+	export let confirmText = 'confirm';
+	export let color: ComponentProps<Button>['color'] = 'red';
+	export let buttonText = 'Confirm';
 
 	let confirmDiscardText = '';
 </script>
@@ -25,25 +30,25 @@
 		<slot />
 	</p>
 	<Label>
-		Type "confirm" to {actionMessage}.
+		Type "{confirmText}" to {actionMessage}.
 		<Input
 			class="mt-2"
 			type="text"
 			required
-			placeholder="confirm"
+			placeholder={confirmText}
 			bind:value={confirmDiscardText}
 		/>
 	</Label>
 	<svelte:fragment slot="footer">
 		<Button
-			color="red"
-			disabled={confirmDiscardText !== 'confirm'}
+			{color}
+			disabled={confirmDiscardText !== confirmText}
 			on:click={() => {
-				if (confirmDiscardText === 'confirm') {
+				if (confirmDiscardText === confirmText) {
 					onConfirm();
 					confirmDiscardText = '';
 				}
-			}}>Confirm</Button
+			}}>{buttonText}</Button
 		>
 		<Button color="alternative">Cancel</Button>
 	</svelte:fragment>
