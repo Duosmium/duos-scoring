@@ -201,7 +201,7 @@
 	</span>
 </div>
 
-<SelectableTable items={members} bind:selected={selectedMembers}>
+<SelectableTable items={members} bind:selected={selectedMembers} cols={4}>
 	<svelte:fragment slot="buttons">
 		<Button
 			size="sm"
@@ -242,7 +242,7 @@
 </SelectableTable>
 
 <Heading tag="h3" class="w-fit mt-20 mb-6">Pending Invites</Heading>
-<SelectableTable items={invites} bind:selected={selectedInvites}>
+<SelectableTable items={invites} bind:selected={selectedInvites} cols={4}>
 	<svelte:fragment slot="buttons">
 		<Button
 			size="sm"

@@ -466,7 +466,7 @@
 		>
 	</span>
 </div>
-<SelectableTable items={modifiedTeams} bind:selected>
+<SelectableTable items={modifiedTeams} bind:selected cols={9}>
 	<svelte:fragment slot="headers">
 		<TableHeadCell class="px-2">#</TableHeadCell>
 		<TableHeadCell class="px-2">School</TableHeadCell>

@@ -12,6 +12,7 @@
 
 	type T = $$Generic<{ id: any }>;
 
+	export let cols: number;
 	export let items: T[];
 	export let selected: typeof items;
 	$: selected = items.filter((item) => checked.get(item.id));
@@ -95,7 +96,7 @@
 	<TableBody tableBodyClass="divide-y">
 		{#if items.length === 0}
 			<TableBodyRow>
-				<TableBodyCell colspan="7" class="text-center">
+				<TableBodyCell colspan={cols} class="text-center">
 					<p>This table is empty!</p>
 				</TableBodyCell>
 			</TableBodyRow>
