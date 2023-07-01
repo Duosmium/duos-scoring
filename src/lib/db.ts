@@ -156,6 +156,14 @@ export async function getEvent(id: bigint) {
 	return await prisma.event.findUnique({
 		where: {
 			id
+		},
+		include: {
+			scores: true,
+			tournament: {
+				include: {
+					teams: true
+				}
+			}
 		}
 	});
 }

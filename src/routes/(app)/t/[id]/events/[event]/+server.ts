@@ -30,6 +30,12 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 	if (payload.locked != undefined && typeof payload.locked !== 'boolean')
 		return new Response('invalid locked', { status: 400 });
 	if (
+		payload.locked === true &&
+		event.locked === false &&
+		event.scores.length !== event.tournament.teams.length
+	)
+		return new Response("can't lock with missing scores", { status: 400 });
+	if (
 		payload.audited === true &&
 		(!user.roles.find((role) => role.tournamentId === params.id)?.isDirector ||
 			!event.locked ||

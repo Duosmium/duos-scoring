@@ -389,6 +389,10 @@
 		lockOverride = false;
 	}
 	function toggleLock() {
+		if (!locked && modifiedTeams.some((t) => t.score.status.old === 'NA')) {
+			addToastMessage('Cannot lock an event with missing scores!', 'error');
+			return;
+		}
 		if (!lockOverride && !clean) {
 			showLockDirty = true;
 			return;
