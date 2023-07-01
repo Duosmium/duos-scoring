@@ -255,7 +255,9 @@
 				{/each}
 			</span>
 		</TableBodyCell>
-		<TableBodyCell class="py-0 px-2">{event.scores.length}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2"
+			>{event.scores.length} / {data.tournament.teams.length}</TableBodyCell
+		>
 		<TableBodyCell class="py-0 px-2"
 			><span class={`flex ${event.supervisors.length !== 0 ? 'ml-4' : ''}`}>
 				{#each event.supervisors as { user }}
