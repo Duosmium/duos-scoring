@@ -1,8 +1,6 @@
 import {
 	PrismaClient,
 	type Tournament,
-	type Event,
-	type TournamentRoles,
 	type TrialStatus,
 	type Team,
 	type Track,
@@ -44,35 +42,113 @@ export async function updateTournament(tournamentId: string, tournament: Partial
 	});
 }
 
-export async function addUserToTournament(userId: string, tournamentId: string) {
-	await prisma.user.update({
-		where: {
-			id: userId
-		},
-		data: {
-			tournaments: {
-				connect: {
-					id: tournamentId
-				}
-			}
-		}
-	});
+export async function createInvites(
+	tournamentId: string,
+	invites: {
+		link: string;
+		email?: string;
+		events?: bigint[];
+	}[]
+) {
+	try {
+		await Promise.all(
+			invites.map(async (invite) => {
+				await prisma.invite.create({
+					data: {
+						tournamentId,
+						link: invite.link,
+						email: invite.email,
+						events: {
+							connect: invite.events?.map((e) => ({ id: e }))
+						}
+					}
+				});
+			})
+		);
+	} catch (e) {
+		return false;
+	}
 }
 
-export async function addUserToRole(
-	userId: string,
+export async function updateInvite(link: string, events: bigint[]) {
+	try {
+		await prisma.invite.update({
+			where: {
+				link
+			},
+			data: {
+				events: {
+					set: events.map((e) => ({ id: e }))
+				}
+			}
+		});
+	} catch (e) {
+		return false;
+	}
+}
+
+export async function deleteInvites(invites: string[]) {
+	try {
+		await prisma.invite.deleteMany({
+			where: {
+				link: {
+					in: invites
+				}
+			}
+		});
+	} catch (e) {
+		return false;
+	}
+}
+
+export async function updateMember(
 	tournamentId: string,
-	role: TournamentRoles,
-	eventId: number | null
+	userId: string,
+	data: { events?: bigint[]; admin?: boolean }
 ) {
-	await prisma.role.create({
-		data: {
-			userId,
-			tournamentId,
-			role,
-			eventId
-		}
-	});
+	try {
+		await prisma.role.upsert({
+			where: {
+				userId_tournamentId: {
+					tournamentId,
+					userId
+				}
+			},
+			update: {
+				isDirector: data.admin,
+				supEvents: {
+					set: data.events?.map((e) => ({ id: e }))
+				}
+			},
+			create: {
+				tournamentId,
+				userId,
+				isDirector: data.admin,
+				supEvents: {
+					connect: data.events?.map((e) => ({ id: e }))
+				}
+			}
+		});
+	} catch (e) {
+		return false;
+	}
+}
+
+export async function deleteMembers(tournamentId: string, members: string[]) {
+	try {
+		await prisma.role.deleteMany({
+			where: {
+				AND: {
+					tournamentId,
+					userId: {
+						in: members
+					}
+				}
+			}
+		});
+	} catch (e) {
+		return false;
+	}
 }
 
 export async function addEvents(
@@ -216,11 +292,10 @@ export async function getUserInfo(userId: string) {
 	const user = await prisma.user.findUnique({
 		where: { id: userId },
 		include: {
-			tournaments: true,
 			roles: {
 				include: {
 					tournament: true,
-					event: true
+					supEvents: true
 				}
 			}
 		}
@@ -230,26 +305,7 @@ export async function getUserInfo(userId: string) {
 		return false;
 	}
 
-	const tournamentRoles = user.roles.reduce((acc, role) => {
-		const obj = {
-			role: role.role,
-			event: role.event,
-			tournament: role.tournament
-		};
-		acc.get(role.tournamentId)?.push(obj) ?? acc.set(role.tournamentId, [obj]);
-		return acc;
-	}, new Map<string, { role: TournamentRoles; event: Event | null; tournament: Tournament }[]>());
-
-	return {
-		...user,
-		tournaments: user.tournaments.map((tournament) => ({
-			...tournament,
-			roles: tournamentRoles.get(tournament.id) ?? [],
-			isDirector:
-				(tournamentRoles.get(tournament.id) ?? []).find((role) => role.role === 'DIRECTOR') !=
-				undefined
-		}))
-	};
+	return user;
 }
 
 export async function getTournamentInfo(tournamentId: string) {
@@ -258,7 +314,7 @@ export async function getTournamentInfo(tournamentId: string) {
 		include: {
 			events: {
 				include: {
-					roles: {
+					supervisors: {
 						include: {
 							user: true
 						}
@@ -267,23 +323,16 @@ export async function getTournamentInfo(tournamentId: string) {
 					scores: true
 				}
 			},
-			roles: true,
+			roles: {
+				include: {
+					user: true,
+					supEvents: true
+				}
+			},
 			teams: true,
 			tracks: {
 				include: {
 					teams: true
-				}
-			},
-			users: {
-				include: {
-					roles: {
-						where: {
-							tournamentId
-						},
-						include: {
-							event: true
-						}
-					}
 				}
 			},
 			invites: {

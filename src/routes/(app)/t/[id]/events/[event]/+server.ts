@@ -4,7 +4,7 @@ import type { RequestHandler } from './$types';
 import { checkEventPerms } from '$lib/utils';
 
 export const PATCH: RequestHandler = async ({ request, params, locals }) => {
-	await checkEventPerms(locals.userId, BigInt(params.event));
+	await checkEventPerms(locals.userId, params.id, BigInt(params.event));
 
 	const payload: {
 		highScoring?: 'true' | 'false';
@@ -29,7 +29,7 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 };
 
 export const PUT: RequestHandler = async ({ params, request, locals }) => {
-	await checkEventPerms(locals.userId, BigInt(params.event));
+	await checkEventPerms(locals.userId, params.id, BigInt(params.event));
 
 	const payload: {
 		id?: string;

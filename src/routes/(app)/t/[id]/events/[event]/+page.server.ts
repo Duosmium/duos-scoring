@@ -4,7 +4,7 @@ import { getTournamentInfo, getEventScores } from '$lib/db';
 import { checkEventPerms } from '$lib/utils';
 
 export const load: PageLoad = async ({ params, locals }) => {
-	await checkEventPerms(locals.userId, BigInt(params.event));
+	await checkEventPerms(locals.userId, params.id, BigInt(params.event));
 
 	const tournament = await getTournamentInfo(params.id);
 

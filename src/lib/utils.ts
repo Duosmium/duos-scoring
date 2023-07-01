@@ -1,6 +1,5 @@
 import { error } from '@sveltejs/kit';
 import { getUserInfo } from './db';
-import { TournamentRoles } from '@prisma/client';
 
 export async function checkIsDirector(userId: string, tournamentId: string, throwError = true) {
 	const user = await getUserInfo(userId);
@@ -13,7 +12,7 @@ export async function checkIsDirector(userId: string, tournamentId: string, thro
 		}
 	}
 	const userRole = user.roles.find(
-		(role) => role.role === TournamentRoles.DIRECTOR && role.tournament.id === tournamentId
+		(role) => role.isDirector && role.tournament.id === tournamentId
 	);
 	if (userRole == undefined) {
 		if (throwError) {
@@ -26,7 +25,12 @@ export async function checkIsDirector(userId: string, tournamentId: string, thro
 	return true;
 }
 
-export async function checkEventPerms(userId: string, eventId: bigint, throwError = true) {
+export async function checkEventPerms(
+	userId: string,
+	tournamentId: string,
+	eventId: bigint,
+	throwError = true
+) {
 	const user = await getUserInfo(userId);
 
 	if (user === false) {
@@ -36,10 +40,11 @@ export async function checkEventPerms(userId: string, eventId: bigint, throwErro
 			return false;
 		}
 	}
-	const userRole = user.roles.find(
-		(role) => role.role === TournamentRoles.DIRECTOR || role.event?.id === eventId
-	);
-	if (userRole == undefined) {
+	const userRole = user.roles.find((role) => role.tournamentId === tournamentId);
+	if (
+		userRole == undefined ||
+		(!userRole.isDirector && userRole.supEvents.find((event) => event.id === eventId) === undefined)
+	) {
 		if (throwError) {
 			throw error(403, 'You do not have permission to view this page');
 		} else {
@@ -64,7 +69,7 @@ export async function checkTournamentAccess(
 			return false;
 		}
 	}
-	const userRole = user.tournaments.find((tournament) => tournament.id === tournamentId);
+	const userRole = user.roles.find((role) => role.tournament.id === tournamentId);
 	if (userRole == undefined) {
 		if (throwError) {
 			throw error(403, 'You do not have permission to view this page');

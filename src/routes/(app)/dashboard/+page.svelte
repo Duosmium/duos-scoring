@@ -16,23 +16,23 @@
 	<h1>Welcome {data.user.name}!</h1>
 
 	<h2>Your Tournaments</h2>
-	{#if data.user.tournaments.length === 0}
+	{#if data.user.roles.length === 0}
 		<p>You have no tournaments. <a href="/new">Create one?</a></p>
 	{:else}
-		{#each data.user.tournaments as tournament}
-			<h3>{tournament.name}</h3>
+		{#each data.user.roles as role}
+			<h3>{role.tournament.name}</h3>
 			<ul>
-				{#each tournament.roles as role}
-					{#if role.role === 'DIRECTOR'}
-						<li><a href="/t/{tournament.id}/">TD Dashboard</a></li>
-					{:else if (role.role === 'LEAD_ES' || role.role === 'VOLUNTEER') && role.event}
-						<li>
-							<a href="/t/{tournament.id}/events/{role.event.id}/">{role.event.name} Dashboard</a>
-						</li>
-					{/if}
+				{#if role.isDirector}
+					<li><a href="/t/{role.tournament.id}/">TD Dashboard</a></li>
 				{:else}
-					<li>The tournament director has not assigned you a role yet.</li>
-				{/each}
+					{#each role.supEvents as event}
+						<li>
+							<a href="/t/{role.tournament.id}/events/{event.id}/">{event.name} Dashboard</a>
+						</li>
+					{:else}
+						<li>The tournament director has not assigned you a role yet.</li>
+					{/each}
+				{/if}
 			</ul>
 		{/each}
 	{/if}

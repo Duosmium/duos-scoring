@@ -1,6 +1,6 @@
-import { addUserToRole, addUserToTournament, createTournament } from '$lib/db';
+import { updateMember, createTournament } from '$lib/db';
 import type { Actions } from './$types';
-import { fail, redirect } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 import type { Divisions, States, TournamentLevels } from '@prisma/client';
 
 export const actions = {
@@ -23,8 +23,8 @@ export const actions = {
 
 		const enableTracks = !!formData.get('enableTracks') || false;
 
-		const medals = parseInt(formData.get('medals')?.toString() ?? '') || null;
-		const trophies = parseInt(formData.get('trophies')?.toString() ?? '') || null;
+		const medals = parseInt(formData.get('medals')?.toString() ?? '') || 6;
+		const trophies = parseInt(formData.get('trophies')?.toString() ?? '') || 3;
 		const bids = parseInt(formData.get('bids')?.toString() ?? '') || null;
 		const nOffset = parseInt(formData.get('nOffset')?.toString() ?? '') || null;
 		const drops = parseInt(formData.get('drops')?.toString() ?? '') || null;
@@ -49,8 +49,7 @@ export const actions = {
 				nOffset,
 				drops
 			});
-			await addUserToTournament(locals.userId, slug);
-			await addUserToRole(locals.userId, slug, 'DIRECTOR', null);
+			await updateMember(slug, locals.userId, { admin: true });
 		} catch (e) {
 			console.error(e);
 			return {

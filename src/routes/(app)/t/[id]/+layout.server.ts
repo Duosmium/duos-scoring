@@ -25,20 +25,21 @@ export const load: LayoutServerLoad = async ({ locals, request, params }) => {
 		throw error(500, 'Error fetching tournament information');
 	}
 
-	const isDirector = user.tournaments.find((t) => t.id === params.id)?.isDirector ?? false;
+	const role = user.roles.find((r) => r.tournament.id === params.id);
+	const isDirector = role?.isDirector ?? false;
 
 	const filteredTournament = {
 		...tournament,
 		events: undefined,
 		roles: undefined,
 		tracks: undefined,
-		users: undefined,
 		invites: undefined
 	};
 
 	return {
 		tournament: isDirector ? tournament : filteredTournament,
 		user,
+		role,
 		isDirector
 	};
 };
