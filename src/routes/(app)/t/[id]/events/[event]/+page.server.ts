@@ -18,7 +18,6 @@ export const load: PageLoad = async ({ params, locals }) => {
 		throw error(404, 'Event not found');
 	}
 
-	// TODO: check permissions again
 	const scores = await getEventScores(event.id);
 
 	return { event, scores };

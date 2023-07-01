@@ -151,9 +151,31 @@
 					? -1
 					: 1
 			)
-			.map((t, i) => ({
+			.map((t, i, s) => {
+				// check ties
+				if (
+					typeof t.ranking === 'number' &&
+					(t.ranking === s[i - 1]?.ranking || t.ranking === s[i + 1]?.ranking)
+				) {
+					if (t.score.notes.new && t.score.notes.new !== 'TIE') {
+						t.score.notes.new = 'TIE; ' + t.score.notes.new.replace('TIE; ', '').replace('TIE', '');
+					} else {
+						t.score.notes.new = 'TIE';
+					}
+				} else {
+					t.score.notes.new = t.score.notes.new?.replace('TIE; ', '').replace('TIE', '') || null;
+				}
+				t.score.notes.dirty = t.score.notes.new !== t.score.notes.old;
+				return t;
+			})
+			.map((t, i, s) => ({
 				...t,
-				ranking: typeof t.ranking === 'string' ? statusLookup[t.ranking] : i + 1
+				ranking:
+					typeof t.ranking === 'string'
+						? statusLookup[t.ranking]
+						: (t.score.notes.new?.includes('TIE')
+								? s.findIndex((x) => x.ranking === t.ranking)
+								: i) + 1 // do index searching for ties
 			}));
 	}
 	$: {
@@ -221,7 +243,7 @@
 					team.score[field].new = (e.target as HTMLSelectElement).value as any;
 					break;
 				case 'notes':
-					team.score[field].new = (e.target as HTMLTextAreaElement).innerText;
+					team.score[field].new = (e.target as HTMLTextAreaElement).value || null;
 					break;
 				default:
 					break;
@@ -604,10 +626,9 @@
 					team.score.notes.dirty ? '!border-2' : '!border-0'
 				}`}
 				rows="1"
+				value={team.score.notes.new ?? ''}
 				on:change={updateData(team.number, 'notes')}
-			>
-				{team.score.notes.new || ''}
-			</Textarea>
+			/>
 		</TableBodyCell>
 	</svelte:fragment>
 </SelectableTable>
