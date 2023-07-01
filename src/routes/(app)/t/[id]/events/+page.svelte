@@ -243,19 +243,16 @@
 		</TableBodyCell>
 		<TableBodyCell class="py-0 px-2">{event.locked ? 'Yes' : 'No'}</TableBodyCell>
 		<TableBodyCell class="py-0 px-2">
-			<span class="flex">
-				{#if event.audited}
-					<!-- TODO: name popover -->
-					<Avatar class={`user_${event.audited.id} -ml-2`}
-						>{event.audited.name
-							.split(' ')
-							.map((w) => w[0].toUpperCase())
-							.join('')}</Avatar
-					>
-				{:else}
-					No
-				{/if}
-			</span>
+			{#if event.audited}
+				<Avatar class={`user_${event.audited.id} -ml-2`}
+					>{event.audited.name
+						.split(' ')
+						.map((w) => w[0].toUpperCase())
+						.join('')}</Avatar
+				>
+			{:else}
+				No
+			{/if}
 		</TableBodyCell>
 		<TableBodyCell class="py-0 px-2"
 			>{event.scores.length} / {data.tournament.teams.length}</TableBodyCell

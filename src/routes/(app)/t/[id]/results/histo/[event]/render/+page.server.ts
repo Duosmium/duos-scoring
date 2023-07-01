@@ -2,24 +2,33 @@ import type { PageServerLoad } from './$types';
 
 import { checkIsDirector } from '$lib/utils';
 import { getTournamentInfo } from '$lib/db';
-import { error } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
 	await checkIsDirector(locals.userId, params.id);
 
 	const tournament = await getTournamentInfo(params.id);
 	if (!tournament) {
-		throw error(400, 'error fetching tournament');
+		return {
+			error: 'Tournament not found!'
+		};
 	}
 
 	const event = tournament.events.find((e) => e.id.toString() === params.event);
 	if (!event) {
-		throw error(404, 'event not found');
+		return {
+			error: 'Event not found!'
+		};
 	}
 
 	const rawScores = event.scores
 		.flatMap((e) => (e.rawScore == null ? [] : [e.rawScore]))
 		.sort((a, b) => a - b);
+
+	if (rawScores.length === 0) {
+		return {
+			error: 'No scores inputted.'
+		};
+	}
 
 	const numBins = Math.ceil(Math.sqrt(rawScores.length));
 
@@ -34,7 +43,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 	function stdev(array: number[]) {
 		const n = array.length;
 		const mean = array.reduce((a, b) => a + b) / n;
-		return Math.sqrt(array.map((x) => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / n);
+		return Math.sqrt(array.map((x) => Math.pow(x - mean, 2)).reduce((a, b) => a + b, 0) / n);
 	}
 
 	return {

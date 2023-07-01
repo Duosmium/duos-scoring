@@ -8,21 +8,25 @@
 
 	export let data: PageData;
 
-	const histogramData = {
-		start: data.histograms.start,
-		width: data.histograms.width,
-		count: data.histograms.counts
-	};
+	const histogramData = data.histograms
+		? {
+				start: data.histograms.start,
+				width: data.histograms.width,
+				count: data.histograms.counts
+		  }
+		: null;
 
-	const labels = histogramData.count.map((_, i) =>
-		(histogramData.start + histogramData.width * i).toFixed(
-			histogramData.width.toString().split('.')[1]?.length || 0
-		)
-	);
+	const labels = histogramData
+		? histogramData.count.map((_, i) =>
+				(histogramData.start + histogramData.width * i).toFixed(
+					histogramData.width.toString().split('.')[1]?.length || 0
+				)
+		  )
+		: null;
 
 	let chart: HTMLDivElement;
 	$: {
-		if (browser && chart) {
+		if (browser && chart && histogramData && labels) {
 			new BarChart(
 				chart,
 				{
@@ -67,15 +71,19 @@
 	<link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet" />
 </svelte:head>
 
-<h1>{data.name}</h1>
-<div bind:this={chart} class="ct-chart ct-octave" />
-{#if data.histograms.info}
-	<dl>
-		{#each data.histograms.info as { key, value }}
-			<div>
-				<dt>{key}:</dt>
-				<dd>{value}</dd>
-			</div>
-		{/each}
-	</dl>
+{#if data.histograms}
+	<h1>{data.name}</h1>
+	<div bind:this={chart} class="ct-chart ct-octave" />
+	{#if data.histograms.info}
+		<dl>
+			{#each data.histograms.info as { key, value }}
+				<div>
+					<dt>{key}:</dt>
+					<dd>{value}</dd>
+				</div>
+			{/each}
+		</dl>
+	{/if}
+{:else if data.error}
+	<div class="error">{data.error}</div>
 {/if}
