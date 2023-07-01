@@ -33,6 +33,8 @@
 		{ value: 'false', name: 'Low Score Wins' }
 	];
 
+	$: roles = data.tournament.roles!;
+
 	$: events = data.tournament.events!;
 	let selected: typeof events = [];
 
@@ -244,7 +246,7 @@
 			<span class="flex">
 				{#if event.audited}
 					<!-- TODO: name popover -->
-					<Avatar
+					<Avatar class={`user_${event.audited.id} -ml-2`}
 						>{event.audited.name
 							.split(' ')
 							.map((w) => w[0].toUpperCase())
@@ -261,7 +263,7 @@
 		<TableBodyCell class="py-0 px-2"
 			><span class={`flex ${event.supervisors.length !== 0 ? 'ml-4' : ''}`}>
 				{#each event.supervisors as { user }}
-					<Avatar id={'user_' + user.id} stacked
+					<Avatar class={`user_${user.id}`} stacked
 						>{user.name
 							.split(' ')
 							.map((w) => w[0].toUpperCase())
@@ -294,10 +296,8 @@
 	</svelte:fragment>
 </SelectableTable>
 
-{#each events as event}
-	{#each event.supervisors as { user }}
-		<Tooltip triggeredBy={`#user_${user.id}`}>{user.name}</Tooltip>
-	{/each}
+{#each roles as { user }}
+	<Tooltip triggeredBy={`.user_${user.id}`}>{user.name}</Tooltip>
 {/each}
 
 <ConfirmModal
