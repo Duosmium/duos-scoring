@@ -1,42 +1,135 @@
-import {} from '$lib/db';
+import { deleteMembers, deleteInvites, createInvites, updateMember, updateInvite } from '$lib/db';
 import type { RequestHandler } from './$types';
 import { checkIsDirector } from '$lib/utils';
+import { customAlphabet } from 'nanoid';
+
+const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 8);
 
 export const DELETE: RequestHandler = async ({ request, locals, params }) => {
 	await checkIsDirector(locals.userId, params.id);
 
 	const payload: {
-		[key: string]: string;
+		members?: string[];
+		invites?: string[];
 	} = await request.json();
 
-	payload;
+	if (!payload.members && !payload.invites) {
+		return new Response('missing members or invites!', { status: 400 });
+	}
+	if (
+		payload.members &&
+		(!Array.isArray(payload.members) || payload.members.some((m) => typeof m !== 'string'))
+	) {
+		return new Response('invalid members', { status: 400 });
+	}
+	if (
+		payload.invites &&
+		(!Array.isArray(payload.invites) || payload.invites.some((m) => typeof m !== 'string'))
+	) {
+		return new Response('invalid invites', { status: 400 });
+	}
+
+	if (payload.members) {
+		await deleteMembers(params.id, payload.members);
+	}
+	if (payload.invites) {
+		await deleteInvites(payload.invites);
+	}
 
 	return new Response('ok');
 };
 
-export const PATCH: RequestHandler = async ({ request, params, locals }) => {
+export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 	await checkIsDirector(locals.userId, params.id);
 
 	const payload: {
-		[key: string]: string;
+		member?: {
+			userId: string;
+			admin?: boolean;
+			events?: string[];
+		};
+		invite?: {
+			link: string;
+			events: string[];
+		};
 	} = await request.json();
-	if (!payload.id || typeof payload.id !== 'string') {
-		return new Response('missing', { status: 404 });
+
+	if (!payload.member && !payload.invite) {
+		return new Response('missing member or invite!', { status: 400 });
 	}
-	if (!payload.data) {
-		// TODO: validate data
-		return new Response('invalid payload', { status: 400 });
+	if (payload.member && !payload.member.userId) {
+		return new Response('missing userId', { status: 400 });
+	}
+	if (payload.invite && !payload.invite.link) {
+		return new Response('missing link', { status: 400 });
+	}
+	if (payload.member && payload.member.admin && typeof payload.member.admin !== 'boolean') {
+		return new Response('invalid admin', { status: 400 });
+	}
+	if (
+		payload.member &&
+		payload.member.events &&
+		(!Array.isArray(payload.member.events) ||
+			payload.member.events.some((e) => typeof e !== 'string'))
+	) {
+		return new Response('invalid events', { status: 400 });
+	}
+	if (
+		payload.invite &&
+		(!payload.invite.events ||
+			!Array.isArray(payload.invite.events) ||
+			payload.invite.events.some((e) => typeof e !== 'string'))
+	) {
+		return new Response('invalid events', { status: 400 });
+	}
+
+	if (payload.member) {
+		await updateMember(params.id, payload.member.userId, {
+			events: payload.member.events?.map((e) => BigInt(e)),
+			admin: payload.member.admin
+		});
+	}
+	if (payload.invite) {
+		await updateInvite(
+			payload.invite.link,
+			payload.invite.events.map((e) => BigInt(e))
+		);
 	}
 
 	return new Response('ok');
 };
 
-export const PUT: RequestHandler = async ({ params, request, locals }) => {
+export const PUT: RequestHandler = async ({ request, params, locals }) => {
 	await checkIsDirector(locals.userId, params.id);
 
-	const payload = await request.json();
+	const payload: {
+		email?: string;
+		events?: string[];
+	}[] = await request.json();
 
-	payload;
+	const emailRegex =
+		/^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/;
+	if (payload.some((d) => d.email && (typeof d.email !== 'string' || !emailRegex.test(d.email)))) {
+		return new Response('invalid email', { status: 400 });
+	}
+	if (
+		payload.some(
+			(d) => d.events && (!Array.isArray(d.events) || d.events.some((e) => typeof e !== 'string'))
+		)
+	) {
+		return new Response('invalid events', { status: 400 });
+	}
+
+	// TODO: send emails
+
+	await createInvites(
+		params.id,
+		payload.map((d) => ({
+			link: nanoid(),
+			email: d.email,
+			events: d.events?.map((e) => BigInt(e))
+		}))
+	);
 
 	return new Response('ok');
 };

@@ -9,24 +9,23 @@
 		Label,
 		Button,
 		Heading,
-		Modal
+		Modal,
+		Textarea,
+		Alert,
+		P,
+		List,
+		Li
 	} from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import { invalidateAll } from '$app/navigation';
-	import { TournamentRoles } from '@prisma/client';
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
+	import { parse } from 'papaparse';
 
 	export let data: PageData;
 
-	$: members = data.tournament.users!.map((m) => ({
-		...m,
-		admin:
-			m.roles.find(
-				(role) => role.role === TournamentRoles.DIRECTOR && role.tournamentId === data.tournament.id
-			) != undefined
-	}));
+	$: members = data.tournament.roles!;
 	let selectedMembers: typeof members = [];
 
 	$: invites = data.tournament.invites!.map((i) => ({ ...i, id: i.link }));
@@ -35,54 +34,101 @@
 	let showConfirmDeleteMembers = false;
 	let showConfirmDeleteInvites = false;
 	function confirmDelete(thing: 'members' | 'invites') {
-		const ids = selectedMembers.map((m) => m.id.toString());
+		const ids =
+			thing === 'members'
+				? { members: selectedMembers.map((m) => m.user.id) }
+				: { invites: selectedInvites.map((i) => i.link) };
 		fetch(`/t/${$page.params['id']}/members`, {
 			method: 'DELETE',
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify({
-				members: ids
-			})
+			body: JSON.stringify(ids)
 		}).then((res) => {
 			if (res.status === 200) {
-				members = members.filter((m) => !ids.includes(m.id.toString()));
-				addToastMessage('Members deleted!', 'success');
+				if (thing === 'members') {
+					members = members.filter((m) => !ids.members!.includes(m.user.id));
+				} else {
+					invites = invites.filter((i) => !ids.invites!.includes(i.link));
+				}
+				addToastMessage(`${thing[0].toLocaleUpperCase() + thing.slice(1)} deleted!`, 'success');
 			} else {
-				addToastMessage('Failed to delete members!', 'error');
+				addToastMessage(`Failed to delete ${thing}!`, 'error');
 			}
 		});
 	}
 
-	let showAddMember = false;
-	let addMemberData = {};
-	function openAddMember() {
-		showAddMember = true;
+	const emailRegex =
+		/^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/;
+	let showInviteMembers = false;
+	let inviteMembersData = '';
+	let parsedInvites: string[][];
+	let parsedError = '';
+	$: events = new Map(data.tournament.events?.map((e) => [e.name, e]));
+	$: {
+		parsedInvites = (
+			parse(inviteMembersData, { header: false, skipEmptyLines: 'greedy' })
+				.data as typeof parsedInvites
+		).map((row) => row.filter((d) => d !== ''));
+		parsedError = '';
+		parsedInvites.forEach((t) => {
+			if (!emailRegex.test(t[0])) {
+				parsedError += `Invalid email '${t[0]}'\n`;
+			}
+			if (t.slice(1).length !== 0) {
+				t.slice(1).forEach((e) => {
+					if (!events.has(e)) {
+						parsedError += `Invalid event '${e}'\n`;
+					}
+				});
+			}
+		});
 	}
-	function addMember() {
+	function openInviteMembers() {
+		showInviteMembers = true;
+	}
+	function inviteMembers() {
 		// TODO: validation
 		fetch(`/t/${$page.params['id']}/members`, {
 			method: 'PUT',
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify([]) // TODO: validate
+			body: JSON.stringify(
+				parsedInvites.map((i) => ({
+					email: i[0],
+					events: i.slice(1).map((name) => events.get(name)?.id.toString())
+				}))
+			)
 		}).then((res) => {
 			if (res.status === 200) {
-				addMemberData = {};
-				addToastMessage('Member added!', 'success');
+				inviteMembersData = '';
+				addToastMessage('Invites sent!', 'success');
 				invalidateAll();
 			} else {
-				addToastMessage('Failed to add member!', 'error');
+				addToastMessage('Failed to send invites!', 'error');
 			}
 		});
 	}
 
 	let showEditMember = false;
-	let editMemberData: Partial<(typeof members)[0]> = {};
-	function openEditMember(member: string) {
+	let editMemberData: {
+		userId: string;
+		admin: boolean;
+		events: bigint[];
+	} = { userId: '', admin: false, events: [] };
+	function openEditMember(member: bigint) {
 		showEditMember = true;
-		editMemberData = { ...members.find((m) => m.id === member) };
+		const foundMember = members.find((m) => m.id === member);
+		if (!foundMember) {
+			addToastMessage('Failed to find member!', 'error');
+			return;
+		}
+		editMemberData = {
+			userId: foundMember.user.id,
+			admin: foundMember.isDirector,
+			events: foundMember.supEvents.map((e) => e.id)
+		};
 	}
 	function editMember() {
 		// TODO: validation
@@ -91,7 +137,13 @@
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify({}) // TODO: validate
+			body: JSON.stringify({
+				member: {
+					userId: editMemberData.userId,
+					admin: editMemberData.admin,
+					events: editMemberData.events.map((e) => e.toString())
+				}
+			}) // TODO: validate
 		}).then((res) => {
 			if (res.status === 200) {
 				addToastMessage('Member updated!', 'success');
@@ -103,10 +155,15 @@
 	}
 
 	let showEditInvite = false;
-	let editInviteData: Partial<(typeof invites)[0]> = {};
+	let editInviteData: { link: string; events: bigint[] } = { link: '', events: [] };
 	function openEditInvite(invite: string) {
 		showEditInvite = true;
-		editInviteData = { ...invites.find((i) => i.link === invite) };
+		const foundInvite = invites.find((i) => i.link === invite);
+		if (!foundInvite) {
+			addToastMessage('Failed to find invite!', 'error');
+			return;
+		}
+		editInviteData = { link: foundInvite.link, events: foundInvite.events.map((e) => e.id) };
 	}
 	function editInvite() {
 		// TODO: validation
@@ -115,7 +172,12 @@
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify({}) // TODO: validate
+			body: JSON.stringify({
+				invite: {
+					link: editInviteData.link,
+					events: editInviteData.events.map((e) => e.toString())
+				}
+			}) // TODO: validate
 		}).then((res) => {
 			if (res.status === 200) {
 				addToastMessage('Invite updated!', 'success');
@@ -135,7 +197,7 @@
 <div class="w-full flex justify-between flex-wrap mb-2">
 	<Heading tag="h2" class="w-fit">Members</Heading>
 	<span class="space-x-4">
-		<Button color="green" on:click={openAddMember}>Invite Members</Button>
+		<Button color="green" on:click={openInviteMembers}>Invite Members</Button>
 	</span>
 </div>
 
@@ -158,16 +220,13 @@
 		</TableHeadCell>
 	</svelte:fragment>
 	<svelte:fragment slot="item" let:item={member}>
-		<TableBodyCell class="px-2">{member.name}</TableBodyCell>
-		<TableBodyCell class="px-2">{member.admin ? 'Yes' : 'No'}</TableBodyCell>
+		<TableBodyCell class="px-2">{member.user.name}</TableBodyCell>
+		<TableBodyCell class="px-2">{member.isDirector ? 'Yes' : 'No'}</TableBodyCell>
 		<TableBodyCell class="px-2"
-			>{member.roles
-				.filter((role) => role.tournamentId === data.tournament.id && role.event)
-				.map((role) => role.event?.name)
-				.join(', ')}</TableBodyCell
+			>{member.supEvents.map((event) => event.name)?.join(', ')}</TableBodyCell
 		>
 		<TableBodyCell class="px-2">
-			{#if member.id !== data.user.id}
+			{#if member.user.id !== data.user.id}
 				<Button
 					color="alternative"
 					class="border-none p-1 font-medium text-primary-600 hover:underline dark:text-primary-500"
@@ -232,14 +291,6 @@
 		: ''}? This action cannot be undone.
 </ConfirmModal>
 
-<Modal title="Add Member" bind:open={showAddMember} autoclose outsideclose>
-	<svelte:fragment slot="footer">
-		<!-- TODO: validation -->
-		<Button color="green" disabled={false} on:click={addMember}>Add Member</Button>
-		<Button color="alternative">Cancel</Button>
-	</svelte:fragment>
-</Modal>
-
 <ConfirmModal
 	title="Delete Invites"
 	actionMessage="delete these invites"
@@ -253,20 +304,77 @@
 		: ''}? This action cannot be undone.
 </ConfirmModal>
 
-<Modal title="Add Member" bind:open={showAddMember} autoclose outsideclose>
+<Modal title="Add Member" bind:open={showInviteMembers} autoclose outsideclose>
+	<P>
+		To invite members, paste in list of emails below. You can also add events that the person will
+		automatically be assigned to by separating the email and events by commas or tabs (the default
+		in Google Sheets when you copy).
+		<List tag="ul" class="space-y-1 mt-2">
+			<Li
+				><code class="dark:text-red-300 text-red-700">Email</code>
+				<i>(Required)</i>: An invite link will be sent to this email
+			</Li>
+			<Li
+				><code class="dark:text-blue-300 text-blue-700">Events</code>
+				<i>(Optional)</i>: The invite will automatically add them to these events</Li
+			>
+		</List>
+	</P>
+	<Label>
+		Emails
+		<Textarea class="mt-2" required bind:value={inviteMembersData} />
+	</Label>
+
+	<Heading tag="h3" class="text-md">Preview</Heading>
+
+	{#if parsedError}
+		<Alert class="mt-2 whitespace-pre-line" color="red">{parsedError}</Alert>
+	{:else if parsedInvites.length !== 0}
+		<ol>
+			{#each parsedInvites as invite}
+				<li>
+					<span class="dark:text-red-300 text-red-700"
+						>{invite[0] + (invite.slice(1).length !== 0 ? ': ' : '')}</span
+					><span class="dark:text-blue-300 text-blue-700"
+						>{invite.slice(1).length !== 0 ? invite.slice(1).join(', ') : ''}</span
+					>
+				</li>
+			{/each}
+		</ol>
+	{:else}
+		<P>Waiting for input...</P>
+	{/if}
+
 	<svelte:fragment slot="footer">
 		<!-- TODO: validation -->
-		<Button color="green" disabled={false} on:click={addMember}>Add Member</Button>
+		<Button color="green" disabled={parsedError.length !== 0} on:click={inviteMembers}>Save</Button>
 		<Button color="alternative">Cancel</Button>
 	</svelte:fragment>
 </Modal>
 
 <Modal title="Edit Member" bind:open={showEditMember} autoclose outsideclose>
-	<Label>some kind of event stuff</Label>
-	<Label>
-		<Checkbox bind:checked={editMemberData.admin} />
-		<div>Admin Permissions</div>
-		<div class="text-sm">
+	<Heading tag="h2" class="text-2xl">Events</Heading>
+	{#each events.entries() as event}
+		<Label class="!mt-2">
+			<Checkbox
+				class="mr-2"
+				checked={editMemberData.events.includes(event[1].id)}
+				on:click={(e) => {
+					if (e.target?.checked) {
+						editMemberData.events.push(event[1].id);
+					} else {
+						editMemberData.events.splice(editMemberData.events.indexOf(event[1].id), 1);
+					}
+				}}
+			/>
+			{event[0]}
+		</Label>
+	{/each}
+	<Heading tag="h2" class="text-2xl mt-20">Permissions</Heading>
+	<Label class="!mt-4">
+		<Checkbox class="mr-2" bind:checked={editMemberData.admin} />
+		<span>Admin Permissions</span>
+		<div class="text-sm mt-2">
 			This role gives this user access to the entire tournament, including every event and setting.
 			They will also have the permission to manage users. <strong
 				>Only give this role to trusted individuals!</strong
@@ -282,7 +390,23 @@
 </Modal>
 
 <Modal title="Edit Invite" bind:open={showEditInvite} autoclose outsideclose>
-	<Label>some kind of event stuff</Label>
+	<Heading tag="h2" class="text-2xl">Events</Heading>
+	{#each events.entries() as event}
+		<Label class="!mt-2">
+			<Checkbox
+				class="mr-2"
+				checked={editInviteData.events.includes(event[1].id)}
+				on:click={(e) => {
+					if (e.target?.checked) {
+						editInviteData.events.push(event[1].id);
+					} else {
+						editInviteData.events.splice(editInviteData.events.indexOf(event[1].id), 1);
+					}
+				}}
+			/>
+			{event[0]}
+		</Label>
+	{/each}
 
 	<svelte:fragment slot="footer">
 		<!-- TODO: validation -->
