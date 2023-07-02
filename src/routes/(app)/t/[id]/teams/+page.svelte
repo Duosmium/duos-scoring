@@ -18,7 +18,7 @@
 		P,
 		Alert
 	} from 'flowbite-svelte';
-	import { parse } from 'papaparse';
+	import papaparse from 'papaparse';
 	import { page } from '$app/stores';
 	import { invalidateAll } from '$app/navigation';
 	import type { Team } from '@prisma/client';
@@ -188,7 +188,7 @@
 	}[] = [];
 	let parsedError = '';
 	$: {
-		parsedImportTeams = parse(importTeamsData, { header: true }).data as any;
+		parsedImportTeams = papaparse.parse(importTeamsData, { header: true }).data as any;
 		const missingFields: Set<string> = new Set();
 		// TODO: validate numbers, suffix, exhibition; canonicalization
 		parsedImportTeams.forEach((t) => {

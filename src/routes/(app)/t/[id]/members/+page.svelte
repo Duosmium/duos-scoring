@@ -21,7 +21,7 @@
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
-	import { parse } from 'papaparse';
+	import papaparse from 'papaparse';
 
 	export let data: PageData;
 
@@ -67,7 +67,7 @@
 	$: events = new Map(data.events.map((e) => [e.name, e]));
 	$: {
 		parsedInvites = (
-			parse(inviteMembersData, { header: false, skipEmptyLines: 'greedy' })
+			papaparse.parse(inviteMembersData, { header: false, skipEmptyLines: 'greedy' })
 				.data as typeof parsedInvites
 		).map((row) => row.filter((d) => d !== ''));
 		parsedError = '';

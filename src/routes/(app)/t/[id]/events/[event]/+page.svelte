@@ -21,7 +21,7 @@
 	import { page } from '$app/stores';
 	import { beforeNavigate, invalidateAll } from '$app/navigation';
 	import type { Score, ScoreStatus } from '@prisma/client';
-	import { parse } from 'papaparse';
+	import papaparse from 'papaparse';
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
@@ -266,7 +266,7 @@
 	}[] = [];
 	let parsedError = '';
 	$: {
-		parsedImportScores = parse(importScoresData, { header: true }).data as any;
+		parsedImportScores = papaparse.parse(importScoresData, { header: true }).data as any;
 		parsedError = '';
 		const missingFields: Set<string> = new Set();
 		const invalidStatuses: Set<string> = new Set();
