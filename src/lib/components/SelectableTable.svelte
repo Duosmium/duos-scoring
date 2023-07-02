@@ -10,7 +10,7 @@
 		Button
 	} from 'flowbite-svelte';
 
-	type T = $$Generic<{ id: any }>;
+	type T = $$Generic<{ id: any; disabled?: boolean }>;
 
 	export let cols: number;
 	export let items: T[];
@@ -32,6 +32,7 @@
 		selectAll = false;
 		if (!shiftDown) {
 			lastIndex = items.findIndex((item) => item.id === id);
+			if (items[lastIndex].disabled === true) return;
 			checked.set(id, !checked.get(id));
 			checked = checked;
 		} else {
@@ -42,7 +43,9 @@
 			const maxIndex = Math.max(currentIndex, lastIndex);
 			items
 				.filter((_, i) => i >= minIndex && i <= maxIndex)
-				.forEach((item) => checked.set(item.id, !currentStatus));
+				.forEach((item) => {
+					if (item.disabled !== true) checked.set(item.id, !currentStatus);
+				});
 			checked = checked;
 			lastIndex = currentIndex;
 		}
@@ -50,7 +53,7 @@
 
 	function toggleAll() {
 		selectAll = !selectAll;
-		checked = new Map(items.map((item) => [item.id, selectAll]));
+		checked = new Map(items.map((item) => [item.id, item.disabled === true ? false : selectAll]));
 	}
 
 	let shiftDown = false;
@@ -105,6 +108,7 @@
 				<TableBodyRow>
 					<TableBodyCell class="py-4 pl-4 pr-2">
 						<Checkbox
+							disabled={item.disabled === true}
 							on:click={() => {
 								toggleCheck(item.id);
 							}}
