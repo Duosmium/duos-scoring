@@ -78,7 +78,7 @@
 				}
 				case 'forgot_pass': {
 					const { error } = await supabase.auth.resetPasswordForEmail(email, {
-						redirectTo: 'http://localhost:5173/login' // TODO: Change this to the actual URL
+						redirectTo: 'https://scoring.duosmium.org/login'
 					});
 					if (error) throw error;
 					successMessage = 'Check your email for a password reset link!';
