@@ -75,28 +75,6 @@ export const actions = {
 			};
 		}
 
-		throw redirect(303, '/t/' + slug + '/edit/events');
-
-		return {
-			success: true,
-			returned: {
-				name,
-				shortName,
-				slug,
-				location,
-				state,
-				level,
-				division,
-				year,
-				startDate,
-				endDate,
-				awardsDate,
-				medals,
-				trophies,
-				bids,
-				nOffset,
-				drops
-			}
-		};
+		throw redirect(303, '/t/' + slug);
 	}
 } satisfies Actions;
