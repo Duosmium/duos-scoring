@@ -5,7 +5,9 @@
 	import {
 		Avatar,
 		Button,
+		Checkbox,
 		Heading,
+		Label,
 		Modal,
 		P,
 		TableBodyCell,
@@ -30,6 +32,8 @@
 		disabled: e.audited == null
 	}));
 	let selected: typeof events = [];
+
+	let exportHistos = false;
 
 	let showHisto = false;
 	let histoEvent: bigint | null = null;
@@ -123,7 +127,15 @@
 									points: t.penalties
 								}
 						  ]
-				) || undefined
+				) || undefined,
+			Histograms: exportHistos
+				? {
+						type: 'data',
+						data: data.tournament.events?.flatMap((e) =>
+							selectedEvents.has(e.id) ? [{ ...data.histos.get(e.id), event: e.name }] : []
+						)
+				  }
+				: undefined
 		};
 
 		const content = yaml.dump(sciolyffRep);
@@ -166,6 +178,10 @@
 	>Preview and export results on this page. Select the events you want to export, then use the
 	"Preview" button to preview the results page, where you can download a PDF version.</P
 >
+
+<Label class="text-base mb-4">
+	Export Histograms: <Checkbox bind:checked={exportHistos} />
+</Label>
 
 <SelectableTable items={events} bind:selected cols={5}>
 	<svelte:fragment slot="buttons">

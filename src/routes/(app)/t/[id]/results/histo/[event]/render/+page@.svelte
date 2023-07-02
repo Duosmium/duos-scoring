@@ -76,7 +76,7 @@
 	<div bind:this={chart} class="ct-chart ct-octave" />
 	{#if data.histograms.info}
 		<dl>
-			{#each data.histograms.info as { key, value }}
+			{#each Object.entries(data.histograms.info) as [key, value]}
 				<div>
 					<dt>{key}:</dt>
 					<dd>{value}</dd>

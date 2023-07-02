@@ -3,6 +3,7 @@ import type { PageServerLoad } from './$types';
 import { checkIsDirector } from '$lib/utils';
 import { getEventRankings, getTournamentInfo } from '$lib/db';
 import { error } from '@sveltejs/kit';
+import { generateHisto } from '$lib/histoUtils';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
 	await checkIsDirector(locals.userId, params.id);
@@ -25,7 +26,15 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		return acc;
 	}, new Map<bigint, (typeof rankings)[number]>());
 
+	const histos = tournament.events.reduce((acc, event) => {
+		const histo = generateHisto(event);
+		if (histo === false) return acc;
+		acc.set(event.id, histo);
+		return acc;
+	}, new Map<bigint, { start: number; width: number; counts: number[]; info: Record<string, string> }>());
+
 	return {
-		rankings: [...rankingsByTeam.values()]
+		rankings: [...rankingsByTeam.values()],
+		histos
 	};
 };
