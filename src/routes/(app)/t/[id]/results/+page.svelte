@@ -15,7 +15,7 @@
 		Tooltip
 	} from 'flowbite-svelte';
 	import { page } from '$app/stores';
-	import { ScoreStatus, TrialStatus } from '@prisma/client';
+	import type { ScoreStatus, TrialStatus } from '@prisma/client';
 	import yaml from 'js-yaml';
 
 	export let data: PageData;
@@ -71,8 +71,8 @@
 					? [
 							{
 								name: e.name,
-								trial: e.trialStatus === TrialStatus.TRIAL ? true : undefined,
-								trialed: e.trialStatus === TrialStatus.TRIALED ? true : undefined,
+								trial: e.trialStatus === 'TRIAL' ? true : undefined,
+								trialed: e.trialStatus === 'TRIALED' ? true : undefined,
 								medals: e.medals ?? undefined
 							}
 					  ]
@@ -104,12 +104,12 @@
 									team: s.team.number,
 									event: s.event.name,
 									participated:
-										s.ranking === ScoreStatus.PARTICIPATION
+										s.ranking === 'PARTICIPATION'
 											? true
-											: s.ranking === ScoreStatus.NOSHOW
+											: s.ranking === 'NOSHOW'
 											? false
 											: undefined,
-									disqualified: s.status === ScoreStatus.DISQUALIFICATION ? true : undefined,
+									disqualified: s.status === 'DISQUALIFICATION' ? true : undefined,
 									place: typeof s.ranking === 'number' ? s.ranking : undefined,
 									tie: s.tie || undefined
 								}

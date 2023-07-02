@@ -1,5 +1,5 @@
 import { addEvents, deleteEvent, updateEvent } from '$lib/db';
-import { TrialStatus } from '@prisma/client';
+import type { TrialStatus } from '@prisma/client';
 import type { RequestHandler } from './$types';
 import { checkIsDirector } from '$lib/utils';
 
@@ -42,7 +42,7 @@ export const PATCH: RequestHandler = async ({ request, locals, params }) => {
 		return new Response('missing event', { status: 404 });
 	if (payload.name && typeof payload.name !== 'string')
 		return new Response('invalid name', { status: 400 });
-	if (payload.trialStatus && !Object.values(TrialStatus).includes(payload.trialStatus))
+	if (payload.trialStatus && !['SCORING', 'TRIAL', 'TRIALED'].includes(payload.trialStatus))
 		return new Response('invalid status', { status: 400 });
 	if (payload.highScoring && !['true', 'false'].includes(payload.highScoring))
 		return new Response('invalid highScoring', { status: 400 });
@@ -71,7 +71,7 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 	} = await request.json();
 	if (!payload.name || typeof payload.name !== 'string')
 		return new Response('missing name', { status: 400 });
-	if (!payload.trialStatus || !Object.values(TrialStatus).includes(payload.trialStatus))
+	if (!payload.trialStatus || !['SCORING', 'TRIAL', 'TRIALED'].includes(payload.trialStatus))
 		return new Response('invalid status', { status: 400 });
 	if (!payload.highScoring || !['true', 'false'].includes(payload.highScoring))
 		return new Response('invalid highScoring', { status: 400 });

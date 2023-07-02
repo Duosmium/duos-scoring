@@ -1,5 +1,5 @@
 import { updateEvent, addScores, updateScores, getUserInfo, getEvent } from '$lib/db';
-import { ScoreStatus, type Score } from '@prisma/client';
+import type { ScoreStatus, Score } from '@prisma/client';
 import type { RequestHandler } from './$types';
 import { checkEventPerms } from '$lib/utils';
 
@@ -106,7 +106,8 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 		payload.some(
 			(score) =>
 				(!score.status && !score.id) ||
-				(score.status && !Object.values(ScoreStatus).includes(score.status))
+				(score.status &&
+					!['COMPETED', 'PARTICIPATION', 'NOSHOW', 'DISQUALIFICATION'].includes(score.status))
 		)
 	)
 		return new Response('missing/invalid status', { status: 400 });

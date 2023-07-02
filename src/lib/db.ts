@@ -6,7 +6,6 @@ import {
 	type Track,
 	type Score
 } from '@prisma/client';
-import { A } from 'flowbite-svelte';
 const prisma = new PrismaClient();
 
 // TODO: double check permissions in every function
