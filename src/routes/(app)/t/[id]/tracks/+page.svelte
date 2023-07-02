@@ -134,11 +134,11 @@
 		</TableHeadCell>
 	</svelte:fragment>
 	<svelte:fragment slot="item" let:item={track}>
-		<TableBodyCell class="px-2">{track.name}</TableBodyCell>
-		<TableBodyCell class="px-2">{track.medals ?? 'Default'}</TableBodyCell>
-		<TableBodyCell class="px-2">{track.trophies ?? 'Default'}</TableBodyCell>
-		<TableBodyCell class="px-2">{track.teams.length}</TableBodyCell>
-		<TableBodyCell class="px-2">
+		<TableBodyCell class="py-0 px-2">{track.name}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2">{track.medals ?? 'Default'}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2">{track.trophies ?? 'Default'}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2">{track.teams.length}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2">
 			<Button
 				color="alternative"
 				class="border-none p-1 font-medium text-primary-600 hover:underline dark:text-primary-500"

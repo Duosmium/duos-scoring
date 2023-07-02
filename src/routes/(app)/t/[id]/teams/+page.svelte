@@ -286,20 +286,20 @@
 		</TableHeadCell>
 	</svelte:fragment>
 	<svelte:fragment slot="item" let:item={team}>
-		<TableBodyCell class="px-2">{team.number}</TableBodyCell>
-		<TableBodyCell class="px-2"
+		<TableBodyCell class="py-0 px-2">{team.number}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2"
 			>{team.abbreviation ??
 				team.school.slice(0, 45) + (team.school.length > 45 ? '…' : '')}{team.suffix
 				? ' ' + team.suffix.slice(0, 38) + (team.suffix.length > 38 ? '…' : '')
 				: ''}</TableBodyCell
 		>
-		<TableBodyCell class="px-2">{team.city ? team.city + ', ' : ''}{team.state}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2">{team.city ? team.city + ', ' : ''}{team.state}</TableBodyCell>
 		{#if data.tournament.enableTracks}
-			<TableBodyCell class="px-2">{team.trackId ?? 'None'}</TableBodyCell>
+			<TableBodyCell class="py-0 px-2">{team.trackId ?? 'None'}</TableBodyCell>
 		{/if}
-		<TableBodyCell class="px-2">{team.exhibition ? 'Exhib. Team' : 'No'}</TableBodyCell>
-		<TableBodyCell class="px-2">{team.penalties ?? 'None'}</TableBodyCell>
-		<TableBodyCell class="px-2">
+		<TableBodyCell class="py-0 px-2">{team.exhibition ? 'Exhib. Team' : 'No'}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2">{team.penalties ?? 'None'}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2">
 			<Button
 				color="alternative"
 				class="border-none p-1 font-medium text-primary-600 hover:underline dark:text-primary-500"

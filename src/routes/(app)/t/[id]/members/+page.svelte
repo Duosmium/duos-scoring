@@ -220,12 +220,12 @@
 		</TableHeadCell>
 	</svelte:fragment>
 	<svelte:fragment slot="item" let:item={member}>
-		<TableBodyCell class="px-2">{member.user.name}</TableBodyCell>
-		<TableBodyCell class="px-2">{member.isDirector ? 'Yes' : 'No'}</TableBodyCell>
-		<TableBodyCell class="px-2"
+		<TableBodyCell class="py-0 px-2">{member.user.name}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2">{member.isDirector ? 'Yes' : 'No'}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2"
 			>{member.supEvents.map((event) => event.name)?.join(', ')}</TableBodyCell
 		>
-		<TableBodyCell class="px-2">
+		<TableBodyCell class="py-0 px-2">
 			{#if member.user.id !== data.user.id}
 				<Button
 					color="alternative"
@@ -261,10 +261,10 @@
 		</TableHeadCell>
 	</svelte:fragment>
 	<svelte:fragment slot="item" let:item={invite}>
-		<TableBodyCell class="px-2"><a href="/invite/{invite.id}">{invite.id}</a></TableBodyCell>
-		<TableBodyCell class="px-2">{invite.email}</TableBodyCell>
-		<TableBodyCell class="px-2">{invite.events.map((e) => e.name).join(', ')}</TableBodyCell>
-		<TableBodyCell class="px-2">
+		<TableBodyCell class="py-0 px-2"><a href="/invite/{invite.id}">{invite.id}</a></TableBodyCell>
+		<TableBodyCell class="py-0 px-2">{invite.email}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2">{invite.events.map((e) => e.name).join(', ')}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2">
 			<Button
 				color="alternative"
 				class="border-none p-1 font-medium text-primary-600 hover:underline dark:text-primary-500"
