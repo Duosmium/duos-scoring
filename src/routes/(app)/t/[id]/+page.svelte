@@ -159,7 +159,7 @@
 >
 
 <!-- TODO: make this pretty -->
-{#if data.isDirector}
+{#if data.role.isDirector}
 	<div class="flex flex-row flex-wrap items-start gap-4">
 		<Card size="sm">
 			<P class="mb-2 text-2xl">{data.tournament.teams?.length} Teams</P>

@@ -6,6 +6,7 @@ import type { Handle, HandleServerError } from '@sveltejs/kit';
 
 import * as SentryNode from '@sentry/node';
 import '@sentry/tracing';
+import { getTournamentInfo, getUserInfo } from '$lib/db';
 
 SentryNode.init({
 	dsn: SENTRY_DSN,
@@ -57,6 +58,29 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	event.locals.userId = session.user.id;
+
+	if (event.url.pathname.startsWith('/t') && event.params.id) {
+		const user = await getUserInfo(event.locals.userId);
+		if (user === false || !user.roles.find((r) => r.tournament.id === event.params.id)) {
+			return new Response('You do not have permission to view this page!', { status: 403 });
+		}
+		const role = user.roles.find((r) => r.tournament.id === event.params.id);
+		const isDirector = role?.isDirector ?? false;
+		const tournament = await getTournamentInfo(event.params.id);
+		if (tournament === false) {
+			return new Response('Tournament not found!', { status: 404 });
+		}
+		const filteredTournament = {
+			...tournament,
+			events: undefined,
+			roles: undefined,
+			tracks: undefined,
+			invites: undefined
+		};
+		event.locals.tournament = isDirector ? tournament : filteredTournament;
+		event.locals.user = user;
+		event.locals.role = role;
+	}
 
 	return resolve(event, {
 		/**

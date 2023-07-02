@@ -50,7 +50,7 @@
 		divClass="w-full lg:block lg:w-auto pr-8"
 		ulClass="flex flex-col p-4 mt-4 lg:flex-row lg:space-x-8 lg:mt-0 lg:text-md lg:font-medium items-baseline"
 	>
-		{#if data.isDirector}
+		{#if data.role.isDirector}
 			<NavLi href="/t/{data.tournament.id}/members">Members</NavLi>
 			<NavLi href="/t/{data.tournament.id}/events">Events/Score Counseling</NavLi>
 			{#if data.tournament.enableTracks}

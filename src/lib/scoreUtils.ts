@@ -42,3 +42,58 @@ export function generateHisto(event: EventWithScores) {
 		}
 	};
 }
+
+const scoreWithEventAndTeam = Prisma.validator<Prisma.ScoreArgs>()({
+	include: { event: true, team: true }
+});
+type Score = Prisma.ScoreGetPayload<typeof scoreWithEventAndTeam>;
+
+export function computeEventRankings(scores: Score[]) {
+	const statusOrder = {
+		COMPETED: 0,
+		PARTICIPATION: 1,
+		NOSHOW: 2,
+		DISQUALIFICATION: 3,
+		NA: 4
+	} as const;
+	return scores
+		.map((s) => ({
+			...s,
+			ranking:
+				s.status === 'COMPETED'
+					? s.rawScore
+						? s.rawScore +
+						  ((s.tiebreak || 0) - 1000000 * (s.tier || 1)) * (s.event.highScoring ? 1 : -1)
+						: 'PARTICIPATION'
+					: s.status,
+			tie: false
+		}))
+		.sort((a, b) =>
+			typeof a.ranking === 'number' && typeof b.ranking === 'number'
+				? (b.ranking - a.ranking) * (a.event.highScoring ? 1 : -1)
+				: typeof a.ranking === 'string' && typeof b.ranking === 'string'
+				? statusOrder[a.ranking] - statusOrder[b.ranking]
+				: typeof a.ranking === 'number'
+				? -1
+				: 1
+		)
+		.map((t, i, s) => {
+			// check ties
+			if (
+				typeof t.ranking === 'number' &&
+				(t.ranking === s[i - 1]?.ranking || t.ranking === s[i + 1]?.ranking)
+			) {
+				t.tie = true;
+			} else {
+				t.tie = false;
+			}
+			return t;
+		})
+		.map((t, i, s) => ({
+			...t,
+			ranking:
+				typeof t.ranking === 'string'
+					? t.ranking
+					: (t.tie ? s.findIndex((x) => x.ranking === t.ranking) : i) + 1 // do index searching for ties
+		}));
+}

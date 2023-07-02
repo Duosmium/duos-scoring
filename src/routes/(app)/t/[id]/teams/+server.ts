@@ -4,7 +4,7 @@ import type { RequestHandler } from './$types';
 import { checkIsDirector } from '$lib/utils';
 
 export const DELETE: RequestHandler = async ({ request, locals, params }) => {
-	await checkIsDirector(locals.userId, params.id);
+	await checkIsDirector(locals.user, params.id);
 
 	const payload: {
 		team?: string;
@@ -29,7 +29,7 @@ export const DELETE: RequestHandler = async ({ request, locals, params }) => {
 };
 
 export const PATCH: RequestHandler = async ({ request, locals, params }) => {
-	await checkIsDirector(locals.userId, params.id);
+	await checkIsDirector(locals.user, params.id);
 
 	const payload: {
 		id?: string;
@@ -50,7 +50,7 @@ export const PATCH: RequestHandler = async ({ request, locals, params }) => {
 };
 
 export const PUT: RequestHandler = async ({ params, request, locals }) => {
-	await checkIsDirector(locals.userId, params.id);
+	await checkIsDirector(locals.user, params.id);
 
 	const payload: Team[] = await request.json();
 

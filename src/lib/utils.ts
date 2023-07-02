@@ -1,19 +1,24 @@
 import { error } from '@sveltejs/kit';
-import { getUserInfo } from './db';
+import { Prisma } from '@prisma/client';
 
-export async function checkIsDirector(userId: string, tournamentId: string, throwError = true) {
-	const user = await getUserInfo(userId);
+const userWithRoles = Prisma.validator<Prisma.UserArgs>()({
+	include: { roles: { include: { supEvents: true } } }
+});
+type User = Prisma.UserGetPayload<typeof userWithRoles>;
 
-	if (user === false) {
+export async function checkIsDirector(
+	user: User | undefined,
+	tournamentId: string,
+	throwError = true
+) {
+	if (user == undefined) {
 		if (throwError) {
-			throw error(500, 'Error fetching user information');
+			throw error(403, 'You do not have permission to view this page');
 		} else {
 			return false;
 		}
 	}
-	const userRole = user.roles.find(
-		(role) => role.isDirector && role.tournament.id === tournamentId
-	);
+	const userRole = user.roles.find((role) => role.isDirector && role.tournamentId === tournamentId);
 	if (userRole == undefined) {
 		if (throwError) {
 			throw error(403, 'You do not have permission to view this page');
@@ -26,16 +31,14 @@ export async function checkIsDirector(userId: string, tournamentId: string, thro
 }
 
 export async function checkEventPerms(
-	userId: string,
+	user: User | undefined,
 	tournamentId: string,
 	eventId: bigint,
 	throwError = true
 ) {
-	const user = await getUserInfo(userId);
-
-	if (user === false) {
+	if (user == undefined) {
 		if (throwError) {
-			throw error(500, 'Error fetching user information');
+			throw error(403, 'You do not have permission to view this page');
 		} else {
 			return false;
 		}
@@ -56,20 +59,18 @@ export async function checkEventPerms(
 }
 
 export async function checkTournamentAccess(
-	userId: string,
+	user: User | undefined,
 	tournamentId: string,
 	throwError = true
 ) {
-	const user = await getUserInfo(userId);
-
-	if (user === false) {
+	if (user == undefined) {
 		if (throwError) {
-			throw error(500, 'Error fetching user information');
+			throw error(403, 'You do not have permission to view this page');
 		} else {
 			return false;
 		}
 	}
-	const userRole = user.roles.find((role) => role.tournament.id === tournamentId);
+	const userRole = user.roles.find((role) => role.tournamentId === tournamentId);
 	if (userRole == undefined) {
 		if (throwError) {
 			throw error(403, 'You do not have permission to view this page');

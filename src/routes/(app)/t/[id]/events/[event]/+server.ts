@@ -4,7 +4,7 @@ import type { RequestHandler } from './$types';
 import { checkEventPerms } from '$lib/utils';
 
 export const PATCH: RequestHandler = async ({ request, params, locals }) => {
-	await checkEventPerms(locals.userId, params.id, BigInt(params.event));
+	await checkEventPerms(locals.user, params.id, BigInt(params.event));
 
 	const user = await getUserInfo(locals.userId);
 	if (user === false) return new Response('unauthorized user', { status: 403 });
@@ -71,7 +71,7 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 };
 
 export const PUT: RequestHandler = async ({ params, request, locals }) => {
-	await checkEventPerms(locals.userId, params.id, BigInt(params.event));
+	await checkEventPerms(locals.user, params.id, BigInt(params.event));
 
 	const event = await getEvent(BigInt(params.event));
 	if (!event) return new Response('invalid event', { status: 404 });

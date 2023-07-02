@@ -5,7 +5,7 @@ import puppeteer from 'puppeteer-core';
 import cookie from 'cookie';
 
 export const GET: RequestHandler = async ({ params, locals, request }) => {
-	await checkIsDirector(locals.userId, params.id);
+	await checkIsDirector(locals.user, params.id);
 
 	try {
 		const browser = await puppeteer.launch({

@@ -1,18 +1,16 @@
 import { error } from '@sveltejs/kit';
-import type { PageLoad } from './$types';
-import { getTournamentInfo, getEventScores } from '$lib/db';
+import type { PageServerLoad } from './$types';
+import { getEventScores } from '$lib/db';
 import { checkEventPerms } from '$lib/utils';
 
-export const load: PageLoad = async ({ params, locals }) => {
-	await checkEventPerms(locals.userId, params.id, BigInt(params.event));
+export const load: PageServerLoad = async ({ params, locals }) => {
+	await checkEventPerms(locals.user, params.id, BigInt(params.event));
 
-	const tournament = await getTournamentInfo(params.id);
-
-	if (tournament === false) {
-		throw error(404, 'Tournament not found');
+	if (!locals.tournament.events) {
+		throw error(403, 'You are not authorized to view this page.');
 	}
 
-	const event = tournament.events.find((event) => event.id.toString() === params.event);
+	const event = locals.tournament.events.find((event) => event.id.toString() === params.event);
 
 	if (event == undefined) {
 		throw error(404, 'Event not found');

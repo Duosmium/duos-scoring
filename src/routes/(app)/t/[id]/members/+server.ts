@@ -6,7 +6,7 @@ import { customAlphabet } from 'nanoid';
 const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 8);
 
 export const DELETE: RequestHandler = async ({ request, locals, params }) => {
-	await checkIsDirector(locals.userId, params.id);
+	await checkIsDirector(locals.user, params.id);
 
 	const payload: {
 		members?: string[];
@@ -40,7 +40,7 @@ export const DELETE: RequestHandler = async ({ request, locals, params }) => {
 };
 
 export const PATCH: RequestHandler = async ({ params, request, locals }) => {
-	await checkIsDirector(locals.userId, params.id);
+	await checkIsDirector(locals.user, params.id);
 
 	const payload: {
 		member?: {
@@ -100,7 +100,7 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 };
 
 export const PUT: RequestHandler = async ({ request, params, locals }) => {
-	await checkIsDirector(locals.userId, params.id);
+	await checkIsDirector(locals.user, params.id);
 
 	const payload: {
 		email?: string;

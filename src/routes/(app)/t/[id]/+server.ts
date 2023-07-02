@@ -4,7 +4,7 @@ import type { RequestHandler } from './$types';
 import { checkIsDirector } from '$lib/utils';
 
 export const PATCH: RequestHandler = async ({ params, request, locals }) => {
-	await checkIsDirector(locals.userId, params.id);
+	await checkIsDirector(locals.user, params.id);
 
 	const payload: Partial<Tournament> = await request.json();
 	if (!payload) {
