@@ -80,13 +80,13 @@
 		{ value: 'WI', name: 'Wisconsin' },
 		{ value: 'WY', name: 'Wyoming' }
 	];
-	$: tracks = data.tournament.tracks?.map((track) => ({
+	$: tracks = data.tracks.map((track) => ({
 		value: track.id.toString(),
 		name: track.name
 	}));
 
 	let selected: typeof teams = [];
-	$: teams = data.tournament.teams;
+	$: teams = data.teams;
 
 	let showConfirmDelete = false;
 	function confirmDelete() {

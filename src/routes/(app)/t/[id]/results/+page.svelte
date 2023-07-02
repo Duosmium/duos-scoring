@@ -15,7 +15,6 @@
 		Tooltip
 	} from 'flowbite-svelte';
 	import { page } from '$app/stores';
-	import type { ScoreStatus, TrialStatus } from '@prisma/client';
 	import yaml from 'js-yaml';
 
 	export let data: PageData;
@@ -26,8 +25,8 @@
 		TRIALED: 'Trialed'
 	} as const;
 
-	$: roles = data.tournament.roles!;
-	$: events = data.tournament.events!.map((e) => ({
+	$: roles = data.roles;
+	$: events = data.events.map((e) => ({
 		...e,
 		disabled: e.audited == null
 	}));
@@ -66,7 +65,7 @@
 				'n offset': data.tournament.nOffset ?? undefined,
 				'worst placings dropped': data.tournament.drops ?? undefined
 			},
-			Events: data.tournament.events!.flatMap((e) =>
+			Events: data.events.flatMap((e) =>
 				selectedEvents.has(e.id)
 					? [
 							{
@@ -79,14 +78,14 @@
 					: []
 			),
 			Tracks:
-				data.tournament.enableTracks && data.tournament.tracks?.length
-					? data.tournament.tracks.map((t) => ({
+				data.tournament.enableTracks && data.tracks.length
+					? data.tracks.map((t) => ({
 							name: t.name,
 							medals: t.medals ?? undefined,
 							trophies: t.trophies ?? undefined
 					  }))
 					: undefined,
-			Teams: data.tournament.teams.map((t) => ({
+			Teams: data.teams.map((t) => ({
 				number: t.number,
 				school: t.school,
 				'school abbreviation': t.abbreviation ?? undefined,
@@ -118,7 +117,7 @@
 				)
 			),
 			Penalties:
-				data.tournament.teams.flatMap((t) =>
+				data.teams.flatMap((t) =>
 					t.penalties == null
 						? []
 						: [
@@ -131,7 +130,7 @@
 			Histograms: exportHistos
 				? {
 						type: 'data',
-						data: data.tournament.events?.flatMap((e) =>
+						data: data.events.flatMap((e) =>
 							selectedEvents.has(e.id) ? [{ ...data.histos.get(e.id), event: e.name }] : []
 						)
 				  }
@@ -206,9 +205,7 @@
 		<TableBodyCell class="py-0 px-2">{event.name}</TableBodyCell>
 		<TableBodyCell class="py-0 px-2">{event.medals ?? data.tournament.medals}</TableBodyCell>
 		<TableBodyCell class="py-0 px-2">{trialStatusDisplay[event.trialStatus]}</TableBodyCell>
-		<TableBodyCell class="py-0 px-2"
-			>{event.scores.length} / {data.tournament.teams.length}</TableBodyCell
-		>
+		<TableBodyCell class="py-0 px-2">{event.scores.length} / {data.teams.length}</TableBodyCell>
 		<TableBodyCell class="py-0 px-2"
 			>{#if event.audited}
 				<Avatar class={`user_${event.audited.id} -ml-2`}

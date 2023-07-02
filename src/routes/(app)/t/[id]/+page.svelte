@@ -162,18 +162,17 @@
 {#if data.role.isDirector}
 	<div class="flex flex-row flex-wrap items-start gap-4">
 		<Card size="sm">
-			<P class="mb-2 text-2xl">{data.tournament.teams?.length} Teams</P>
-			<P class="mb-2 text-2xl"
-				>{data.tournament.events?.filter((e) => e.locked)?.length} Events Done Grading</P
+			<P class="mb-2 text-2xl">{data.teams?.length} Teams</P>
+			<P class="mb-2 text-2xl">{data.events?.filter((e) => e.locked)?.length} Events Done Grading</P
 			>
 			<P class="mb-2 text-2xl"
-				>{data.tournament.events?.filter((e) => e.audited != null)?.length} Events Audited</P
+				>{data.events?.filter((e) => e.audited != null)?.length} Events Audited</P
 			>
 		</Card>
 		<Card size="xs">
 			<Heading tag="h2" class="mb-2 text-2xl">Events</Heading>
 			<List tag="ul">
-				{#each data.tournament.events ?? [] as event}
+				{#each data.events ?? [] as event}
 					<Li>
 						{event.name}: {event.scores.length}
 					</Li>

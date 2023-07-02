@@ -25,10 +25,10 @@
 
 	export let data: PageData;
 
-	$: members = data.tournament.roles!;
+	$: members = data.roles;
 	let selectedMembers: typeof members = [];
 
-	$: invites = data.tournament.invites!.map((i) => ({ ...i, id: i.link }));
+	$: invites = data.invites.map((i) => ({ ...i, id: i.link }));
 	let selectedInvites: typeof invites = [];
 
 	let showConfirmDeleteMembers = false;
@@ -47,9 +47,9 @@
 		}).then((res) => {
 			if (res.status === 200) {
 				if (thing === 'members') {
-					members = members.filter((m) => !ids.members!.includes(m.user.id));
+					members = members.filter((m) => !ids.members?.includes(m.user.id));
 				} else {
-					invites = invites.filter((i) => !ids.invites!.includes(i.link));
+					invites = invites.filter((i) => !ids.invites?.includes(i.link));
 				}
 				addToastMessage(`${thing[0].toLocaleUpperCase() + thing.slice(1)} deleted!`, 'success');
 			} else {
@@ -64,7 +64,7 @@
 	let inviteMembersData = '';
 	let parsedInvites: string[][];
 	let parsedError = '';
-	$: events = new Map(data.tournament.events?.map((e) => [e.name, e]));
+	$: events = new Map(data.events.map((e) => [e.name, e]));
 	$: {
 		parsedInvites = (
 			parse(inviteMembersData, { header: false, skipEmptyLines: 'greedy' })

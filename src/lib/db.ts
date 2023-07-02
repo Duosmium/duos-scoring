@@ -351,61 +351,82 @@ export async function getUserInfo(userId: string) {
 
 export async function getTournamentInfo(tournamentId: string) {
 	const tournament = await prisma.tournament.findUnique({
-		where: { id: tournamentId },
-		include: {
-			events: {
-				include: {
-					supervisors: {
-						include: {
-							user: true
-						}
-					},
-					audited: true,
-					scores: {
-						include: {
-							team: true,
-							event: true
-						}
-					}
-				}
-			},
-			roles: {
-				include: {
-					user: true,
-					supEvents: true
-				}
-			},
-			teams: {
-				include: {
-					tracks: true,
-					scores: {
-						include: {
-							event: true
-						}
-					}
-				}
-			},
-			tracks: {
-				include: {
-					teams: true
-				}
-			},
-			invites: {
-				include: {
-					events: true
-				}
-			}
-		}
+		where: { id: tournamentId }
 	});
 
 	if (tournament == undefined) {
 		return false;
 	}
 
-	tournament.events.sort((a, b) => a.name.localeCompare(b.name));
-	tournament.teams.sort((a, b) => a.number - b.number);
-
 	return tournament;
+}
+
+export async function getEvents(tournamentId: string) {
+	const events = await prisma.event.findMany({
+		where: {
+			tournamentId
+		},
+		include: {
+			supervisors: {
+				include: {
+					user: true
+				}
+			},
+			audited: true,
+			scores: {
+				include: {
+					team: true,
+					event: true
+				}
+			}
+		}
+	});
+
+	if (events == undefined) {
+		return false;
+	}
+
+	return events.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export async function getRoles(tournamentId: string) {
+	const roles = await prisma.role.findMany({
+		where: {
+			tournamentId
+		},
+		include: {
+			user: true,
+			supEvents: true
+		}
+	});
+
+	if (roles == undefined) {
+		return false;
+	}
+
+	return roles;
+}
+
+export async function getTeams(tournamentId: string) {
+	const teams = await prisma.team.findMany({
+		where: {
+			tournamentId
+		},
+		include: {
+			tracks: true,
+			scores: {
+				include: {
+					event: true
+				}
+			}
+		}
+	});
+
+	if (teams == undefined) {
+		return false;
+	}
+
+	return teams.sort((a, b) => a.number - b.number);
 }
 
 export async function getTracks(tournamentId: string) {
@@ -423,6 +444,23 @@ export async function getTracks(tournamentId: string) {
 	}
 
 	return tracks;
+}
+
+export async function getInvites(tournamentId: string) {
+	const invites = await prisma.invite.findMany({
+		where: {
+			tournamentId
+		},
+		include: {
+			events: true
+		}
+	});
+
+	if (invites == undefined) {
+		return false;
+	}
+
+	return invites;
 }
 
 export async function getEventScores(eventId: bigint) {

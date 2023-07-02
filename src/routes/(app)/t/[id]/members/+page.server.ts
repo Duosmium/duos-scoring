@@ -1,20 +1,18 @@
 import type { PageServerLoad } from './$types';
 
 import { checkIsDirector } from '$lib/utils';
-import { error } from '@sveltejs/kit';
 import { supabase } from '$lib/supabaseAdmin';
+import { getEvents, getInvites, getRoles } from '$lib/db';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
 	await checkIsDirector(locals.user, params.id);
 
-	if (!locals.tournament.roles) {
-		throw error(403, 'You are not authorized to view this page.');
-	}
+	const roles = (await getRoles(params.id)) || [];
 
 	const emails = new Map(
 		(
 			await Promise.all(
-				locals.tournament.roles.map(async (role) => {
+				roles.map(async (role) => {
 					const { data, error } = await supabase.auth.admin.getUserById(role.user.id);
 					if (error) {
 						return [];
@@ -25,7 +23,12 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		).flat()
 	);
 
+	const invites = (await getInvites(params.id)) || [];
+	const events = (await getEvents(params.id)) || [];
 	return {
+		roles,
+		invites,
+		events,
 		emails
 	};
 };

@@ -65,19 +65,14 @@ export const handle: Handle = async ({ event, resolve }) => {
 			return new Response('You do not have permission to view this page!', { status: 403 });
 		}
 		const role = user.roles.find((r) => r.tournament.id === event.params.id);
-		const isDirector = role?.isDirector ?? false;
+		console.log('getting tournament info');
+		const _ = performance.now();
 		const tournament = await getTournamentInfo(event.params.id);
+		console.log('got tournament info in', (performance.now() - _) / 1000);
 		if (tournament === false) {
 			return new Response('Tournament not found!', { status: 404 });
 		}
-		const filteredTournament = {
-			...tournament,
-			events: undefined,
-			roles: undefined,
-			tracks: undefined,
-			invites: undefined
-		};
-		event.locals.tournament = isDirector ? tournament : filteredTournament;
+		event.locals.tournament = tournament;
 		event.locals.user = user;
 		event.locals.role = role;
 	}

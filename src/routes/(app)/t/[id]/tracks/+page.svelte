@@ -20,7 +20,7 @@
 
 	export let data: PageData;
 
-	$: tracks = data.tournament.tracks!;
+	$: tracks = data.tracks;
 	let selected: typeof tracks = [];
 
 	let showConfirmDelete = false;

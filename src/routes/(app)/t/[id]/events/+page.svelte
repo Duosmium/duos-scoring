@@ -33,9 +33,9 @@
 		{ value: 'false', name: 'Low Score Wins' }
 	];
 
-	$: roles = data.tournament.roles!;
+	$: roles = data.roles;
 
-	$: events = data.tournament.events!;
+	$: events = data.events;
 	let selected: typeof events = [];
 
 	let showConfirmDelete = false;
@@ -254,9 +254,7 @@
 				No
 			{/if}
 		</TableBodyCell>
-		<TableBodyCell class="py-0 px-2"
-			>{event.scores.length} / {data.tournament.teams.length}</TableBodyCell
-		>
+		<TableBodyCell class="py-0 px-2">{event.scores.length} / {data.teams.length}</TableBodyCell>
 		<TableBodyCell class="py-0 px-2"
 			><span class={`flex ${event.supervisors.length !== 0 ? 'ml-4' : ''}`}>
 				{#each event.supervisors as { user }}
