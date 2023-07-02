@@ -213,6 +213,7 @@
 	</svelte:fragment>
 	<svelte:fragment slot="headers">
 		<TableHeadCell class="px-2">Name</TableHeadCell>
+		<TableHeadCell class="px-2">Email</TableHeadCell>
 		<TableHeadCell class="px-2">Admin</TableHeadCell>
 		<TableHeadCell class="px-2">Events</TableHeadCell>
 		<TableHeadCell class="px-2">
@@ -221,6 +222,7 @@
 	</svelte:fragment>
 	<svelte:fragment slot="item" let:item={member}>
 		<TableBodyCell class="py-0 px-2">{member.user.name}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2">{data.emails.get(member.user.id)}</TableBodyCell>
 		<TableBodyCell class="py-0 px-2">{member.isDirector ? 'Yes' : 'No'}</TableBodyCell>
 		<TableBodyCell class="py-0 px-2"
 			>{member.supEvents.map((event) => event.name)?.join(', ')}</TableBodyCell
@@ -360,6 +362,7 @@
 				class="mr-2"
 				checked={editMemberData.events.includes(event[1].id)}
 				on:click={(e) => {
+					// @ts-ignore
 					if (e.target?.checked) {
 						editMemberData.events.push(event[1].id);
 					} else {
@@ -397,6 +400,7 @@
 				class="mr-2"
 				checked={editInviteData.events.includes(event[1].id)}
 				on:click={(e) => {
+					// @ts-ignore
 					if (e.target?.checked) {
 						editInviteData.events.push(event[1].id);
 					} else {
