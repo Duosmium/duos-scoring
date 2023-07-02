@@ -13,8 +13,8 @@ declare global {
 			supabase: SupabaseClient<Database>;
 			getSession(): Promise<Session | null>;
 			userId: string;
+			user: Exclude<Awaited<ReturnType<typeof getUserInfo>>, false>;
 			tournament?: Exclude<Awaited<ReturnType<typeof getTournamentInfo>>, false>;
-			user?: Exclude<Awaited<ReturnType<typeof getUserInfo>>, false>;
 			role?: Exclude<Awaited<ReturnType<typeof getUserInfo>>, false>['roles'][number];
 		}
 		interface PageData {

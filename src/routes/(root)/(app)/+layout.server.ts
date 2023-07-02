@@ -1,8 +1,8 @@
 import { createOrUpdateUser, getUserInfo } from '$lib/db';
 import { error } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types';
+import type { LayoutServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: LayoutServerLoad = async ({ locals }) => {
 	let user = await getUserInfo(locals.userId);
 
 	const {
