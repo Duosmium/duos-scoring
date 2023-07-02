@@ -36,6 +36,7 @@
 	});
 
 	let loading = false;
+	let name = '';
 	let email = '';
 	let password = '';
 	let confirmPassword = '';
@@ -64,7 +65,13 @@
 					break;
 				}
 				case 'sign_up': {
-					const { error } = await supabase.auth.signUp({ email, password });
+					const { error } = await supabase.auth.signUp({
+						email,
+						password,
+						options: {
+							data: { name }
+						}
+					});
 					if (error) throw error;
 					successMessage = 'Check your email for a confirmation link!';
 					break;
@@ -102,38 +109,50 @@
 		<img class="dark:inline-block hidden" src="/logo_light.png" alt="Duosmium Logo" />
 	</div>
 	<h1>{headingText[view]}</h1>
-	<form on:submit|preventDefault={handleLogin}>
-		{#if view === 'sign_in' || view === 'sign_up' || view === 'forgot_pass'}
-			<label>
-				Email
-				<input required type="email" placeholder="Your email" bind:value={email} />
-			</label>
-		{/if}
+	{#if !successMessage}
+		<form on:submit|preventDefault={handleLogin}>
+			{#if view === 'sign_up'}
+				<label>
+					Preferred Full Name
+					<input required type="text" placeholder="Your name" bind:value={name} />
+				</label>
+			{/if}
 
-		{#if view === 'sign_in' || view === 'sign_up' || view === 'pass_reset'}
-			<label>
-				Password
-				<input required type="password" bind:value={password} />
-			</label>
-		{/if}
+			{#if view === 'sign_in' || view === 'sign_up' || view === 'forgot_pass'}
+				<label>
+					Email
+					<input required type="email" placeholder="Your email" bind:value={email} />
+				</label>
+			{/if}
 
-		{#if view === 'sign_up' || view === 'pass_reset'}
-			<label>
-				Confirm Password
-				<input required type="password" bind:value={confirmPassword} />
-			</label>
-		{/if}
+			{#if view === 'sign_in' || view === 'sign_up' || view === 'pass_reset'}
+				<label>
+					Password
+					<input required type="password" bind:value={password} />
+				</label>
+			{/if}
 
-		<button type="submit" aria-live="polite" disabled={loading}>
-			<span>{loading ? 'Loading' : buttonText[view]}</span>
-		</button>
-	</form>
+			{#if view === 'sign_up' || view === 'pass_reset'}
+				<label>
+					Confirm Password
+					<input required type="password" bind:value={confirmPassword} />
+				</label>
+			{/if}
+
+			<button type="submit" aria-live="polite" disabled={loading}>
+				<span>{loading ? 'Loading' : buttonText[view]}</span>
+			</button>
+		</form>
+	{/if}
+
 	{#if errorMessage}
 		<div class="error">{errorMessage}</div>
 	{/if}
+
 	{#if successMessage}
 		<div class="success">{successMessage}</div>
 	{/if}
+
 	{#if view === 'sign_in'}
 		<p>
 			<button
