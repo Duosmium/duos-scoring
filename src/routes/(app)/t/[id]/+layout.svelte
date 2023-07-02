@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import Head from '$lib/components/Head.svelte';
 	import {
 		Avatar,
 		Dropdown,
@@ -8,7 +7,6 @@
 		DropdownItem,
 		DropdownDivider,
 		Navbar,
-		NavBrand,
 		NavLi,
 		NavUl,
 		NavHamburger
@@ -18,11 +16,6 @@
 	export let data: PageData;
 </script>
 
-<Head
-	title="{data.tournament.year} {data.tournament.shortName} {data.tournament
-		.division} | Duosmium Scoring"
-/>
-
 <Navbar
 	let:hidden
 	let:toggle
@@ -30,7 +23,7 @@
 	navDivClass="mx-auto flex flex-wrap justify-between items-center lg:max-w-5xl xl:max-w-7xl"
 	fluid={true}
 >
-	<NavBrand>
+	<span>
 		<span
 			class="self-center whitespace-nowrap text-xl font-semibold dark:text-white pl-4 flex items-center"
 		>
@@ -43,7 +36,7 @@
 				{data.tournament.division}
 			</a>
 		</span>
-	</NavBrand>
+	</span>
 	<NavHamburger on:click={toggle} btnClass="ml-3 lg:hidden" />
 	<NavUl
 		{hidden}
