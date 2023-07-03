@@ -22,7 +22,7 @@
 	navDivClass="mx-auto flex flex-wrap justify-between items-center lg:max-w-5xl xl:max-w-7xl"
 	fluid={true}
 >
-	<div class="flex justify-between items-center w-full">
+	<div class="flex justify-between items-center w-full lg:w-fit">
 		<slot name="brand" />
 		<NavHamburger on:click={toggle} btnClass="ml-3 lg:hidden" />
 	</div>
