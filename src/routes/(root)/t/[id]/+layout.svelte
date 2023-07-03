@@ -9,12 +9,10 @@
 
 <Navigation user={data.user} session={data.session}>
 	<svelte:fragment slot="brand">
-		<span
-			class="self-center whitespace-nowrap text-xl font-semibold dark:text-white flex items-center"
-		>
-			<a href="/dashboard">
-				<img class="h-12 mr-6 dark:hidden inline-block" src="/logo_dark.png" alt="Duosmium Logo" />
-				<img class="h-12 mr-6 dark:inline-block hidden" src="/logo_light.png" alt="Duosmium Logo" />
+		<span class="self-center text-xl font-semibold dark:text-white flex items-center">
+			<a href="/dashboard" class="min-w-fit">
+				<img class="h-12 mr-2 dark:hidden inline-block" src="/logo_dark.png" alt="Duosmium Logo" />
+				<img class="h-12 mr-2 dark:inline-block hidden" src="/logo_light.png" alt="Duosmium Logo" />
 			</a>
 			<a href="/t/{data.tournament.id}" class="overflow-hidden text-ellipsis">
 				{data.tournament.shortName}
