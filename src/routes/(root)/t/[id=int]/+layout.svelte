@@ -21,8 +21,10 @@
 		</span>
 	</svelte:fragment>
 	<svelte:fragment slot="links">
-		{#if data.role.isDirector}
-			<NavLi href="/t/{data.tournament.id}/members">Members</NavLi>
+		{#if data.role.role !== 'ES'}
+			{#if data.role.role === 'TD'}
+				<NavLi href="/t/{data.tournament.id}/members">Members</NavLi>
+			{/if}
 			<NavLi href="/t/{data.tournament.id}/events">Events/Score Counseling</NavLi>
 			{#if data.tournament.enableTracks}
 				<NavLi href="/t/{data.tournament.id}/tracks">Tracks</NavLi>

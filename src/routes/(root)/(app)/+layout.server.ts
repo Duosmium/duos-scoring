@@ -1,22 +1,10 @@
-import { createOrUpdateUser, getUserInfo } from '$lib/db';
 import { error } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ locals }) => {
-	let user = await getUserInfo(locals.userId);
-
-	const {
-		data: { user: supabaseUser }
-	} = await locals.supabase.auth.getUser();
-
-	if (user === false && supabaseUser) {
-		await createOrUpdateUser(locals.userId, supabaseUser?.user_metadata.name || '');
-		user = await getUserInfo(locals.userId);
+	if (!locals.user) {
+		throw error(403, 'unauthorized user');
 	}
 
-	if (user === false) {
-		throw error(403, 'User not found');
-	}
-
-	return { user };
+	return { user: locals.user };
 };

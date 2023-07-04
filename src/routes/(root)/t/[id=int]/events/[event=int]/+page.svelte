@@ -420,7 +420,7 @@
 			return;
 		}
 		if (!lockOverride && data.event.audited && data.event.locked) {
-			if (!data.role.isDirector) {
+			if (data.role.role === 'ES') {
 				addToastMessage('Cannot unlock an audited event!', 'error');
 				return;
 			} else {
@@ -449,14 +449,14 @@
 
 	let showAuditConfirm = false;
 	function openAuditConfirm() {
-		if (locked && data.role.isDirector && !data.event.audited) {
+		if (locked && data.role.role !== 'ES' && !data.event.audited) {
 			showAuditConfirm = true;
 		} else {
 			addToastMessage('Cannot audit event!', 'error');
 		}
 	}
 	function confirmAudit() {
-		if (!locked || !data.role.isDirector || data.event.audited) {
+		if (!locked || data.role.role !== 'ES' || data.event.audited) {
 			addToastMessage('Cannot audit event!', 'error');
 			return;
 		}
@@ -532,10 +532,10 @@
 				Event audited by {data.event.audited.name} at {data.event.auditedAt?.toLocaleString()}
 			</div>
 		{/if}
-		{#if data.role.isDirector || !data.event.audited}
+		{#if data.role.role !== 'ES' || !data.event.audited}
 			<ButtonGroup>
 				<Button color="yellow" on:click={toggleLock}>{locked ? 'Unlock' : 'Lock'}</Button>
-				{#if data.role.isDirector && !data.event.audited}
+				{#if data.role.role !== 'ES' && !data.event.audited}
 					<Button color="purple" disabled={!locked} on:click={openAuditConfirm}>Audit</Button>
 				{/if}
 				<Button color="alternative" on:click={openEditEvent}>Settings</Button>

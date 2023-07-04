@@ -16,8 +16,10 @@
 	{#each data.user.roles as role}
 		<h3>{role.tournament.name}</h3>
 		<ul>
-			{#if role.isDirector}
-				<li><a href="/t/{role.tournament.id}/">TD Dashboard</a></li>
+			{#if role.role === 'TD'}
+				<li><a href="/t/{role.tournament.id}/">Tournament Director Dashboard</a></li>
+			{:else if role.role === 'SM'}
+				<li><a href="/t/{role.tournament.id}/">Scoremaster Dashboard</a></li>
 			{:else}
 				{#each role.supEvents as event}
 					<li>

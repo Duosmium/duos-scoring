@@ -159,7 +159,7 @@
 >
 
 <!-- TODO: make this pretty -->
-{#if data.role.isDirector}
+{#if data.role.role !== 'ES'}
 	<div class="flex flex-row flex-wrap items-start gap-4">
 		<Card size="sm">
 			<P class="mb-2 text-2xl">{data.teams?.length} Teams</P>
@@ -182,7 +182,9 @@
 		<Card size="lg">
 			<span class="flex justify-between flex-row">
 				<Heading tag="h2" class="mb-2 text-2xl w-fit">About Tournament</Heading>
-				<Button size="sm" on:click={openEditTournament}>Edit</Button>
+				{#if data.role.role === 'TD'}
+					<Button size="sm" on:click={openEditTournament}>Edit</Button>
+				{/if}
 			</span>
 			<!-- TODO: Make this pretty -->
 			<List

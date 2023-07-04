@@ -10,7 +10,6 @@ export const actions = {
 		// TODO: actual data validation/sanitization
 		const name = formData.get('name')?.toString() as string;
 		const shortName = formData.get('shortName')?.toString() as string;
-		const slug = formData.get('slug')?.toString() as string;
 		const location = formData.get('location')?.toString() as string;
 		const state = formData.get('state')?.toString() as States;
 		const level = formData.get('level')?.toString() as TournamentLevels;
@@ -30,8 +29,7 @@ export const actions = {
 		const drops = parseInt(formData.get('drops')?.toString() ?? '') || null;
 
 		try {
-			await createTournament({
-				id: slug,
+			const tournament = await createTournament({
 				name,
 				shortName,
 				location,
@@ -49,14 +47,14 @@ export const actions = {
 				nOffset,
 				drops
 			});
-			await updateMember(slug, locals.userId, { admin: true });
+			await updateMember(tournament.id, locals.userId, { role: 'TD' });
+			throw redirect(303, '/t/' + tournament.id.toString());
 		} catch (e) {
 			console.error(e);
 			return {
 				returned: {
 					name,
 					shortName,
-					slug,
 					location,
 					state,
 					level,
@@ -74,7 +72,5 @@ export const actions = {
 				}
 			};
 		}
-
-		throw redirect(303, '/t/' + slug);
 	}
 } satisfies Actions;

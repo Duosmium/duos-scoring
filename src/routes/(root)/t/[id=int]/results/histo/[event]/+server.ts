@@ -1,11 +1,11 @@
 import type { RequestHandler } from './$types';
-import { checkIsDirector } from '$lib/utils';
+import { checkScoremasterPerms } from '$lib/utils';
 import chromium from '@sparticuz/chromium';
 import puppeteer from 'puppeteer-core';
 import cookie from 'cookie';
 
 export const GET: RequestHandler = async ({ params, locals, request }) => {
-	await checkIsDirector(locals.user, params.id);
+	await checkScoremasterPerms(locals.user, params.id);
 
 	try {
 		const browser = await puppeteer.launch({

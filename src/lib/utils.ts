@@ -18,7 +18,36 @@ export async function checkIsDirector(
 			return false;
 		}
 	}
-	const userRole = user.roles.find((role) => role.isDirector && role.tournamentId === tournamentId);
+	const userRole = user.roles.find(
+		(role) => role.role === 'TD' && role.tournamentId.toString() === tournamentId
+	);
+	if (userRole == undefined) {
+		if (throwError) {
+			throw error(403, 'You do not have permission to view this page');
+		} else {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+export async function checkScoremasterPerms(
+	user: User | undefined,
+	tournamentId: string,
+	throwError = true
+) {
+	if (user == undefined) {
+		if (throwError) {
+			throw error(403, 'You do not have permission to view this page');
+		} else {
+			return false;
+		}
+	}
+	const userRole = user.roles.find(
+		(role) =>
+			(role.role === 'TD' || role.role === 'SM') && role.tournamentId.toString() === tournamentId
+	);
 	if (userRole == undefined) {
 		if (throwError) {
 			throw error(403, 'You do not have permission to view this page');
@@ -43,10 +72,11 @@ export async function checkEventPerms(
 			return false;
 		}
 	}
-	const userRole = user.roles.find((role) => role.tournamentId === tournamentId);
+	const userRole = user.roles.find((role) => role.tournamentId.toString() === tournamentId);
 	if (
 		userRole == undefined ||
-		(!userRole.isDirector && userRole.supEvents.find((event) => event.id === eventId) === undefined)
+		(userRole.role === 'ES' &&
+			userRole.supEvents.find((event) => event.id === eventId) === undefined)
 	) {
 		if (throwError) {
 			throw error(403, 'You do not have permission to view this page');
@@ -70,7 +100,7 @@ export async function checkTournamentAccess(
 			return false;
 		}
 	}
-	const userRole = user.roles.find((role) => role.tournamentId === tournamentId);
+	const userRole = user.roles.find((role) => role.tournamentId, toString() === tournamentId);
 	if (userRole == undefined) {
 		if (throwError) {
 			throw error(403, 'You do not have permission to view this page');

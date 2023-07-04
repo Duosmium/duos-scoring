@@ -1,18 +1,10 @@
 <script lang="ts">
 	import type { ActionData } from './$types';
-	import slugify from 'slugify';
 	import Head from '$lib/components/Head.svelte';
 	import { enhance } from '$app/forms';
 	import { Button, Checkbox, Input, Label, Select } from 'flowbite-svelte';
 
 	export let form: ActionData;
-
-	let shortName = form?.returned.shortName ?? '';
-	$: slug = slugify(shortName, {
-		lower: true,
-		strict: true,
-		trim: true
-	});
 
 	const states = [
 		{ value: 'AL', name: 'Alabama' },
@@ -94,9 +86,6 @@
 	</Label>
 	<Label>
 		Short Name: <Input type="text" name="shortName" value={form?.returned.shortName} required />
-	</Label>
-	<Label>
-		Slug: <Input type="text" name="slug" bind:value={slug} required />
 	</Label>
 	<Label>
 		Location: <Input type="text" name="location" value={form?.returned.location} required />

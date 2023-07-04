@@ -1,11 +1,11 @@
 import type { PageServerLoad } from './$types';
 
-import { checkIsDirector } from '$lib/utils';
+import { checkScoremasterPerms } from '$lib/utils';
 import { generateHisto } from '$lib/scoreUtils';
 import { getEvents } from '$lib/db';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
-	await checkIsDirector(locals.user, params.id);
+	await checkScoremasterPerms(locals.user, params.id);
 
 	const event = ((await getEvents(params.id)) || []).find((e) => e.id.toString() === params.event);
 	if (!event) {

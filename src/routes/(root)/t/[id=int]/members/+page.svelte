@@ -14,7 +14,8 @@
 		Alert,
 		P,
 		List,
-		Li
+		Li,
+		Select
 	} from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import { invalidateAll } from '$app/navigation';
@@ -24,6 +25,13 @@
 	import papaparse from 'papaparse';
 
 	export let data: PageData;
+
+	const roleOptions = [
+		{ name: 'Tournament Director', value: 'TD' },
+		{ name: 'Scoremaster', value: 'SM' },
+		{ name: 'Event Supervisor', value: 'ES' }
+	];
+	const roleNames = new Map(roleOptions.map((r) => [r.value, r.name]));
 
 	$: members = data.roles;
 	let selectedMembers: typeof members = [];
@@ -114,9 +122,9 @@
 	let showEditMember = false;
 	let editMemberData: {
 		userId: string;
-		admin: boolean;
+		role: 'ES' | 'SM' | 'TD';
 		events: bigint[];
-	} = { userId: '', admin: false, events: [] };
+	} = { userId: '', role: 'ES', events: [] };
 	function openEditMember(member: bigint) {
 		showEditMember = true;
 		const foundMember = members.find((m) => m.id === member);
@@ -126,7 +134,7 @@
 		}
 		editMemberData = {
 			userId: foundMember.user.id,
-			admin: foundMember.isDirector,
+			role: foundMember.role,
 			events: foundMember.supEvents.map((e) => e.id)
 		};
 	}
@@ -140,7 +148,7 @@
 			body: JSON.stringify({
 				member: {
 					userId: editMemberData.userId,
-					admin: editMemberData.admin,
+					role: editMemberData.role,
 					events: editMemberData.events.map((e) => e.toString())
 				}
 			}) // TODO: validate
@@ -214,7 +222,7 @@
 	<svelte:fragment slot="headers">
 		<TableHeadCell class="px-2">Name</TableHeadCell>
 		<TableHeadCell class="px-2">Email</TableHeadCell>
-		<TableHeadCell class="px-2">Admin</TableHeadCell>
+		<TableHeadCell class="px-2">Role</TableHeadCell>
 		<TableHeadCell class="px-2">Events</TableHeadCell>
 		<TableHeadCell class="px-2">
 			<span class="sr-only"> Edit </span>
@@ -223,7 +231,7 @@
 	<svelte:fragment slot="item" let:item={member}>
 		<TableBodyCell class="py-0 px-2">{member.user.name}</TableBodyCell>
 		<TableBodyCell class="py-0 px-2">{data.emails.get(member.user.id)}</TableBodyCell>
-		<TableBodyCell class="py-0 px-2">{member.isDirector ? 'Yes' : 'No'}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2">{roleNames.get(member.role)}</TableBodyCell>
 		<TableBodyCell class="py-0 px-2"
 			>{member.supEvents.map((event) => event.name)?.join(', ')}</TableBodyCell
 		>
@@ -375,14 +383,8 @@
 	{/each}
 	<Heading tag="h2" class="text-2xl mt-20">Permissions</Heading>
 	<Label class="!mt-4">
-		<Checkbox class="mr-2" bind:checked={editMemberData.admin} />
-		<span>Admin Permissions</span>
-		<div class="text-sm mt-2">
-			This role gives this user access to the entire tournament, including every event and setting.
-			They will also have the permission to manage users. <strong
-				>Only give this role to trusted individuals!</strong
-			>
-		</div>
+		Role
+		<Select underline class="mt-2" bind:value={editMemberData.role} items={roleOptions} />
 	</Label>
 
 	<svelte:fragment slot="footer">

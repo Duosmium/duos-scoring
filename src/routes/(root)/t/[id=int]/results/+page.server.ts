@@ -1,11 +1,11 @@
 import type { PageServerLoad } from './$types';
 
-import { checkIsDirector } from '$lib/utils';
+import { checkScoremasterPerms } from '$lib/utils';
 import { computeEventRankings, generateHisto } from '$lib/scoreUtils';
 import { getEvents, getRoles, getTeams, getTracks } from '$lib/db';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
-	await checkIsDirector(locals.user, params.id);
+	await checkScoremasterPerms(locals.user, params.id);
 
 	const events = (await getEvents(params.id)) || [];
 

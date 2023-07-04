@@ -37,7 +37,7 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 		return new Response("can't lock with missing scores", { status: 400 });
 	if (
 		payload.audited === true &&
-		(!user.roles.find((role) => role.tournamentId === params.id)?.isDirector ||
+		(!user.roles.find((role) => role.tournamentId.toString() === params.id && role.role !== 'ES') ||
 			!event.locked ||
 			event.auditedUserId != undefined)
 	)
@@ -45,7 +45,7 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 	if (
 		payload.locked === false &&
 		event.auditedUserId != undefined &&
-		!user.roles.find((role) => role.tournamentId === params.id)?.isDirector
+		!user.roles.find((role) => role.tournamentId.toString() === params.id && role.role !== 'ES')
 	)
 		return new Response('unauthorized user', { status: 403 });
 

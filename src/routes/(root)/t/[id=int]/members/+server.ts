@@ -2,6 +2,7 @@ import { deleteMembers, deleteInvites, createInvites, updateMember, updateInvite
 import type { RequestHandler } from './$types';
 import { checkIsDirector } from '$lib/utils';
 import { customAlphabet } from 'nanoid';
+import type { UserRole } from '@prisma/client';
 
 const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 8);
 
@@ -45,7 +46,7 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 	const payload: {
 		member?: {
 			userId: string;
-			admin?: boolean;
+			role: UserRole;
 			events?: string[];
 		};
 		invite?: {
@@ -60,11 +61,16 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 	if (payload.member && !payload.member.userId) {
 		return new Response('missing userId', { status: 400 });
 	}
+	if (
+		payload.member &&
+		(!payload.member.role ||
+			typeof payload.member.role !== 'string' ||
+			!['TD', 'SM', 'ES'].includes(payload.member.role))
+	) {
+		return new Response('missing role', { status: 400 });
+	}
 	if (payload.invite && !payload.invite.link) {
 		return new Response('missing link', { status: 400 });
-	}
-	if (payload.member && payload.member.admin && typeof payload.member.admin !== 'boolean') {
-		return new Response('invalid admin', { status: 400 });
 	}
 	if (
 		payload.member &&
@@ -86,7 +92,7 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 	if (payload.member) {
 		await updateMember(params.id, payload.member.userId, {
 			events: payload.member.events?.map((e) => BigInt(e)),
-			admin: payload.member.admin
+			role: payload.member.role
 		});
 	}
 	if (payload.invite) {

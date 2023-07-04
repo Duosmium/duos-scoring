@@ -4,7 +4,8 @@ import {
 	type TrialStatus,
 	type Team,
 	type Track,
-	type Score
+	type Score,
+	UserRole
 } from '@prisma/client';
 const prisma = new PrismaClient();
 
@@ -25,13 +26,19 @@ export async function createOrUpdateUser(userId: string, name: string) {
 	});
 }
 
-export async function createTournament(tournament: Tournament) {
-	await prisma.tournament.create({
+export async function createTournament(tournament: Omit<Tournament, 'id'>) {
+	return await prisma.tournament.create({
 		data: tournament
 	});
 }
 
-export async function updateTournament(tournamentId: string, tournament: Partial<Tournament>) {
+export async function updateTournament(
+	tournamentId: bigint | string,
+	tournament: Partial<Tournament>
+) {
+	if (typeof tournamentId === 'string') {
+		tournamentId = BigInt(tournamentId);
+	}
 	await prisma.tournament.update({
 		where: {
 			id: tournamentId
@@ -43,19 +50,22 @@ export async function updateTournament(tournamentId: string, tournament: Partial
 }
 
 export async function createInvites(
-	tournamentId: string,
+	tournamentId: bigint | string,
 	invites: {
 		link: string;
 		email?: string;
 		events?: bigint[];
 	}[]
 ) {
+	if (typeof tournamentId === 'string') {
+		tournamentId = BigInt(tournamentId);
+	}
 	try {
 		await Promise.all(
 			invites.map(async (invite) => {
 				await prisma.invite.create({
 					data: {
-						tournamentId,
+						tournamentId: tournamentId as bigint,
 						link: invite.link,
 						email: invite.email,
 						events: {
@@ -102,10 +112,13 @@ export async function deleteInvites(invites: string[]) {
 }
 
 export async function updateMember(
-	tournamentId: string,
+	tournamentId: bigint | string,
 	userId: string,
-	data: { events?: bigint[]; admin?: boolean }
+	data: { events?: bigint[]; role: UserRole }
 ) {
+	if (typeof tournamentId === 'string') {
+		tournamentId = BigInt(tournamentId);
+	}
 	try {
 		await prisma.role.upsert({
 			where: {
@@ -115,7 +128,7 @@ export async function updateMember(
 				}
 			},
 			update: {
-				isDirector: data.admin,
+				role: data.role,
 				supEvents: {
 					set: data.events?.map((e) => ({ id: e }))
 				}
@@ -123,7 +136,7 @@ export async function updateMember(
 			create: {
 				tournamentId,
 				userId,
-				isDirector: data.admin,
+				role: data.role,
 				supEvents: {
 					connect: data.events?.map((e) => ({ id: e }))
 				}
@@ -134,7 +147,10 @@ export async function updateMember(
 	}
 }
 
-export async function deleteMembers(tournamentId: string, members: string[]) {
+export async function deleteMembers(tournamentId: bigint | string, members: string[]) {
+	if (typeof tournamentId === 'string') {
+		tournamentId = BigInt(tournamentId);
+	}
 	try {
 		await prisma.role.deleteMany({
 			where: {
@@ -168,7 +184,7 @@ export async function getEvent(id: bigint) {
 }
 
 export async function addEvents(
-	tournamentId: string,
+	tournamentId: bigint | string,
 	events: {
 		name: string;
 		trialStatus?: TrialStatus;
@@ -176,11 +192,14 @@ export async function addEvents(
 		medals?: number;
 	}[]
 ) {
+	if (typeof tournamentId === 'string') {
+		tournamentId = BigInt(tournamentId);
+	}
 	try {
 		await prisma.event.createMany({
 			data: events.map((event) => ({
 				...event,
-				tournamentId
+				tournamentId: tournamentId as bigint
 			}))
 		});
 	} catch (e) {
@@ -249,12 +268,15 @@ export async function deleteEvent(eventId: bigint) {
 	}
 }
 
-export async function addTeams(tournamentId: string, teams: Team[]) {
+export async function addTeams(tournamentId: bigint | string, teams: Team[]) {
+	if (typeof tournamentId === 'string') {
+		tournamentId = BigInt(tournamentId);
+	}
 	try {
 		await prisma.team.createMany({
 			data: teams.map((team) => ({
 				...team,
-				tournamentId
+				tournamentId: tournamentId as bigint
 			}))
 		});
 	} catch (e) {
@@ -289,12 +311,15 @@ export async function deleteTeam(teamId: bigint) {
 	}
 }
 
-export async function addTracks(tournamentId: string, tracks: Track[]) {
+export async function addTracks(tournamentId: bigint | string, tracks: Track[]) {
+	if (typeof tournamentId === 'string') {
+		tournamentId = BigInt(tournamentId);
+	}
 	try {
 		await prisma.track.createMany({
 			data: tracks.map((track) => ({
 				...track,
-				tournamentId
+				tournamentId: tournamentId as bigint
 			}))
 		});
 	} catch (e) {
@@ -349,7 +374,10 @@ export async function getUserInfo(userId: string) {
 	return user;
 }
 
-export async function getTournamentInfo(tournamentId: string) {
+export async function getTournamentInfo(tournamentId: bigint | string) {
+	if (typeof tournamentId === 'string') {
+		tournamentId = BigInt(tournamentId);
+	}
 	const tournament = await prisma.tournament.findUnique({
 		where: { id: tournamentId }
 	});
@@ -361,7 +389,10 @@ export async function getTournamentInfo(tournamentId: string) {
 	return tournament;
 }
 
-export async function getEvents(tournamentId: string) {
+export async function getEvents(tournamentId: bigint | string) {
+	if (typeof tournamentId === 'string') {
+		tournamentId = BigInt(tournamentId);
+	}
 	const events = await prisma.event.findMany({
 		where: {
 			tournamentId
@@ -389,7 +420,10 @@ export async function getEvents(tournamentId: string) {
 	return events.sort((a, b) => a.name.localeCompare(b.name));
 }
 
-export async function getRoles(tournamentId: string) {
+export async function getRoles(tournamentId: bigint | string) {
+	if (typeof tournamentId === 'string') {
+		tournamentId = BigInt(tournamentId);
+	}
 	const roles = await prisma.role.findMany({
 		where: {
 			tournamentId
@@ -407,7 +441,10 @@ export async function getRoles(tournamentId: string) {
 	return roles;
 }
 
-export async function getTeams(tournamentId: string) {
+export async function getTeams(tournamentId: bigint | string) {
+	if (typeof tournamentId === 'string') {
+		tournamentId = BigInt(tournamentId);
+	}
 	const teams = await prisma.team.findMany({
 		where: {
 			tournamentId
@@ -429,7 +466,10 @@ export async function getTeams(tournamentId: string) {
 	return teams.sort((a, b) => a.number - b.number);
 }
 
-export async function getTracks(tournamentId: string) {
+export async function getTracks(tournamentId: bigint | string) {
+	if (typeof tournamentId === 'string') {
+		tournamentId = BigInt(tournamentId);
+	}
 	const tracks = await prisma.track.findMany({
 		where: {
 			tournamentId
@@ -446,7 +486,10 @@ export async function getTracks(tournamentId: string) {
 	return tracks;
 }
 
-export async function getInvites(tournamentId: string) {
+export async function getInvites(tournamentId: bigint | string) {
+	if (typeof tournamentId === 'string') {
+		tournamentId = BigInt(tournamentId);
+	}
 	const invites = await prisma.invite.findMany({
 		where: {
 			tournamentId

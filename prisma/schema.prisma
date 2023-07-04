@@ -10,7 +10,6 @@ datasource db {
 
 model Event {
   id            BigInt      @id @default(autoincrement())
-  tournamentId  String
   name          String
   trialStatus   TrialStatus @default(SCORING)
   highScoring   Boolean     @default(true)
@@ -18,6 +17,7 @@ model Event {
   medals        Int?        @db.SmallInt
   auditedUserId String?     @db.Uuid
   auditedAt     DateTime?   @db.Timestamptz(3)
+  tournamentId  BigInt
   audited       User?       @relation(fields: [auditedUserId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   tournament    Tournament  @relation(fields: [tournamentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   scores        Score[]
@@ -28,8 +28,8 @@ model Event {
 model Role {
   id           BigInt     @id @default(autoincrement())
   userId       String     @db.Uuid
-  tournamentId String
-  isDirector   Boolean    @default(false)
+  role         UserRole
+  tournamentId BigInt
   tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   supEvents    Event[]    @relation("ESEventRoles")
@@ -54,7 +54,6 @@ model Score {
 
 model Team {
   id           BigInt     @id @default(autoincrement())
-  tournamentId String
   number       Int        @db.SmallInt
   school       String
   abbreviation String?
@@ -64,6 +63,7 @@ model Team {
   trackId      BigInt?
   exhibition   Boolean    @default(false)
   penalties    Int?       @db.SmallInt
+  tournamentId BigInt
   scores       Score[]
   tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   tracks       Track?     @relation(fields: [trackId], references: [id], onUpdate: NoAction)
@@ -72,7 +72,6 @@ model Team {
 }
 
 model Tournament {
-  id           String           @id
   name         String
   location     String
   state        States
@@ -89,6 +88,7 @@ model Tournament {
   startDate    DateTime         @db.Date
   division     Divisions
   enableTracks Boolean          @default(false)
+  id           BigInt           @id @default(autoincrement())
   events       Event[]
   invites      Invite[]
   roles        Role[]
@@ -98,10 +98,10 @@ model Tournament {
 
 model Track {
   id           BigInt     @id @default(autoincrement())
-  tournamentId String
   name         String
   medals       Int?       @db.SmallInt
   trophies     Int?       @db.SmallInt
+  tournamentId BigInt
   teams        Team[]
   tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
@@ -115,10 +115,16 @@ model User {
 
 model Invite {
   link         String     @id
-  tournamentId String
   email        String?
+  tournamentId BigInt
   tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   events       Event[]    @relation("InviteEvents")
+}
+
+enum UserRole {
+  TD
+  SM
+  ES
 }
 
 enum ScoreStatus {

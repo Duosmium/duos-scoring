@@ -1,10 +1,10 @@
 import { addTracks, deleteTrack, updateTrack } from '$lib/db';
 import type { Track } from '@prisma/client';
 import type { RequestHandler } from './$types';
-import { checkIsDirector } from '$lib/utils';
+import { checkScoremasterPerms } from '$lib/utils';
 
 export const DELETE: RequestHandler = async ({ request, locals, params }) => {
-	await checkIsDirector(locals.user, params.id);
+	await checkScoremasterPerms(locals.user, params.id);
 
 	const payload: {
 		track?: string;
@@ -29,7 +29,7 @@ export const DELETE: RequestHandler = async ({ request, locals, params }) => {
 };
 
 export const PATCH: RequestHandler = async ({ request, params, locals }) => {
-	await checkIsDirector(locals.user, params.id);
+	await checkScoremasterPerms(locals.user, params.id);
 
 	const payload: {
 		id?: string;
@@ -50,7 +50,7 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 };
 
 export const PUT: RequestHandler = async ({ params, request, locals }) => {
-	await checkIsDirector(locals.user, params.id);
+	await checkScoremasterPerms(locals.user, params.id);
 
 	const payload: Track[] = await request.json();
 

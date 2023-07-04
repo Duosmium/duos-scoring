@@ -6,7 +6,7 @@ import type { Handle, HandleServerError } from '@sveltejs/kit';
 
 import * as SentryNode from '@sentry/node';
 import '@sentry/tracing';
-import { getTournamentInfo, getUserInfo } from '$lib/db';
+import { createOrUpdateUser, getTournamentInfo, getUserInfo } from '$lib/db';
 
 SentryNode.init({
 	dsn: SENTRY_DSN,
@@ -59,22 +59,29 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	event.locals.userId = session.user.id;
 
-	const user = await getUserInfo(event.locals.userId);
+	let user = await getUserInfo(event.locals.userId);
+	const {
+		data: { user: supabaseUser }
+	} = await event.locals.supabase.auth.getUser();
+	if (user === false && supabaseUser) {
+		await createOrUpdateUser(event.locals.userId, supabaseUser?.user_metadata.name || '');
+		user = await getUserInfo(event.locals.userId);
+	}
 	if (user === false) {
 		return new Response('You do not have permission to view this page!', { status: 403 });
 	}
+	event.locals.user = user;
 
 	if (event.url.pathname.startsWith('/t') && event.params.id) {
-		if (!user.roles.find((r) => r.tournament.id === event.params.id)) {
+		if (!user.roles.find((r) => r.tournament.id.toString() === event.params.id)) {
 			return new Response('You do not have permission to view this page!', { status: 403 });
 		}
-		const role = user.roles.find((r) => r.tournament.id === event.params.id);
+		const role = user.roles.find((r) => r.tournament.id.toString() === event.params.id);
 		const tournament = await getTournamentInfo(event.params.id);
 		if (tournament === false) {
 			return new Response('Tournament not found!', { status: 404 });
 		}
 		event.locals.tournament = tournament;
-		event.locals.user = user;
 		event.locals.role = role;
 	}
 
