@@ -80,6 +80,21 @@ export async function createInvites(
 	}
 }
 
+export async function getInvite(link: string) {
+	try {
+		return await prisma.invite.findUnique({
+			where: {
+				link
+			},
+			include: {
+				events: true
+			}
+		});
+	} catch (e) {
+		return false;
+	}
+}
+
 export async function updateInvite(link: string, events: bigint[]) {
 	try {
 		await prisma.invite.update({

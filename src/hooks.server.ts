@@ -68,13 +68,13 @@ export const handle: Handle = async ({ event, resolve }) => {
 		user = await getUserInfo(event.locals.userId);
 	}
 	if (user === false) {
-		return new Response('You do not have permission to view this page!', { status: 403 });
+		return new Response(undefined, { status: 303, headers: { location: '/dashboard' } });
 	}
 	event.locals.user = user;
 
 	if (event.url.pathname.startsWith('/t') && event.params.id) {
 		if (!user.roles.find((r) => r.tournament.id.toString() === event.params.id)) {
-			return new Response('You do not have permission to view this page!', { status: 403 });
+			return new Response(undefined, { status: 303, headers: { location: '/dashboard' } });
 		}
 		const role = user.roles.find((r) => r.tournament.id.toString() === event.params.id);
 		const tournament = await getTournamentInfo(event.params.id);
