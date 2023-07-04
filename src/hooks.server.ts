@@ -79,7 +79,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		const role = user.roles.find((r) => r.tournament.id.toString() === event.params.id);
 		const tournament = await getTournamentInfo(event.params.id);
 		if (tournament === false) {
-			return new Response('Tournament not found!', { status: 404 });
+			return new Response(undefined, { status: 303, headers: { location: '/dashboard' } });
 		}
 		event.locals.tournament = tournament;
 		event.locals.role = role;
