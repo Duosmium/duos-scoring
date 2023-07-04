@@ -12,7 +12,10 @@
 		Modal,
 		Input,
 		Avatar,
-		Tooltip
+		Tooltip,
+		P,
+		List,
+		Li
 	} from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import { invalidateAll } from '$app/navigation';
@@ -20,6 +23,8 @@
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
+
+	import currentEvents from '$lib/data/currentEvents';
 
 	export let data: PageData;
 
@@ -86,6 +91,38 @@
 				}
 			});
 		};
+	}
+
+	let showAddAll = false;
+	function addAllEvents() {
+		if (data.tournament.division == 'A') {
+			addToastMessage('Cannot add all events to division A!', 'error');
+			return;
+		}
+		addToastMessage('Adding events...', 'success');
+
+		Promise.all(
+			currentEvents[data.tournament.division].map(([eventName, highScoring]) =>
+				fetch(`/t/${$page.params['id']}/events`, {
+					method: 'PUT',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({
+						name: eventName,
+						trialStatus: 'SCORING',
+						highScoring: highScoring.toString()
+					})
+				})
+			)
+		).then((results) => {
+			if (results.some((res) => res.status !== 200)) {
+				addToastMessage('Failed to add events!', 'error');
+			} else {
+				addToastMessage('Events added!', 'success');
+			}
+			invalidateAll();
+		});
 	}
 
 	let showAddEvent = false;
@@ -184,6 +221,14 @@
 	<Heading tag="h2" class="w-fit">Events</Heading>
 	<span class="space-x-4">
 		<Button color="green" on:click={openAddEvent}>Add Event</Button>
+		{#if events.length === 0 && data.tournament.division !== 'A'}
+			<Button
+				color="green"
+				on:click={() => {
+					showAddAll = true;
+				}}>Add All Events</Button
+			>
+		{/if}
 	</span>
 </div>
 {#if selected.length > 0}
@@ -331,6 +376,29 @@
 
 	<svelte:fragment slot="footer">
 		<Button color="green" disabled={addEventName === ''} on:click={addEvent}>Add Event</Button>
+		<Button color="alternative">Cancel</Button>
+	</svelte:fragment>
+</Modal>
+
+<Modal title="Add All Events" bind:open={showAddAll} autoclose outsideclose>
+	{#if data.tournament.division === 'A'}
+		<P>Adding all events is not supported for Division A.</P>
+	{:else}
+		<P>
+			The following events for this season will be added to this tournament. You can edit the trial
+			status and medal counts later.
+		</P>
+		<List tag="ul">
+			{#each currentEvents[data.tournament.division] as [event, _]}
+				<Li>{event}</Li>
+			{/each}
+		</List>
+	{/if}
+
+	<svelte:fragment slot="footer">
+		<Button color="green" disabled={data.tournament.division === 'A'} on:click={addAllEvents}
+			>Add All Events</Button
+		>
 		<Button color="alternative">Cancel</Button>
 	</svelte:fragment>
 </Modal>
