@@ -456,7 +456,7 @@
 		}
 	}
 	function confirmAudit() {
-		if (!locked || data.role.role !== 'ES' || data.event.audited) {
+		if (!locked || data.role.role === 'ES' || data.event.audited) {
 			addToastMessage('Cannot audit event!', 'error');
 			return;
 		}
