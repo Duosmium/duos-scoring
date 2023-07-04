@@ -163,19 +163,22 @@
 	<div class="flex flex-row flex-wrap items-start gap-4">
 		<Card size="sm">
 			<P class="mb-2 text-2xl">{data.teams?.length} Teams</P>
-			<P class="mb-2 text-2xl">{data.events?.filter((e) => e.locked)?.length} Events Done Grading</P
+			<P class="mb-2 text-2xl"
+				>{data.events?.filter((e) => e.locked)?.length} / {data.events?.length} Events Done Grading</P
 			>
 			<P class="mb-2 text-2xl"
-				>{data.events?.filter((e) => e.audited != null)?.length} Events Audited</P
+				>{data.events?.filter((e) => e.audited != null)?.length} / {data.events?.length} Events Audited</P
 			>
 		</Card>
 		<Card size="xs">
-			<Heading tag="h2" class="mb-2 text-2xl">Events</Heading>
+			<Heading tag="h2" class="mb-2 text-2xl">Scores In</Heading>
 			<List tag="ul">
 				{#each data.events ?? [] as event}
 					<Li>
-						{event.name}: {event.scores.length}
+						{event.name}: {event.scores.length} / {data.teams?.length}
 					</Li>
+				{:else}
+					<Li>No events!</Li>
 				{/each}
 			</List>
 		</Card>
