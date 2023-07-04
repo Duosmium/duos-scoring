@@ -44,7 +44,11 @@ export const PATCH: RequestHandler = async ({ request, locals, params }) => {
 	}
 
 	const teamId = BigInt(payload.id);
-	await updateTeam(teamId, payload.data);
+	const data = {
+		...payload.data,
+		trackId: payload.data.trackId != null ? BigInt(payload.data.trackId) : payload.data.trackId
+	};
+	await updateTeam(teamId, data);
 
 	return new Response('ok');
 };
@@ -55,8 +59,12 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 	const payload: Team[] = await request.json();
 
 	// TODO: validate data including whether tracks are enabled
+	const data = payload.map((team) => ({
+		...team,
+		trackId: team.trackId ? BigInt(team.trackId) : null
+	}));
 
-	await addTeams(params.id, payload);
+	await addTeams(params.id, data);
 
 	return new Response('ok');
 };

@@ -80,10 +80,12 @@
 		{ value: 'WI', name: 'Wisconsin' },
 		{ value: 'WY', name: 'Wyoming' }
 	];
-	$: tracks = data.tracks.map((track) => ({
-		value: track.id.toString(),
-		name: track.name
-	}));
+	$: tracks = [{ value: '', name: 'None' }].concat(
+		data.tracks.map((track) => ({
+			value: track.id.toString(),
+			name: track.name
+		}))
+	);
 
 	let selected: typeof teams = [];
 	$: teams = data.teams;
@@ -116,15 +118,17 @@
 	}
 	function addTeam() {
 		// TODO: validation, canonicalization
-
-		addTeamData.number = parseInt(addTeamData.number as any);
-		addTeamData.trackId = addTeamData.trackId || null;
+		const payloadData = {
+			...addTeamData,
+			number: parseInt(addTeamData.number as any),
+			trackId: addTeamData.trackId?.toString() || null
+		};
 		fetch(`/t/${$page.params['id']}/teams`, {
 			method: 'PUT',
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify([addTeamData]) // TODO: validate
+			body: JSON.stringify([payloadData]) // TODO: validate
 		}).then((res) => {
 			if (res.status === 200) {
 				addTeamData = {};
@@ -137,10 +141,11 @@
 	}
 
 	let showEditTeam = false;
-	let editTeamData: Partial<Team> = {};
+	let editTeamData: Partial<Omit<Team, 'trackId'> & { trackId?: string }> = {};
 	function openEditTeam(team: bigint) {
 		showEditTeam = true;
-		editTeamData = { ...teams.find((t) => t.id === team) };
+		const teamData = teams.find((t) => t.id === team);
+		editTeamData = { ...teamData, trackId: teamData?.trackId?.toString() };
 	}
 	function editTeam() {
 		// TODO: validation, canonicalization
@@ -295,7 +300,9 @@
 		>
 		<TableBodyCell class="py-0 px-2">{team.city ? team.city + ', ' : ''}{team.state}</TableBodyCell>
 		{#if data.tournament.enableTracks}
-			<TableBodyCell class="py-0 px-2">{team.trackId ?? 'None'}</TableBodyCell>
+			<TableBodyCell class="py-0 px-2"
+				>{tracks.find((t) => t.value === team.trackId?.toString())?.name ?? 'None'}</TableBodyCell
+			>
 		{/if}
 		<TableBodyCell class="py-0 px-2">{team.exhibition ? 'Exhib. Team' : 'No'}</TableBodyCell>
 		<TableBodyCell class="py-0 px-2">{team.penalties ?? 'None'}</TableBodyCell>
