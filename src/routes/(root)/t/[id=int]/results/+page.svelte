@@ -174,7 +174,8 @@
 
 <P
 	>Preview and export results on this page. Select the events you want to export, then use the
-	"Preview" button to preview the results page, where you can download a PDF version.</P
+	"Preview" button to preview the results page, where you can download a PDF version. In order to
+	select an event, the event must be marked as audited by a tournament director or scoremaster.</P
 >
 
 <Checkbox class="mb-4" bind:checked={exportHistos}>Export Histograms</Checkbox>
