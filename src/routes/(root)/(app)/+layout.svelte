@@ -29,6 +29,7 @@
 	</svelte:fragment>
 	<svelte:fragment slot="links">
 		<NavLi href="/dashboard">My Tournaments</NavLi>
+		<NavLi href="/new">New Tournament</NavLi>
 	</svelte:fragment>
 </Navigation>
 
