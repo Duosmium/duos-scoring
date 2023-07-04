@@ -1,11 +1,13 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
+  schemas   = ["scoring"]
 }
 
 model Event {
@@ -23,6 +25,8 @@ model Event {
   scores        Score[]
   supervisors   Role[]      @relation("ESEventRoles")
   invites       Invite[]    @relation("InviteEvents")
+
+  @@schema("scoring")
 }
 
 model Role {
@@ -35,6 +39,7 @@ model Role {
   supEvents    Event[]    @relation("ESEventRoles")
 
   @@unique([userId, tournamentId])
+  @@schema("scoring")
 }
 
 model Score {
@@ -50,6 +55,7 @@ model Score {
   team     Team        @relation(fields: [teamId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([eventId, teamId])
+  @@schema("scoring")
 }
 
 model Team {
@@ -69,6 +75,7 @@ model Team {
   tracks       Track?     @relation(fields: [trackId], references: [id], onUpdate: NoAction)
 
   @@unique([tournamentId, number])
+  @@schema("scoring")
 }
 
 model Tournament {
@@ -94,6 +101,8 @@ model Tournament {
   roles        Role[]
   teams        Team[]
   tracks       Track[]
+
+  @@schema("scoring")
 }
 
 model Track {
@@ -104,6 +113,8 @@ model Track {
   tournamentId BigInt
   teams        Team[]
   tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("scoring")
 }
 
 model User {
@@ -111,6 +122,8 @@ model User {
   name          String
   auditedEvents Event[]
   roles         Role[]
+
+  @@schema("scoring")
 }
 
 model Invite {
@@ -119,12 +132,16 @@ model Invite {
   tournamentId BigInt
   tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   events       Event[]    @relation("InviteEvents")
+
+  @@schema("scoring")
 }
 
 enum UserRole {
   TD
   SM
   ES
+
+  @@schema("scoring")
 }
 
 enum ScoreStatus {
@@ -132,12 +149,16 @@ enum ScoreStatus {
   PARTICIPATION
   NOSHOW
   DISQUALIFICATION
+
+  @@schema("scoring")
 }
 
 enum Divisions {
   A
   B
   C
+
+  @@schema("scoring")
 }
 
 enum TournamentLevels {
@@ -145,6 +166,8 @@ enum TournamentLevels {
   REGIONAL
   STATE
   NATIONAL
+
+  @@schema("scoring")
 }
 
 enum States {
@@ -202,10 +225,14 @@ enum States {
   WI
   WY
   INTERNATIONAL
+
+  @@schema("scoring")
 }
 
 enum TrialStatus {
   SCORING
   TRIAL
   TRIALED
+
+  @@schema("scoring")
 }
