@@ -114,7 +114,7 @@
 	</span>
 </div>
 
-<SelectableTable items={tracks} bind:selected cols={5}>
+<SelectableTable items={tracks} bind:selected cols={6}>
 	<svelte:fragment slot="buttons">
 		<Button
 			size="sm"

@@ -262,7 +262,7 @@
 	</span>
 </div>
 
-<SelectableTable items={teams} bind:selected cols={7}>
+<SelectableTable items={teams} bind:selected cols={8}>
 	<svelte:fragment slot="buttons">
 		<Button
 			size="sm"

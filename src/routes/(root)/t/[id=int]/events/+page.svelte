@@ -201,7 +201,7 @@
 		>
 	</div>
 {/if}
-<SelectableTable items={events} bind:selected cols={9}>
+<SelectableTable items={events} bind:selected cols={10}>
 	<svelte:fragment slot="buttons">
 		<Button
 			size="sm"

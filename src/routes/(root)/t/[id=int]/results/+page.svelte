@@ -182,7 +182,7 @@
 	Export Histograms: <Checkbox bind:checked={exportHistos} />
 </Label>
 
-<SelectableTable items={events} bind:selected cols={5}>
+<SelectableTable items={events} bind:selected cols={7}>
 	<svelte:fragment slot="buttons">
 		<Button
 			color="green"
