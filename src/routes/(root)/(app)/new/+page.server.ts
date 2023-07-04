@@ -28,49 +28,25 @@ export const actions = {
 		const nOffset = parseInt(formData.get('nOffset')?.toString() ?? '') || null;
 		const drops = parseInt(formData.get('drops')?.toString() ?? '') || null;
 
-		try {
-			const tournament = await createTournament({
-				name,
-				shortName,
-				location,
-				state,
-				level,
-				division,
-				year,
-				startDate,
-				endDate,
-				awardsDate,
-				enableTracks,
-				medals,
-				trophies,
-				bids,
-				nOffset,
-				drops
-			});
-			await updateMember(tournament.id, locals.userId, { role: 'TD' });
-			throw redirect(303, '/t/' + tournament.id.toString());
-		} catch (e) {
-			console.error(e);
-			return {
-				returned: {
-					name,
-					shortName,
-					location,
-					state,
-					level,
-					division,
-					year,
-					startDate,
-					endDate,
-					awardsDate,
-					enableTracks,
-					medals,
-					trophies,
-					bids,
-					nOffset,
-					drops
-				}
-			};
-		}
+		const tournament = await createTournament({
+			name,
+			shortName,
+			location,
+			state,
+			level,
+			division,
+			year,
+			startDate,
+			endDate,
+			awardsDate,
+			enableTracks,
+			medals,
+			trophies,
+			bids,
+			nOffset,
+			drops
+		});
+		await updateMember(tournament.id, locals.userId, { role: 'TD' });
+		throw redirect(303, '/dashboard');
 	}
 } satisfies Actions;
