@@ -452,9 +452,7 @@
 			>
 		</List>
 	</P>
-	<Checkbox class="ml-2" required bind:checked={importGenerateNumbers}
-		>Generate Team Numbers</Checkbox
-	>
+	<Checkbox required bind:checked={importGenerateNumbers}>Generate Team Numbers</Checkbox>
 	<Label>
 		Teams
 		<Textarea class="mt-2" required bind:value={importTeamsData} />
