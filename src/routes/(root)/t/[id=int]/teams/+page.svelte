@@ -356,10 +356,7 @@
 			<Select underline class="mt-2" items={tracks} bind:value={addTeamData.trackId} />
 		</Label>
 	{/if}
-	<Label>
-		Exhibition Team
-		<Checkbox class="ml-2" bind:checked={addTeamData.exhibition} />
-	</Label>
+	<Checkbox bind:checked={addTeamData.exhibition}>Exhibition Team</Checkbox>
 
 	<svelte:fragment slot="footer">
 		<!-- TODO: validation -->
@@ -401,10 +398,7 @@
 			<Select underline class="mt-2" items={tracks} bind:value={editTeamData.trackId} />
 		</Label>
 	{/if}
-	<Label>
-		Exhibition Team
-		<Checkbox class="ml-2" bind:checked={editTeamData.exhibition} />
-	</Label>
+	<Checkbox bind:checked={editTeamData.exhibition}>Exhibition Team</Checkbox>
 	<Label>
 		Penalties
 		<Input class="mt-2" type="number" required bind:value={editTeamData.penalties} />
@@ -458,10 +452,9 @@
 			>
 		</List>
 	</P>
-	<Label>
-		Generate Team Numbers
-		<Checkbox class="ml-2" required bind:checked={importGenerateNumbers} />
-	</Label>
+	<Checkbox class="ml-2" required bind:checked={importGenerateNumbers}
+		>Generate Team Numbers</Checkbox
+	>
 	<Label>
 		Teams
 		<Textarea class="mt-2" required bind:value={importTeamsData} />

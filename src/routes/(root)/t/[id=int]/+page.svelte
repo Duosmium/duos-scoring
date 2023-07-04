@@ -318,9 +318,9 @@
 				required
 			/>
 		</Label>
-		<Label>
-			Enable Tracks: <Checkbox name="enableTracks" bind:checked={editTournamentData.enableTracks} />
-		</Label>
+		<Checkbox name="enableTracks" bind:checked={editTournamentData.enableTracks}
+			>Enable Tracks</Checkbox
+		>
 		<Label>
 			Medals: <Input type="number" name="medals" bind:value={editTournamentData.medals} />
 		</Label>

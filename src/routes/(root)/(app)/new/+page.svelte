@@ -114,9 +114,7 @@
 	<Label>
 		Awards Date: <Input type="date" name="awardsDate" value={form?.returned.awardsDate} required />
 	</Label>
-	<Label>
-		Enable Tracks: <Checkbox name="enableTracks" checked={form?.returned.enableTracks} />
-	</Label>
+	<Checkbox name="enableTracks" checked={form?.returned.enableTracks}>Enable Tracks</Checkbox>
 	<Label>
 		Medals: <Input type="number" name="medals" value={form?.returned.medals} />
 	</Label>

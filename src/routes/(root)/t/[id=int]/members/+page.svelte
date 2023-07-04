@@ -365,21 +365,18 @@
 <Modal title="Edit Member" bind:open={showEditMember} autoclose outsideclose>
 	<Heading tag="h2" class="text-2xl">Events</Heading>
 	{#each events.entries() as event}
-		<Label class="!mt-2">
-			<Checkbox
-				class="mr-2"
-				checked={editMemberData.events.includes(event[1].id)}
-				on:click={(e) => {
-					// @ts-ignore
-					if (e.target?.checked) {
-						editMemberData.events.push(event[1].id);
-					} else {
-						editMemberData.events.splice(editMemberData.events.indexOf(event[1].id), 1);
-					}
-				}}
-			/>
-			{event[0]}
-		</Label>
+		<Checkbox
+			class="mr-2 mt-2"
+			checked={editMemberData.events.includes(event[1].id)}
+			on:click={(e) => {
+				// @ts-ignore
+				if (e.target?.checked) {
+					editMemberData.events.push(event[1].id);
+				} else {
+					editMemberData.events.splice(editMemberData.events.indexOf(event[1].id), 1);
+				}
+			}}>{event[0]}</Checkbox
+		>
 	{/each}
 	<Heading tag="h2" class="text-2xl mt-20">Permissions</Heading>
 	<Label class="!mt-4">
@@ -397,21 +394,18 @@
 <Modal title="Edit Invite" bind:open={showEditInvite} autoclose outsideclose>
 	<Heading tag="h2" class="text-2xl">Events</Heading>
 	{#each events.entries() as event}
-		<Label class="!mt-2">
-			<Checkbox
-				class="mr-2"
-				checked={editInviteData.events.includes(event[1].id)}
-				on:click={(e) => {
-					// @ts-ignore
-					if (e.target?.checked) {
-						editInviteData.events.push(event[1].id);
-					} else {
-						editInviteData.events.splice(editInviteData.events.indexOf(event[1].id), 1);
-					}
-				}}
-			/>
-			{event[0]}
-		</Label>
+		<Checkbox
+			class="mt-2 mr-2"
+			checked={editInviteData.events.includes(event[1].id)}
+			on:click={(e) => {
+				// @ts-ignore
+				if (e.target?.checked) {
+					editInviteData.events.push(event[1].id);
+				} else {
+					editInviteData.events.splice(editInviteData.events.indexOf(event[1].id), 1);
+				}
+			}}>{event[0]}</Checkbox
+		>
 	{/each}
 
 	<svelte:fragment slot="footer">

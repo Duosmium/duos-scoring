@@ -7,7 +7,6 @@
 		Button,
 		Checkbox,
 		Heading,
-		Label,
 		Modal,
 		P,
 		TableBodyCell,
@@ -178,9 +177,7 @@
 	"Preview" button to preview the results page, where you can download a PDF version.</P
 >
 
-<Label class="text-base mb-4">
-	Export Histograms: <Checkbox bind:checked={exportHistos} />
-</Label>
+<Checkbox class="mb-4" bind:checked={exportHistos}>Export Histograms</Checkbox>
 
 <SelectableTable items={events} bind:selected cols={7}>
 	<svelte:fragment slot="buttons">
