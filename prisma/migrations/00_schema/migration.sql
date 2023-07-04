@@ -200,3 +200,4 @@ ALTER TABLE "scoring"."_InviteEvents" ADD CONSTRAINT "_InviteEvents_A_fkey" FORE
 
 -- AddForeignKey
 ALTER TABLE "scoring"."_InviteEvents" ADD CONSTRAINT "_InviteEvents_B_fkey" FOREIGN KEY ("B") REFERENCES "scoring"."Invite"("link") ON DELETE CASCADE ON UPDATE CASCADE;
+
