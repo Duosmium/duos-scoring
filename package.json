@@ -48,6 +48,7 @@
 		"prettier-plugin-svelte": "^3.1.0",
 		"prisma": "^5.6.0",
 		"puppeteer-core": "^21.5.2",
+		"resend": "^2.0.0",
 		"sass": "^1.69.5",
 		"sciolyff": "^0.14.2",
 		"slugify": "^1.6.6",

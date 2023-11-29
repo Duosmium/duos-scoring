@@ -1,8 +1,16 @@
-import { deleteMembers, deleteInvites, createInvites, updateMember, updateInvite } from '$lib/db';
+import {
+	deleteMembers,
+	deleteInvites,
+	createInvites,
+	updateMember,
+	updateInvite,
+	getEvents
+} from '$lib/db';
 import type { RequestHandler } from './$types';
 import { checkIsDirector } from '$lib/utils';
 import { customAlphabet } from 'nanoid';
 import type { UserRole } from '@prisma/client';
+import { sendInvite } from '$lib/email';
 
 const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 8);
 
@@ -128,13 +136,25 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
 
 	// TODO: send emails
 
-	await createInvites(
-		params.id,
-		payload.map((d) => ({
-			link: nanoid(),
-			email: d.email,
-			events: d.events?.map((e) => BigInt(e))
-		}))
+	const invites = payload.map((i) => ({
+		link: nanoid(),
+		email: i.email,
+		events: i.events?.map((e) => BigInt(e))
+	}));
+	const events = new Map(((await getEvents(params.id)) || []).map((e) => [e.id, e.name]));
+
+	await createInvites(params.id, invites);
+	await Promise.all(
+		invites.map(async (i) => {
+			if (i.email) {
+				await sendInvite(
+					i.email,
+					i.link,
+					`${locals.tournament?.year} ${locals.tournament?.shortName} ${locals.tournament?.division}`,
+					i.events?.map((e) => events.get(e) ?? '')
+				);
+			}
+		})
 	);
 
 	return new Response('ok');
