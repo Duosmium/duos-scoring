@@ -215,23 +215,4 @@
 	form * + * {
 		margin-top: 24px;
 	}
-
-	.error {
-		background-color: #fecaca;
-		color: #991b1b;
-		border: 2px solid #991b1b;
-		border-radius: 4px;
-
-		padding: 8px 16px;
-		margin-top: 32px;
-	}
-	.success {
-		background-color: #cffeca;
-		color: #34991b;
-		border: 2px solid #1b991f;
-		border-radius: 4px;
-
-		padding: 8px 16px;
-		margin-top: 32px;
-	}
 </style>

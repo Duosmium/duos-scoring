@@ -1,26 +1,33 @@
 <script lang="ts">
-	import type { PageData } from './$types';
+	import type { ActionData, PageData } from './$types';
 	import Head from '$lib/components/Head.svelte';
+	import { enhance } from '$app/forms';
+	import { Button, Input, Label } from 'flowbite-svelte';
 
 	export let data: PageData;
+	export let form: ActionData;
 </script>
 
 <Head title="Dashboard | Duosmium Scoring" />
 
 <h1>Account Settings</h1>
 
-<!-- TODO: implement this -->
-
-<style>
-	h2 {
-		margin-top: 32px;
-		margin-bottom: 12px;
-	}
-	p {
-		margin-top: 16px;
-		margin-bottom: 4px;
-	}
-	ul li + li {
-		margin-top: 8px;
-	}
-</style>
+<form use:enhance method="post" class="space-y-4">
+	<Label>
+		Name: <Input type="text" name="name" value={form?.name ?? data.user.name} required />
+	</Label>
+	<Label>
+		Email: <Input type="email" name="email" value={form?.email ?? data.user.email} required />
+	</Label>
+	{#if form?.success}
+		<div class="success">
+			Changes successfully saved!{form?.emailChanged
+				? ' Check your email to confirm your new email.'
+				: ''}
+		</div>
+	{/if}
+	{#if form?.error}
+		<div class="error">{form.error}</div>
+	{/if}
+	<Button type="submit">Save</Button>
+</form>

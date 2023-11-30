@@ -7,6 +7,7 @@ import {
 	type Score,
 	UserRole
 } from '@prisma/client';
+import { supabase } from './supabaseAdmin';
 const prisma = new PrismaClient();
 
 // TODO: double check permissions in every function
@@ -381,12 +382,15 @@ export async function getUserInfo(userId: string) {
 			}
 		}
 	});
+	const {
+		data: { user: supabaseUser }
+	} = await supabase.auth.admin.getUserById(userId);
 
-	if (user == undefined) {
+	if (user == undefined || supabaseUser == null) {
 		return false;
 	}
 
-	return user;
+	return { ...user, email: supabaseUser.email };
 }
 
 export async function getTournamentInfo(tournamentId: bigint | string) {
