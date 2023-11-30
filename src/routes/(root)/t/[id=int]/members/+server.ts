@@ -134,8 +134,6 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
 		return new Response('invalid events', { status: 400 });
 	}
 
-	// TODO: send emails
-
 	const invites = payload.map((i) => ({
 		link: nanoid(),
 		email: i.email,
