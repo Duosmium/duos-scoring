@@ -24,7 +24,7 @@
 >
 	<div class="flex justify-between items-center w-full lg:w-fit">
 		<slot name="brand" />
-		<NavHamburger on:click={toggle} btnClass="ml-3 lg:hidden" />
+		<NavHamburger on:click={toggle} class="md:block lg:hidden" />
 	</div>
 	<NavUl
 		{hidden}
