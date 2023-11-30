@@ -105,8 +105,8 @@
 										s.ranking === 'PARTICIPATION'
 											? true
 											: s.ranking === 'NOSHOW'
-											? false
-											: undefined,
+											  ? false
+											  : undefined,
 									disqualified: s.status === 'DISQUALIFICATION' ? true : undefined,
 									place: typeof s.ranking === 'number' ? s.ranking : undefined,
 									tie: s.tie || undefined
@@ -268,7 +268,7 @@
 		</span>
 	</div>
 	<svelte:fragment slot="footer">
-		<Button color="alternative">Ok</Button>
+		<Button color="alternative">Done</Button>
 	</svelte:fragment>
 </Modal>
 
@@ -301,6 +301,6 @@
 		/>
 	{/await}
 	<svelte:fragment slot="footer">
-		<Button color="alternative">Ok</Button>
+		<Button color="alternative">Done</Button>
 	</svelte:fragment>
 </Modal>
