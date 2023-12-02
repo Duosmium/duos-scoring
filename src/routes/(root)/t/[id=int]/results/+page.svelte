@@ -2,6 +2,8 @@
 	import type { PageData } from './$types';
 	import Head from '$lib/components/Head.svelte';
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
+	import { addToastMessage } from '$lib/components/Toasts.svelte';
+
 	import {
 		Avatar,
 		Button,
@@ -44,7 +46,7 @@
 
 	let showPreview = false;
 
-	async function generatePreview() {
+	function generateSciolyFF() {
 		const selectedEvents = new Set(selected.flatMap((e) => e.id));
 		const sciolyffRep = {
 			Tournament: {
@@ -52,7 +54,8 @@
 				'short name': data.tournament.shortName ?? undefined,
 				location: data.tournament.location,
 				state: data.tournament.state,
-				level: data.tournament.level,
+				level:
+					data.tournament.level.toUpperCase()[0] + data.tournament.level.toLowerCase().slice(1),
 				division: data.tournament.division,
 				year: data.tournament.year,
 				'start date': data.tournament.startDate,
@@ -136,7 +139,11 @@
 				: undefined
 		};
 
-		const content = yaml.dump(sciolyffRep);
+		return yaml.dump(sciolyffRep);
+	}
+
+	async function generatePreview() {
+		const content = generateSciolyFF();
 
 		const res = await fetch('https://www.duosmium.org/preview/render/', {
 			method: 'POST',
@@ -163,6 +170,18 @@
           </body></html>`;
 		}
 	}
+
+	function copySciolyFF() {
+		const content = generateSciolyFF();
+		navigator.clipboard.writeText(content).then(
+			() => {
+				addToastMessage('Copied!', 'success');
+			},
+			() => {
+				addToastMessage('Copy failed!', 'error');
+			}
+		);
+	}
 </script>
 
 <Head
@@ -182,10 +201,14 @@
 
 <SelectableTable items={events} bind:selected cols={7}>
 	<svelte:fragment slot="buttons">
+		<Button color="yellow" on:click={copySciolyFF}>Copy SciolyFF</Button>
 		<Button
 			color="green"
 			on:click={() => {
 				showPreview = true;
+				() => {
+					showPreview = true;
+				};
 			}}>Preview</Button
 		>
 	</svelte:fragment>
@@ -294,13 +317,10 @@
 	{:then previewContent}
 		<iframe
 			title="Results Preview"
-			class="w-full h-screen"
+			class="w-full h-[calc(100vh-200px)]"
 			srcdoc={previewContent
 				.replace('/main.css', 'https://www.duosmium.org/main.css')
 				.replace('/main.js', 'https://www.duosmium.org/main.js')}
 		/>
 	{/await}
-	<svelte:fragment slot="footer">
-		<Button color="alternative">Done</Button>
-	</svelte:fragment>
 </Modal>
