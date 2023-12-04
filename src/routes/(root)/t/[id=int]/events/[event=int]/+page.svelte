@@ -298,12 +298,11 @@
 		if (locked) return;
 		if (parsedError) return;
 		parsedImportScores.forEach((parsedScore) => {
-			const team = teamLookup.get(parseInt(parsedScore.Number) ?? parseInt(parsedScore['Team #']));
+			const team = teamLookup.get(parseInt(parsedScore.Number || parsedScore['Team #']));
 			if (!team) return;
-			team.score.rawScore.new =
-				parseFloat(parsedScore['Raw Score']) ?? parseFloat(parsedScore.Score) ?? null;
-			team.score.tier.new = parseInt(parsedScore.Tier) ?? null;
-			team.score.tiebreak.new = parseFloat(parsedScore.Tiebreak) ?? null;
+			team.score.rawScore.new = parseFloat(parsedScore['Raw Score'] || parsedScore.Score) || null;
+			team.score.tier.new = parseInt(parsedScore.Tier) || null;
+			team.score.tiebreak.new = parseFloat(parsedScore.Tiebreak) || null;
 			team.score.status.new = (scoreStatuses.find((s) => s.name === parsedScore.Status)?.value ??
 				'NA') as any;
 
