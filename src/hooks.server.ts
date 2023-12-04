@@ -51,9 +51,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 		return session;
 	};
 
+	// don't do any redirects when handling supabase auth stuff
 	if (event.url.pathname.startsWith('/auth')) {
 		return await resolve(event);
 	}
+
+	// get the current session or try logging in with a passed supabase code
 	let session = await event.locals.getSession();
 	if (!session && event.url.searchParams.get('code') !== null) {
 		session = (
@@ -63,26 +66,32 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	const loginRoute = event.url.pathname.startsWith('/login');
 	if (!session) {
+		// if user is not logged in and trying to access the login page
 		if (loginRoute) {
 			return await resolve(event);
 		}
+		// remember if the user is trying to use an invite link for redirecting after
 		if (event.url.pathname.startsWith('/invite/')) {
 			return new Response(undefined, {
 				status: 303,
 				headers: { location: `/login?invite=${event.url.pathname.split('/')[2]}` }
 			});
 		}
+		// otherwise redirect to the login page if not logged in
 		return new Response(undefined, { status: 303, headers: { location: '/login' } });
 	}
 	if (loginRoute && event.url.searchParams.get('reset') !== null) {
+		// user is logged in and trying to reset their password
 		return await resolve(event);
 	}
 	if (loginRoute) {
+		// user is logged in and trying to access the login page, redirect them to dashboard
 		return new Response(undefined, { status: 303, headers: { location: '/dashboard' } });
 	}
 
 	event.locals.userId = session.user.id;
 
+	// get the current user from the database
 	let user = await getUserInfo(event.locals.userId);
 	const {
 		data: { user: supabaseUser }
@@ -96,6 +105,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 	event.locals.user = user;
 
+	// check permissions if user is trying to access a tournament page
 	if (event.url.pathname.startsWith('/t') && event.params.id) {
 		if (!user.roles.find((r) => r.tournament.id.toString() === event.params.id)) {
 			return new Response(undefined, { status: 303, headers: { location: '/dashboard' } });
