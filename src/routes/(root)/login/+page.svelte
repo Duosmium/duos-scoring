@@ -30,10 +30,10 @@
 	let invite: string | null = null;
 
 	onMount(() => {
-		const code = $page.url.searchParams.get('code');
+		const reset = $page.url.searchParams.get('reset');
 		invite = $page.url.searchParams.get('invite');
 
-		if (code) {
+		if (reset) {
 			view = 'pass_reset';
 		}
 	});
@@ -84,7 +84,7 @@
 				}
 				case 'forgot_pass': {
 					const { error } = await supabase.auth.resetPasswordForEmail(email, {
-						redirectTo: 'https://scoring.duosmium.org/login'
+						redirectTo: 'https://scoring.duosmium.org/login?reset'
 					});
 					if (error) throw error;
 					successMessage = 'Check your email for a password reset link!';

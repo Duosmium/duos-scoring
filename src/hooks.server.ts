@@ -45,8 +45,14 @@ export const handle: Handle = async ({ event, resolve }) => {
 		return session;
 	};
 
+	let session = await event.locals.getSession();
+	if (!session && event.url.searchParams.get('code') !== null) {
+		session = (
+			await event.locals.supabase.auth.exchangeCodeForSession(event.url.searchParams.get('code')!)
+		).data.session;
+	}
+
 	const loginRoute = event.url.pathname.includes('login');
-	const session = await event.locals.getSession();
 	if (!session) {
 		if (loginRoute) {
 			return await resolve(event);
@@ -58,6 +64,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 			});
 		}
 		return new Response(undefined, { status: 303, headers: { location: '/login' } });
+	}
+	if (loginRoute && event.url.searchParams.get('reset') !== null) {
+		return await resolve(event);
 	}
 	if (loginRoute) {
 		return new Response(undefined, { status: 303, headers: { location: '/dashboard' } });
