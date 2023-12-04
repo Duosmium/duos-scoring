@@ -1,48 +1,47 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import Head from '$lib/components/Head.svelte';
+	import { A, Button, Card, Heading, Li, List, P } from 'flowbite-svelte';
 
 	export let data: PageData;
 </script>
 
 <Head title="Dashboard | Duosmium Scoring" />
 
-<h1>Welcome {data.user.name}!</h1>
+<Heading tag="h1" class="mb-12">Welcome {data.user.name}!</Heading>
 
-<h2>Your Tournaments</h2>
+<Heading tag="h2" class="mb-8">Your Tournaments</Heading>
 {#if data.user.roles.length === 0}
-	<p>You have no tournaments. <a href="/new">Create one?</a></p>
+	<P>You have no tournaments. <a href="/new">Create one?</a></P>
 {:else}
-	{#each data.user.roles as role}
-		<h3>{role.tournament.name}</h3>
-		<ul>
-			{#if role.role === 'TD'}
-				<li><a href="/t/{role.tournament.id}/">Tournament Director Dashboard</a></li>
-			{:else if role.role === 'SM'}
-				<li><a href="/t/{role.tournament.id}/">Scoremaster Dashboard</a></li>
-			{:else}
-				{#each role.supEvents as event}
-					<li>
-						<a href="/t/{role.tournament.id}/events/{event.id}/">{event.name} Dashboard</a>
-					</li>
+	<div class="grid">
+		{#each data.user.roles as role}
+			<Card size="md">
+				<Heading tag="h3" customSize="text-md" class="mb-6">{role.tournament.name}</Heading>
+				{#if role.role === 'TD'}
+					<Button href="/t/{role.tournament.id}/">Tournament Director Dashboard</Button>
+				{:else if role.role === 'SM'}
+					<Button href="/t/{role.tournament.id}/">Scoremaster Dashboard</Button>
 				{:else}
-					<li>The tournament director has not assigned you a role yet.</li>
-				{/each}
-			{/if}
-		</ul>
-	{/each}
+					<List tag="ul">
+						{#each role.supEvents as event}
+							<Li>
+								<A href="/t/{role.tournament.id}/events/{event.id}/">{event.name} Dashboard</A>
+							</Li>
+						{:else}
+							<Li>The tournament director has not assigned you a role yet.</Li>
+						{/each}
+					</List>
+				{/if}
+			</Card>
+		{/each}
+	</div>
 {/if}
 
 <style>
-	h2 {
-		margin-top: 32px;
-		margin-bottom: 12px;
-	}
-	p {
-		margin-top: 16px;
-		margin-bottom: 4px;
-	}
-	ul li + li {
-		margin-top: 8px;
+	.grid {
+		display: grid;
+		gap: 16px;
+		grid-template-columns: repeat(auto-fill, minmax(min(400px, 100%), 1fr));
 	}
 </style>
