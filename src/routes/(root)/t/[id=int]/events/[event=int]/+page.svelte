@@ -300,9 +300,9 @@
 		parsedImportScores.forEach((parsedScore) => {
 			const team = teamLookup.get(parseInt(parsedScore.Number || parsedScore['Team #']));
 			if (!team) return;
-			team.score.rawScore.new = parseFloat(parsedScore['Raw Score'] || parsedScore.Score) || null;
-			team.score.tier.new = parseInt(parsedScore.Tier) || null;
-			team.score.tiebreak.new = parseFloat(parsedScore.Tiebreak) || null;
+			team.score.rawScore.new = parseFloat(parsedScore['Raw Score'] || parsedScore.Score) ?? null;
+			team.score.tier.new = parseInt(parsedScore.Tier) ?? null;
+			team.score.tiebreak.new = parseFloat(parsedScore.Tiebreak) ?? null;
 			team.score.status.new = (scoreStatuses.find((s) => s.name === parsedScore.Status)?.value ??
 				'NA') as any;
 
@@ -742,7 +742,7 @@
 	{:else if parsedImportScores.length !== 0}
 		<ol>
 			{#each parsedImportScores as score}
-				{@const t = teamLookup.get(parseInt(score.Number))}
+				{@const t = teamLookup.get(parseInt(score.Number || score['Team #']))}
 				<li>
 					<span class="tabular-nums">#{score.Number}:</span>
 					<span
@@ -750,8 +750,8 @@
 							? `${t.abbreviation || t.school}${t.suffix ? ' ' + t.suffix : ''}`
 							: 'Team Not Found'}</span
 					>
-					<span class="dark:text-green-300 text-green-700">{score['Raw Score']}</span><span
-						class="dark:text-blue-300 text-blue-700"
+					<span class="dark:text-green-300 text-green-700">{score['Raw Score'] || score.Score}</span
+					><span class="dark:text-blue-300 text-blue-700"
 						>{score.Tier ? ` [Tier ${score.Tier}]` : ''}</span
 					><span class="dark:text-pink-300 text-pink-700"
 						>{score.Tiebreak ? ` (*${score.Tiebreak})` : ''}</span
