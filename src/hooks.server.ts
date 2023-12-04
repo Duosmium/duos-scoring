@@ -52,12 +52,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 		).data.session;
 	}
 
-	const loginRoute = event.url.pathname.includes('login');
+	const loginRoute = event.url.pathname.startsWith('/login');
 	if (!session) {
 		if (loginRoute) {
 			return await resolve(event);
 		}
-		if (event.url.pathname.includes('/invite/')) {
+		if (event.url.pathname.startsWith('/invite/')) {
 			return new Response(undefined, {
 				status: 303,
 				headers: { location: `/login?invite=${event.url.pathname.split('/')[2]}` }
