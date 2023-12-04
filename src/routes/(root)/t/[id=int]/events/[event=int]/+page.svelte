@@ -298,7 +298,9 @@
 		if (locked) return;
 		if (parsedError) return;
 		parsedImportScores.forEach((parsedScore) => {
-			const team = teamLookup.get(parseInt(parsedScore.Number || parsedScore['Team #']));
+			const team = teamLookup.get(
+				parseInt(/\d+/.exec(parsedScore.Number || parsedScore['Team #'])?.[0] ?? '')
+			);
 			if (!team) return;
 			// use || operator for NaN
 			team.score.rawScore.new = parseFloat(parsedScore['Raw Score'] || parsedScore.Score) || null;
@@ -743,7 +745,9 @@
 	{:else if parsedImportScores.length !== 0}
 		<ol>
 			{#each parsedImportScores as score}
-				{@const t = teamLookup.get(parseInt(score.Number || score['Team #']))}
+				{@const t = teamLookup.get(
+					parseInt(/\d+/.exec(score.Number || score['Team #'])?.[0] ?? '')
+				)}
 				<li>
 					<span class="tabular-nums">#{score.Number || score['Team #']}:</span>
 					<span
