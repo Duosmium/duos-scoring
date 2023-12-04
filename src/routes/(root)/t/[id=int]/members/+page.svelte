@@ -258,7 +258,7 @@
 			size="sm"
 			color="red"
 			on:click={() => {
-				showConfirmDeleteMembers = true;
+				showConfirmDeleteInvites = true;
 			}}>Delete</Button
 		>
 	</svelte:fragment>
