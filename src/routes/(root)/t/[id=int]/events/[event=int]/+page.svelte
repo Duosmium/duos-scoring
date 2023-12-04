@@ -50,6 +50,13 @@
 	const scoreStatuses = [
 		{ value: 'NA', name: 'N/A' },
 		{ value: 'COMPETED', name: 'CO' },
+		{ value: 'PARTICIPATION', name: 'PO' },
+		{ value: 'NOSHOW', name: 'NS' },
+		{ value: 'DISQUALIFICATION', name: 'DQ' }
+	];
+	const scoreAliases = [
+		{ value: 'NA', name: 'N/A' },
+		{ value: 'COMPETED', name: 'CO' },
 		{ value: 'COMPETED', name: 'C' },
 		{ value: 'PARTICIPATION', name: 'PO' },
 		{ value: 'NOSHOW', name: 'NS' },
@@ -234,6 +241,9 @@
 				case 'rawScore':
 					const raw = parseFloat((e.target as HTMLInputElement).value);
 					team.score[field].new = isNaN(raw) ? null : raw;
+					if (team.score.status.new === 'NA') {
+						team.score.status.new = 'COMPETED';
+					}
 					break;
 				case 'tier':
 					const tier = parseInt((e.target as HTMLInputElement).value);
@@ -283,7 +293,7 @@
 			}
 			if (!t.Status) {
 				missingFields.add('Status');
-			} else if (scoreStatuses.every((s) => s.name !== t.Status)) {
+			} else if (scoreAliases.every((s) => s.name !== t.Status)) {
 				invalidStatuses.add(t.Status);
 			}
 			if (!t['Raw Score'] && !t.Score && (t.Status === 'CO' || t.Status === 'C')) {
@@ -312,7 +322,7 @@
 			team.score.rawScore.new = isNaN(raw) ? null : raw;
 			team.score.tier.new = isNaN(tier) ? null : tier;
 			team.score.tiebreak.new = isNaN(tiebreak) ? null : tiebreak;
-			team.score.status.new = (scoreStatuses.find((s) => s.name === parsedScore.Status)?.value ??
+			team.score.status.new = (scoreAliases.find((s) => s.name === parsedScore.Status)?.value ??
 				'NA') as any;
 
 			team.score.rawScore.dirty = team.score.rawScore.new !== team.score.rawScore.old;
@@ -489,6 +499,17 @@
 			}
 		});
 	}
+
+	function handleKeypress(e: KeyboardEvent) {
+		if (e.key === 'Enter') {
+			(e.target as HTMLInputElement).blur();
+			(
+				(e.target as HTMLInputElement).parentElement?.parentElement?.nextElementSibling?.children[
+					((e.target as HTMLInputElement).parentElement as HTMLTableCellElement)?.cellIndex ?? 0
+				]?.firstElementChild as HTMLInputElement
+			)?.focus();
+		}
+	}
 </script>
 
 <Head
@@ -593,6 +614,7 @@
 				inputmode="numeric"
 				value={team.score.rawScore.new ?? ''}
 				on:change={updateData(team.number, 'rawScore')}
+				on:keypress={handleKeypress}
 			/>
 		</TableBodyCell>
 		<TableBodyCell class="p-0">
@@ -605,6 +627,7 @@
 				inputmode="numeric"
 				value={team.score.tier.new ?? ''}
 				on:change={updateData(team.number, 'tier')}
+				on:keypress={handleKeypress}
 			/>
 		</TableBodyCell>
 		<TableBodyCell class="p-0">
@@ -617,6 +640,7 @@
 				inputmode="numeric"
 				value={team.score.tiebreak.new ?? ''}
 				on:change={updateData(team.number, 'tiebreak')}
+				on:keypress={handleKeypress}
 			/>
 		</TableBodyCell>
 		<TableBodyCell class="p-0">
