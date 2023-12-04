@@ -232,13 +232,16 @@
 			if (!team) return;
 			switch (field) {
 				case 'rawScore':
-					team.score[field].new = parseFloat((e.target as HTMLInputElement).value) || null;
+					const raw = parseFloat((e.target as HTMLInputElement).value);
+					team.score[field].new = isNaN(raw) ? null : raw;
 					break;
 				case 'tier':
-					team.score[field].new = parseInt((e.target as HTMLInputElement).value) || null;
+					const tier = parseInt((e.target as HTMLInputElement).value);
+					team.score[field].new = isNaN(tier) ? null : tier;
 					break;
 				case 'tiebreak':
-					team.score[field].new = parseFloat((e.target as HTMLInputElement).value) || null;
+					const tiebreak = parseFloat((e.target as HTMLInputElement).value);
+					team.score[field].new = isNaN(tiebreak) ? null : tiebreak;
 					break;
 				case 'status':
 					team.score[field].new = (e.target as HTMLSelectElement).value as any;
