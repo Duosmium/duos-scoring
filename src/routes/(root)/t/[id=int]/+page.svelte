@@ -351,6 +351,11 @@
 	<List tag="ul">
 		{#each data.role.supEvents as event}
 			<Li><a href="/t/{$page.params.id}/events/{event.id}">{event.name}</a></Li>
+		{:else}
+			<P>
+				You have not yet been assigned to any events! Contact the tournament director if you believe
+				this is an error.
+			</P>
 		{/each}
 	</List>
 {:else}
