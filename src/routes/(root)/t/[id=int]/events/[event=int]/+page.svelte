@@ -302,10 +302,13 @@
 				parseInt(/\d+/.exec(parsedScore.Number || parsedScore['Team #'])?.[0] ?? '')
 			);
 			if (!team) return;
-			// use || operator for NaN
-			team.score.rawScore.new = parseFloat(parsedScore['Raw Score'] || parsedScore.Score) || null;
-			team.score.tier.new = parseInt(parsedScore.Tier) || null;
-			team.score.tiebreak.new = parseFloat(parsedScore.Tiebreak) || null;
+
+			const raw = parseFloat(parsedScore['Raw Score'] || parsedScore.Score);
+			const tier = parseInt(parsedScore.Tier);
+			const tiebreak = parseFloat(parsedScore.Tiebreak);
+			team.score.rawScore.new = isNaN(raw) ? null : raw;
+			team.score.tier.new = isNaN(tier) ? null : tier;
+			team.score.tiebreak.new = isNaN(tiebreak) ? null : tiebreak;
 			team.score.status.new = (scoreStatuses.find((s) => s.name === parsedScore.Status)?.value ??
 				'NA') as any;
 
