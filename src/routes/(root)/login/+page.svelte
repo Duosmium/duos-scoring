@@ -84,7 +84,7 @@
 				}
 				case 'forgot_pass': {
 					const { error } = await supabase.auth.resetPasswordForEmail(email, {
-						redirectTo: 'https://scoring.duosmium.org/login?reset'
+						redirectTo: 'https://scoring.duosmium.org/login?reset=true'
 					});
 					if (error) throw error;
 					successMessage = 'Check your email for a password reset link!';
