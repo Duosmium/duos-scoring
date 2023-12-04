@@ -51,6 +51,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 		if (loginRoute) {
 			return await resolve(event);
 		}
+		if (event.url.pathname.includes('/invite/')) {
+			return new Response(undefined, {
+				status: 303,
+				headers: { location: `/login?invite=${event.url.pathname.split('/')[2]}` }
+			});
+		}
 		return new Response(undefined, { status: 303, headers: { location: '/login' } });
 	}
 	if (loginRoute) {

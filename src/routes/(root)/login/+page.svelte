@@ -27,8 +27,11 @@
 	export let data: PageData;
 	$: ({ supabase } = data);
 
+	let invite: string | null = null;
+
 	onMount(() => {
 		const code = $page.url.searchParams.get('code');
+		invite = $page.url.searchParams.get('invite');
 
 		if (code) {
 			view = 'pass_reset';
@@ -70,7 +73,9 @@
 						password,
 						options: {
 							data: { name },
-							emailRedirectTo: 'https://scoring.duosmium.org/dashboard'
+							emailRedirectTo: invite
+								? `https://scoring.duosmium.org/invite/${invite}`
+								: 'https://scoring.duosmium.org/dashboard'
 						}
 					});
 					if (error) throw error;
