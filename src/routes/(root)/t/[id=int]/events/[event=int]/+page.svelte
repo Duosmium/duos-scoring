@@ -300,9 +300,10 @@
 		parsedImportScores.forEach((parsedScore) => {
 			const team = teamLookup.get(parseInt(parsedScore.Number || parsedScore['Team #']));
 			if (!team) return;
-			team.score.rawScore.new = parseFloat(parsedScore['Raw Score'] || parsedScore.Score) ?? null;
-			team.score.tier.new = parseInt(parsedScore.Tier) ?? null;
-			team.score.tiebreak.new = parseFloat(parsedScore.Tiebreak) ?? null;
+			// use || operator for NaN
+			team.score.rawScore.new = parseFloat(parsedScore['Raw Score'] || parsedScore.Score) || null;
+			team.score.tier.new = parseInt(parsedScore.Tier) || null;
+			team.score.tiebreak.new = parseFloat(parsedScore.Tiebreak) || null;
 			team.score.status.new = (scoreStatuses.find((s) => s.name === parsedScore.Status)?.value ??
 				'NA') as any;
 
@@ -744,7 +745,7 @@
 			{#each parsedImportScores as score}
 				{@const t = teamLookup.get(parseInt(score.Number || score['Team #']))}
 				<li>
-					<span class="tabular-nums">#{score.Number}:</span>
+					<span class="tabular-nums">#{score.Number || score['Team #']}:</span>
 					<span
 						>{t
 							? `${t.abbreviation || t.school}${t.suffix ? ' ' + t.suffix : ''}`
