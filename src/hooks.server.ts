@@ -51,6 +51,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 		return session;
 	};
 
+	if (event.url.pathname.startsWith('/auth')) {
+		return await resolve(event);
+	}
 	let session = await event.locals.getSession();
 	if (!session && event.url.searchParams.get('code') !== null) {
 		session = (
