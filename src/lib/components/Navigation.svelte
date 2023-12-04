@@ -15,9 +15,9 @@
 	export let session: any;
 </script>
 
-<Navbar let:NavContainer let:hidden let:toggle class="py-4 mb-4 sticky top-3 z-30" fluid={true}>
-	<NavContainer
-		class="mx-auto flex flex-wrap justify-between items-center lg:max-w-5xl xl:max-w-7xl px-6"
+<Navbar let:hidden let:toggle class="py-4 mb-4 sticky top-3 z-30 px-0 sm:px-0" fluid={true}>
+	<div
+		class="mx-auto flex flex-wrap justify-between items-center lg:max-w-5xl xl:max-w-7xl w-full px-6"
 	>
 		<div class="flex justify-between items-center w-full lg:w-fit">
 			<slot name="brand" />
@@ -64,5 +64,5 @@
 				<NavLi href="/login">Sign In</NavLi>
 			{/if}
 		</NavUl>
-	</NavContainer>
+	</div>
 </Navbar>
