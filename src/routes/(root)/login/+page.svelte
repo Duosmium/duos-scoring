@@ -33,7 +33,7 @@
 		const reset = $page.url.searchParams.get('reset');
 		invite = $page.url.searchParams.get('invite');
 
-		if (reset) {
+		if (reset !== null) {
 			view = 'pass_reset';
 		}
 	});
