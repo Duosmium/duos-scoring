@@ -69,7 +69,8 @@
 						email,
 						password,
 						options: {
-							data: { name }
+							data: { name },
+							emailRedirectTo: 'https://scoring.duosmium.org/dashboard'
 						}
 					});
 					if (error) throw error;
@@ -104,7 +105,7 @@
 <Head title="Login | Duosmium Scoring" />
 
 <main class="main">
-	<div>
+	<div class="logo">
 		<img class="dark:hidden inline-block" src="/logo_dark.png" alt="Duosmium Logo" />
 		<img class="dark:inline-block hidden" src="/logo_light.png" alt="Duosmium Logo" />
 	</div>
@@ -114,14 +115,14 @@
 			{#if view === 'sign_up'}
 				<label>
 					Preferred Full Name
-					<input required type="text" placeholder="Your name" bind:value={name} />
+					<input required type="text" bind:value={name} />
 				</label>
 			{/if}
 
 			{#if view === 'sign_in' || view === 'sign_up' || view === 'forgot_pass'}
 				<label>
 					Email
-					<input required type="email" placeholder="Your email" bind:value={email} />
+					<input required type="email" bind:value={email} />
 				</label>
 			{/if}
 
@@ -139,7 +140,12 @@
 				</label>
 			{/if}
 
-			<button type="submit" aria-live="polite" disabled={loading}>
+			<button
+				class="px-4 py-2 border border-slate-500 rounded-md"
+				type="submit"
+				aria-live="polite"
+				disabled={loading}
+			>
 				<span>{loading ? 'Loading' : buttonText[view]}</span>
 			</button>
 		</form>
@@ -154,29 +160,30 @@
 	{/if}
 
 	{#if view === 'sign_in'}
-		<p>
+		<div class="mt-8 space-y-2 text-slate-800 dark:text-slate-400">
 			<button
-				on:click={() => {
-					view = 'forgot_pass';
-				}}>Forgot password?</button
-			>
-		</p>
-		<p>
-			<button
+				class="block underline"
 				on:click={() => {
 					view = 'sign_up';
 				}}>Don't have an account?</button
 			>
-		</p>
+			<button
+				class="block underline"
+				on:click={() => {
+					view = 'forgot_pass';
+				}}>Forgot password?</button
+			>
+		</div>
 	{/if}
 	{#if view === 'sign_up'}
-		<p>
+		<div class="mt-8 text-slate-800 dark:text-slate-400">
 			<button
+				class="block underline"
 				on:click={() => {
 					view = 'sign_in';
 				}}>Already have an account?</button
 			>
-		</p>
+		</div>
 	{/if}
 </main>
 
@@ -184,7 +191,7 @@
 	main.main {
 		max-width: 540px;
 	}
-	div {
+	div.logo {
 		display: flex;
 		justify-content: center;
 	}
@@ -202,7 +209,7 @@
 		color: inherit;
 		background-color: transparent;
 
-		border: 2px solid #57534e;
+		border: 1px solid #64748b;
 		border-radius: 4px;
 		margin-top: 6px;
 		padding: 8px 16px;
