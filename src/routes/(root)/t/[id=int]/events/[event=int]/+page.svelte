@@ -50,6 +50,7 @@
 	const scoreStatuses = [
 		{ value: 'NA', name: 'N/A' },
 		{ value: 'COMPETED', name: 'CO' },
+		{ value: 'COMPETED', name: 'C' },
 		{ value: 'PARTICIPATION', name: 'PO' },
 		{ value: 'NOSHOW', name: 'NS' },
 		{ value: 'DISQUALIFICATION', name: 'DQ' }
@@ -146,10 +147,10 @@
 				typeof a.ranking === 'number' && typeof b.ranking === 'number'
 					? (b.ranking - a.ranking) * (data.event.highScoring ? 1 : -1)
 					: typeof a.ranking === 'string' && typeof b.ranking === 'string'
-					? statusOrder[a.ranking] - statusOrder[b.ranking]
-					: typeof a.ranking === 'number'
-					? -1
-					: 1
+					  ? statusOrder[a.ranking] - statusOrder[b.ranking]
+					  : typeof a.ranking === 'number'
+					    ? -1
+					    : 1
 			)
 			.map((t, i, s) => {
 				// check ties
@@ -204,10 +205,10 @@
 					return typeof a.ranking === 'number' && typeof b.ranking === 'number'
 						? a.ranking - b.ranking
 						: typeof a.ranking === 'string' && typeof b.ranking === 'string'
-						? statusOrder[a.ranking] - statusOrder[b.ranking]
-						: typeof a.ranking === 'number'
-						? -1
-						: 1;
+						  ? statusOrder[a.ranking] - statusOrder[b.ranking]
+						  : typeof a.ranking === 'number'
+						    ? -1
+						    : 1;
 				default:
 					return 0;
 			}
@@ -259,7 +260,9 @@
 	let importScoresData = '';
 	let parsedImportScores: {
 		Number: string;
+		'Team #': string;
 		'Raw Score': string;
+		Score: string;
 		Tier: string;
 		Tiebreak: string;
 		Status: string;
@@ -272,7 +275,7 @@
 		const invalidStatuses: Set<string> = new Set();
 		// TODO: validate stuff
 		parsedImportScores.forEach((t) => {
-			if (!t.Number) {
+			if (!t.Number && !t['Team #']) {
 				missingFields.add('Number');
 			}
 			if (!t.Status) {
@@ -280,8 +283,8 @@
 			} else if (scoreStatuses.every((s) => s.name !== t.Status)) {
 				invalidStatuses.add(t.Status);
 			}
-			if (!t['Raw Score'] && t.Status === 'CO') {
-				missingFields.add('Raw Score');
+			if (!t['Raw Score'] && !t.Score && (t.Status === 'CO' || t.Status === 'C')) {
+				missingFields.add('Score');
 			}
 		});
 		if (missingFields.size > 0) {
@@ -295,11 +298,12 @@
 		if (locked) return;
 		if (parsedError) return;
 		parsedImportScores.forEach((parsedScore) => {
-			const team = teamLookup.get(parseInt(parsedScore.Number));
+			const team = teamLookup.get(parseInt(parsedScore.Number) ?? parseInt(parsedScore['Team #']));
 			if (!team) return;
-			team.score.rawScore.new = parseFloat(parsedScore['Raw Score']) || null;
-			team.score.tier.new = parseInt(parsedScore.Tier) || null;
-			team.score.tiebreak.new = parseFloat(parsedScore.Tiebreak) || null;
+			team.score.rawScore.new =
+				parseFloat(parsedScore['Raw Score']) ?? parseFloat(parsedScore.Score) ?? null;
+			team.score.tier.new = parseInt(parsedScore.Tier) ?? null;
+			team.score.tiebreak.new = parseFloat(parsedScore.Tiebreak) ?? null;
 			team.score.status.new = (scoreStatuses.find((s) => s.name === parsedScore.Status)?.value ??
 				'NA') as any;
 
