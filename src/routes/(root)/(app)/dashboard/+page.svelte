@@ -12,7 +12,8 @@
 
 <Heading tag="h2" class="mb-8">Your Tournaments</Heading>
 {#if data.user.roles.length === 0}
-	<P>You have no tournaments. <a href="/new">Create one?</a></P>
+	<!-- TODO: create tournament -->
+	<P>You have no tournaments. <!--<a href="/new">Create one?</a>--></P>
 {:else}
 	<div class="grid">
 		{#each data.user.roles as role}
