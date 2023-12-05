@@ -32,8 +32,13 @@
 		{ name: 'Event Supervisor', value: 'ES' }
 	];
 	const roleNames = new Map(roleOptions.map((r) => [r.value, r.name]));
+	const roleSort = {
+		TD: 0,
+		SM: 1,
+		ES: 2
+	};
 
-	$: members = data.roles;
+	$: members = data.roles.sort((a, b) => roleSort[a.role] - roleSort[b.role]);
 	let selectedMembers: typeof members = [];
 
 	$: invites = data.invites.map((i) => ({ ...i, id: i.link }));
@@ -195,6 +200,15 @@
 			}
 		});
 	}
+
+	function copyInvite(inviteId: string) {
+		return () => {
+			const url = new URL($page.url);
+			url.pathname = '/invite/' + inviteId;
+			navigator.clipboard.writeText(url.toString());
+			addToastMessage('Invite copied!', 'success');
+		};
+	}
 </script>
 
 <Head
@@ -233,20 +247,21 @@
 		<TableBodyCell class="py-0 px-2">{data.emails.get(member.user.id)}</TableBodyCell>
 		<TableBodyCell class="py-0 px-2">{roleNames.get(member.role)}</TableBodyCell>
 		<TableBodyCell class="py-0 px-2"
-			>{member.supEvents.map((event) => event.name)?.join(', ')}</TableBodyCell
+			>{member.supEvents
+				.map((event) => event.name)
+				?.sort((a, b) => a.localeCompare(b))
+				?.join(', ')}</TableBodyCell
 		>
 		<TableBodyCell class="py-0 px-2">
-			{#if member.user.id !== data.user.id}
-				<Button
-					color="alternative"
-					class="border-none p-1 font-medium text-primary-600 hover:underline dark:text-primary-500"
-					on:click={() => {
-						openEditMember(member.id);
-					}}
-				>
-					Edit
-				</Button>
-			{/if}
+			<Button
+				color="alternative"
+				class="border-none p-1 font-medium text-primary-600 hover:underline dark:text-primary-500"
+				on:click={() => {
+					openEditMember(member.id);
+				}}
+			>
+				Edit
+			</Button>
 		</TableBodyCell>
 	</svelte:fragment>
 </SelectableTable>
@@ -271,9 +286,16 @@
 		</TableHeadCell>
 	</svelte:fragment>
 	<svelte:fragment slot="item" let:item={invite}>
-		<TableBodyCell class="py-0 px-2"><a href="/invite/{invite.id}">{invite.id}</a></TableBodyCell>
+		<TableBodyCell class="py-0 px-2"
+			><button on:click={copyInvite(invite.id)}>{invite.id}</button></TableBodyCell
+		>
 		<TableBodyCell class="py-0 px-2">{invite.email}</TableBodyCell>
-		<TableBodyCell class="py-0 px-2">{invite.events.map((e) => e.name).join(', ')}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2"
+			>{invite.events
+				.map((e) => e.name)
+				.sort((a, b) => a.localeCompare(b))
+				.join(', ')}</TableBodyCell
+		>
 		<TableBodyCell class="py-0 px-2">
 			<Button
 				color="alternative"
@@ -378,11 +400,13 @@
 			}}>{event[0]}</Checkbox
 		>
 	{/each}
-	<Heading tag="h2" class="text-2xl mt-20">Permissions</Heading>
-	<Label class="!mt-4">
-		Role
-		<Select underline class="mt-2" bind:value={editMemberData.role} items={roleOptions} />
-	</Label>
+	{#if editMemberData.userId !== data.user.id}
+		<Heading tag="h2" class="text-2xl mt-20">Permissions</Heading>
+		<Label class="!mt-4">
+			Role
+			<Select underline class="mt-2" bind:value={editMemberData.role} items={roleOptions} />
+		</Label>
+	{/if}
 
 	<svelte:fragment slot="footer">
 		<!-- TODO: validation -->
