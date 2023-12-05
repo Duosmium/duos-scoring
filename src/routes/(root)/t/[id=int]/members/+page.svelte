@@ -108,7 +108,7 @@
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify(
-				parsedInvites.map((i) => ({
+				parsedInvites.slice(0, 15).map((i) => ({
 					email: i[0],
 					events: i.slice(1).map((name) => events.get(name)?.id.toString())
 				}))
@@ -338,10 +338,10 @@
 
 <Modal title="Add Member" bind:open={showInviteMembers} autoclose outsideclose>
 	<P>
-		To invite members, paste in list of emails below. You can also add events that the person will
-		automatically be assigned to by separating the email and events by commas or tabs (the default
-		in Google Sheets when you copy).
-		<List tag="ul" class="space-y-1 mt-2">
+		To invite members, paste in list of emails below (max 15 at a time). You can also add events
+		that the person will automatically be assigned to by separating the email and events by commas
+		or tabs (the default in Google Sheets when you copy).
+		<List tag="ul" class="space-y-1 my-2">
 			<Li
 				><code class="dark:text-red-300 text-red-700">Email</code>
 				<i>(Required)</i>: An invite link will be sent to this email
@@ -351,6 +351,7 @@
 				<i>(Optional)</i>: The invite will automatically add them to these events</Li
 			>
 		</List>
+		If you need to invite more than 15 people, just repeat the process!
 	</P>
 	<Label>
 		Emails
@@ -363,7 +364,7 @@
 		<Alert class="mt-2 whitespace-pre-line" color="red">{parsedError}</Alert>
 	{:else if parsedInvites.length !== 0}
 		<ol>
-			{#each parsedInvites as invite}
+			{#each parsedInvites.slice(0, 15) as invite}
 				<li>
 					<span class="dark:text-red-300 text-red-700"
 						>{invite[0] + (invite.slice(1).length !== 0 ? ': ' : '')}</span
@@ -372,6 +373,9 @@
 					>
 				</li>
 			{/each}
+			{#if parsedInvites.length > 15}
+				<li>... truncated to 15 invites!</li>
+			{/if}
 		</ol>
 	{:else}
 		<P>Waiting for input...</P>
@@ -379,7 +383,9 @@
 
 	<svelte:fragment slot="footer">
 		<!-- TODO: validation -->
-		<Button color="green" disabled={parsedError.length !== 0} on:click={inviteMembers}>Save</Button>
+		<Button color="green" disabled={parsedError.length !== 0} on:click={inviteMembers}
+			>Invite Members</Button
+		>
 		<Button color="alternative">Cancel</Button>
 	</svelte:fragment>
 </Modal>

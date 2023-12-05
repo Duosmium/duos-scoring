@@ -1,4 +1,5 @@
 import { PRIVATE_RESEND_API_KEY } from '$env/static/private';
+import { error } from '@sveltejs/kit';
 
 import { Resend } from 'resend';
 const resend = new Resend(PRIVATE_RESEND_API_KEY);
@@ -10,7 +11,7 @@ export async function sendInvite(
 	events?: string[]
 ) {
 	try {
-		const data = await resend.emails.send({
+		await resend.emails.send({
 			from: 'Duosmium Scoring <invite@scoring.duosmium.org>',
 			to: [email],
 			subject: `Join the ${tournamentName}!`,
@@ -28,9 +29,7 @@ export async function sendInvite(
 					: '') +
 				`Click here to accept the invite: https://scoring.duosmium.org/invite/${invite}`
 		});
-
-		console.log(data);
-	} catch (error) {
-		console.error(error);
+	} catch (err) {
+		throw error(500, 'Failed to send emails: ' + err);
 	}
 }

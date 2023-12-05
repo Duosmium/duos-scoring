@@ -133,6 +133,9 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
 	) {
 		return new Response('invalid events', { status: 400 });
 	}
+	if (payload.length > 15) {
+		return new Response('too many invites - max 15 at a time', { status: 400 });
+	}
 
 	const invites = payload.map((i) => ({
 		link: nanoid(),
@@ -142,18 +145,19 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
 	const events = new Map(((await getEvents(params.id)) || []).map((e) => [e.id, e.name]));
 
 	await createInvites(params.id, invites);
-	await Promise.all(
-		invites.map(async (i) => {
-			if (i.email) {
+
+	invites.forEach((invite, i) => {
+		setTimeout(async () => {
+			if (invite.email) {
 				await sendInvite(
-					i.email,
-					i.link,
+					invite.email,
+					invite.link,
 					`${locals.tournament?.year} ${locals.tournament?.shortName} ${locals.tournament?.division}`,
-					i.events?.map((e) => events.get(e) ?? '')
+					invite.events?.map((e) => events.get(e) ?? '')
 				);
 			}
-		})
-	);
+		}, i * 110);
+	});
 
 	return new Response('ok');
 };
