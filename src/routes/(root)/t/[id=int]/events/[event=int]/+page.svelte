@@ -683,7 +683,7 @@
 				<dd>Paste in scores from an external source, such as a Google Sheet.</dd>
 			</div>
 			<div>
-				<dt>Save/Discard</dt>
+				<dt>Save/Discard:</dt>
 				<dd>
 					Changes you have made will be highlighted in orange. You will need to click "Save" to
 					commit your changes, or use "Discard" to revert back to the original scores.
