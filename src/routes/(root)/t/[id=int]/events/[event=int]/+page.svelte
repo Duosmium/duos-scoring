@@ -16,7 +16,8 @@
 		Label,
 		List,
 		Li,
-		Alert
+		Alert,
+		Checkbox
 	} from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import { beforeNavigate, invalidateAll } from '$app/navigation';
@@ -469,6 +470,8 @@
 		});
 	}
 
+	const auditList: boolean[] = [];
+
 	let showAuditConfirm = false;
 	function openAuditConfirm() {
 		if (locked && data.role.role !== 'ES' && !data.event.audited) {
@@ -833,9 +836,44 @@
 	confirmText={data.user.name}
 	buttonText="Audit Results"
 	color="green"
+	disabled={auditList.some((a) => !a)}
 >
-	Marking this event as audited means that you certify that the scores inputted are correct. Please
-	type your name below to certify these results.
+	Marking this event as audited means that you certify that the scores inputted are correct. Ensure
+	the following have been checked:
+
+	<ul class="my-4 space-y-2">
+		<li><Checkbox bind:checked={auditList[0]}>Double check all scores</Checkbox></li>
+		<li><Checkbox bind:checked={auditList[1]}>Break all ties (except PO/NS/DQ)</Checkbox></li>
+		<li>
+			<Checkbox bind:checked={auditList[2]}
+				>Spot check: Scores match each team, no unreasonable scores expected</Checkbox
+			>
+		</li>
+		<li>
+			<Checkbox bind:checked={auditList[3]}>Resolve appeals and adjust scores as necessary</Checkbox
+			>
+		</li>
+		<li>
+			<Checkbox bind:checked={auditList[4]}
+				>Verify that teams have been notified of penalties (Tiers, PO)</Checkbox
+			>
+		</li>
+		<li>
+			<Checkbox bind:checked={auditList[5]}
+				>Verify teams that competed (all other teams are NS)</Checkbox
+			>
+		</li>
+		<li>
+			<Checkbox bind:checked={auditList[6]}>Resolve DQs through tournament director</Checkbox>
+		</li>
+		<li>
+			<Checkbox bind:checked={auditList[7]}
+				>Verify order of all teams: competed, PO, NS, DQ</Checkbox
+			>
+		</li>
+	</ul>
+
+	After checking the above, type your name below to certify these results.
 </ConfirmModal>
 
 <Modal title="Edit Event" bind:open={showEditEvent} autoclose outsideclose>

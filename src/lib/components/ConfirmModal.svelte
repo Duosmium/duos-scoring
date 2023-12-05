@@ -5,6 +5,7 @@
 	export let title: string;
 	export let actionMessage: string;
 	export let open: boolean;
+	export let disabled: boolean = false;
 	export let onConfirm: () => void;
 
 	export let confirmText = 'confirm';
@@ -42,9 +43,9 @@
 	<svelte:fragment slot="footer">
 		<Button
 			{color}
-			disabled={confirmDiscardText !== confirmText}
+			disabled={confirmDiscardText !== confirmText || disabled}
 			on:click={() => {
-				if (confirmDiscardText === confirmText) {
+				if (confirmDiscardText === confirmText && !disabled) {
 					onConfirm();
 					confirmDiscardText = '';
 				}
