@@ -2,6 +2,7 @@
 	import type { PageData } from './$types';
 	import Head from '$lib/components/Head.svelte';
 	import {
+		A,
 		Button,
 		Card,
 		Checkbox,
@@ -350,7 +351,7 @@
 	<Heading tag="h2" class="text-2xl">Your Events</Heading>
 	<List tag="ul">
 		{#each data.role.supEvents as event}
-			<Li><a href="/t/{$page.params.id}/events/{event.id}">{event.name}</a></Li>
+			<Li><A href="/t/{$page.params.id}/events/{event.id}">{event.name}</A></Li>
 		{:else}
 			<P>
 				You have not yet been assigned to any events! Contact the tournament director if you believe
