@@ -11,9 +11,11 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 		return new Response('Invite link not valid', { status: 404 });
 	}
 
+	const role = locals.user.roles.find((r) => r.tournament.id === invite.tournamentId)?.role || 'ES';
+
 	const update = await updateMember(invite.tournamentId, locals.user.id, {
 		events: invite.events.map((e) => e.id),
-		role: 'ES'
+		role
 	});
 
 	if (update === false) {
