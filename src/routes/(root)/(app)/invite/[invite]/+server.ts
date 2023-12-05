@@ -24,5 +24,5 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 
 	await deleteInvites([params.invite]);
 
-	return new Response(null, { status: 303, headers: { Location: `/t/${invite.tournamentId}` } });
+	return new Response(null, { status: 303, headers: { Location: '/dashboard' } });
 };
