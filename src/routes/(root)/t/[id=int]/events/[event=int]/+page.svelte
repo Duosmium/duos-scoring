@@ -21,7 +21,7 @@
 	} from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import { beforeNavigate, invalidateAll } from '$app/navigation';
-	import type { Score, ScoreStatus } from '@prisma/client';
+	import { ScoreStatus, type Score } from '@prisma/client';
 	import papaparse from 'papaparse';
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
@@ -241,24 +241,27 @@
 			switch (field) {
 				case 'rawScore':
 					const raw = parseFloat((e.target as HTMLInputElement).value);
-					team.score[field].new = isNaN(raw) ? null : raw;
-					if (team.score.status.new === 'NA') {
+					team.score.rawScore.new = isNaN(raw) ? null : raw;
+					if (!isNaN(raw) && team.score.status.new === 'NA') {
 						team.score.status.new = 'COMPETED';
+					}
+					if (isNaN(raw) && team.score.status.new === 'COMPETED') {
+						team.score.status.new = 'NA';
 					}
 					break;
 				case 'tier':
 					const tier = parseInt((e.target as HTMLInputElement).value);
-					team.score[field].new = isNaN(tier) ? null : tier;
+					team.score.tier.new = isNaN(tier) ? null : tier;
 					break;
 				case 'tiebreak':
 					const tiebreak = parseFloat((e.target as HTMLInputElement).value);
-					team.score[field].new = isNaN(tiebreak) ? null : tiebreak;
+					team.score.tiebreak.new = isNaN(tiebreak) ? null : tiebreak;
 					break;
 				case 'status':
-					team.score[field].new = (e.target as HTMLSelectElement).value as any;
+					team.score.status.new = (e.target as HTMLSelectElement).value as any;
 					break;
 				case 'notes':
-					team.score[field].new = (e.target as HTMLTextAreaElement).value || null;
+					team.score.notes.new = (e.target as HTMLTextAreaElement).value || null;
 					break;
 				default:
 					break;
@@ -292,9 +295,9 @@
 			if (!t.Number && !t['Team #']) {
 				missingFields.add('Number');
 			}
-			if (!t.Status) {
+			if (!t.Status && !t['Raw Score'] && !t.Score) {
 				missingFields.add('Status');
-			} else if (scoreAliases.every((s) => s.name !== t.Status)) {
+			} else if (t.Status && scoreAliases.every((s) => s.name !== t.Status)) {
 				invalidStatuses.add(t.Status);
 			}
 			if (!t['Raw Score'] && !t.Score && (t.Status === 'CO' || t.Status === 'C')) {
@@ -324,7 +327,7 @@
 			team.score.tier.new = isNaN(tier) ? null : tier;
 			team.score.tiebreak.new = isNaN(tiebreak) ? null : tiebreak;
 			team.score.status.new = (scoreAliases.find((s) => s.name === parsedScore.Status)?.value ??
-				'NA') as any;
+				(isNaN(raw) ? team.score.status.old : ScoreStatus.COMPETED)) as any;
 
 			team.score.rawScore.dirty = team.score.rawScore.new !== team.score.rawScore.old;
 			team.score.tier.dirty = team.score.tier.new !== team.score.tier.old;
@@ -761,8 +764,8 @@
 			</Li>
 			<Li
 				><code class="dark:text-violet-300 text-violet-700">Status</code>
-				<i>(Required)</i>: CO, PO, NS, or DQ for Competed, Participation Only, No Show, or
-				Disqualified, respectively.
+				<i>(Optional, default CO)</i>: CO, PO, NS, or DQ for Competed, Participation Only, No Show,
+				or Disqualified, respectively.
 			</Li>
 		</List>
 	</P>
@@ -794,7 +797,11 @@
 					><span class="dark:text-pink-300 text-pink-700"
 						>{score.Tiebreak ? ` (*${score.Tiebreak})` : ''}</span
 					>
-					<span class="dark:text-violet-300 text-violet-700">{score.Status}</span>
+					<span class="dark:text-violet-300 text-violet-700"
+						>{score.Status || score.Score
+							? 'CO'
+							: scoreAliases.find((s) => s.value === t?.score.status.old)?.name}</span
+					>
 				</li>
 			{/each}
 		</ol>
