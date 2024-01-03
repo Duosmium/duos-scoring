@@ -21,7 +21,7 @@
 	} from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import { beforeNavigate, invalidateAll } from '$app/navigation';
-	import { ScoreStatus, type Score } from '@prisma/client';
+	import type { ScoreStatus, Score } from '@prisma/client';
 	import papaparse from 'papaparse';
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
@@ -334,7 +334,7 @@
 			team.score.tier.new = isNaN(tier) ? null : tier;
 			team.score.tiebreak.new = isNaN(tiebreak) ? null : tiebreak;
 			team.score.status.new = (scoreAliases.find((s) => s.name === parsedScore.Status)?.value ??
-				(isNaN(raw) ? team.score.status.old : ScoreStatus.COMPETED)) as any;
+				(isNaN(raw) ? team.score.status.old : 'COMPETED')) as any;
 		});
 		modifiedTeams = modifiedTeams;
 	}
