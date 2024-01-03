@@ -174,7 +174,6 @@
 				} else {
 					t.score.notes.new = t.score.notes.new?.replace('TIE; ', '').replace('TIE', '') || null;
 				}
-				t.score.notes.dirty = t.score.notes.new !== t.score.notes.old;
 				return t;
 			})
 			.map((t, i, s) => ({
@@ -222,6 +221,15 @@
 			}
 		});
 	}
+	$: {
+		// update dirty marker when things change
+		modifiedTeams = modifiedTeams.map((t) => {
+			(['rawScore', 'tier', 'tiebreak', 'status', 'notes'] as const).forEach(
+				(a) => (t.score[a].dirty = t.score[a].new !== t.score[a].old)
+			);
+			return t;
+		});
+	}
 	$: clean = modifiedTeams.every((t) =>
 		(['rawScore', 'tier', 'tiebreak', 'status', 'notes'] as const).every((a) => !t.score[a].dirty)
 	);
@@ -266,7 +274,6 @@
 				default:
 					break;
 			}
-			team.score[field].dirty = team.score[field].new !== team.score[field].old;
 			modifiedTeams = modifiedTeams;
 		};
 	}
@@ -328,11 +335,6 @@
 			team.score.tiebreak.new = isNaN(tiebreak) ? null : tiebreak;
 			team.score.status.new = (scoreAliases.find((s) => s.name === parsedScore.Status)?.value ??
 				(isNaN(raw) ? team.score.status.old : ScoreStatus.COMPETED)) as any;
-
-			team.score.rawScore.dirty = team.score.rawScore.new !== team.score.rawScore.old;
-			team.score.tier.dirty = team.score.tier.new !== team.score.tier.old;
-			team.score.tiebreak.dirty = team.score.tiebreak.new !== team.score.tiebreak.old;
-			team.score.status.dirty = team.score.status.new !== team.score.status.old;
 		});
 		modifiedTeams = modifiedTeams;
 	}
