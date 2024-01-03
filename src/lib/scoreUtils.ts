@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 
-const eventWithScores = Prisma.validator<Prisma.EventArgs>()({ include: { scores: true } });
+const eventWithScores = Prisma.validator<Prisma.EventDefaultArgs>()({ include: { scores: true } });
 type EventWithScores = Prisma.EventGetPayload<typeof eventWithScores>;
 
 export function generateHisto(event: EventWithScores) {
@@ -72,10 +72,10 @@ export function computeEventRankings(scores: Score[]) {
 			typeof a.ranking === 'number' && typeof b.ranking === 'number'
 				? (b.ranking - a.ranking) * (a.event.highScoring ? 1 : -1)
 				: typeof a.ranking === 'string' && typeof b.ranking === 'string'
-				? statusOrder[a.ranking] - statusOrder[b.ranking]
-				: typeof a.ranking === 'number'
-				? -1
-				: 1
+				  ? statusOrder[a.ranking] - statusOrder[b.ranking]
+				  : typeof a.ranking === 'number'
+				    ? -1
+				    : 1
 		)
 		.map((t, i, s) => {
 			// check ties
