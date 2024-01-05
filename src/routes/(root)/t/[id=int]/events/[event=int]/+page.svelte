@@ -289,6 +289,7 @@
 		Score: string;
 		Tier: string;
 		Tiebreak: string;
+		Tiebreaker: string;
 		Status: string;
 	}[] = [];
 	let parsedError = '';
@@ -329,7 +330,7 @@
 
 			const raw = parseFloat(parsedScore['Raw Score'] || parsedScore.Score);
 			const tier = parseInt(parsedScore.Tier);
-			const tiebreak = parseFloat(parsedScore.Tiebreak);
+			const tiebreak = parseFloat(parsedScore.Tiebreak || parsedScore.Tiebreaker);
 			team.score.rawScore.new = isNaN(raw) ? null : raw;
 			team.score.tier.new = isNaN(tier) ? null : tier;
 			team.score.tiebreak.new = isNaN(tiebreak) ? null : tiebreak;
