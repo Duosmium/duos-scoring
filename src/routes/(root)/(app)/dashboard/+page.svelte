@@ -18,7 +18,9 @@
 	<div class="grid">
 		{#each data.user.roles as role}
 			<Card size="md">
-				<Heading tag="h3" customSize="text-md" class="mb-6">{role.tournament.name}</Heading>
+				<Heading tag="h3" customSize="text-md" class="mb-6"
+					>{role.tournament.year} {role.tournament.name} {role.tournament.division}</Heading
+				>
 				{#if role.role === 'TD'}
 					<Button href="/t/{role.tournament.id}/">Tournament Director Dashboard</Button>
 				{:else if role.role === 'SM'}
