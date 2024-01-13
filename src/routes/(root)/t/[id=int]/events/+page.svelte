@@ -291,6 +291,7 @@
 			{#if event.audited}
 				<Avatar class={`user_${event.audited.id} -ml-2`}
 					>{event.audited.name
+						.trim()
 						.split(' ')
 						.map((w) => w[0].toUpperCase())
 						.join('')}</Avatar
@@ -305,6 +306,7 @@
 				{#each event.supervisors as { user }}
 					<Avatar class={`user_${user.id}`} stacked
 						>{user.name
+							.trim()
 							.split(' ')
 							.map((w) => w[0].toUpperCase())
 							.join('')}</Avatar
