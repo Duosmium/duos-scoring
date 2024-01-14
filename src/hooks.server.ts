@@ -97,7 +97,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		data: { user: supabaseUser }
 	} = await event.locals.supabase.auth.getUser();
 	if (user === false && supabaseUser) {
-		await createOrUpdateUser(event.locals.userId, supabaseUser?.user_metadata.name || '');
+		await createOrUpdateUser(event.locals.userId, supabaseUser?.user_metadata.name.trim() || '');
 		user = await getUserInfo(event.locals.userId);
 	}
 	if (user === false) {
