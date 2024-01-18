@@ -39,6 +39,7 @@
 		"eslint-plugin-svelte": "^2.35.0",
 		"flowbite": "^2.1.1",
 		"flowbite-svelte": "^0.44.19",
+		"flowbite-svelte-icons": "^1.0.2",
 		"js-yaml": "^4.1.0",
 		"nanoid": "^5.0.3",
 		"papaparse": "^5.4.1",

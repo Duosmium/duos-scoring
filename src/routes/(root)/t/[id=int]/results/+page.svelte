@@ -7,6 +7,7 @@
 	import {
 		Avatar,
 		Button,
+		ButtonGroup,
 		Checkbox,
 		Heading,
 		Modal,
@@ -15,8 +16,10 @@
 		TableHeadCell,
 		Tooltip
 	} from 'flowbite-svelte';
+	import { DownloadOutline, FileCopyOutline } from 'flowbite-svelte-icons';
 	import { page } from '$app/stores';
 	import yaml from 'js-yaml';
+	import type { Tournament } from '@prisma/client';
 
 	export let data: PageData;
 
@@ -182,6 +185,51 @@
 			}
 		);
 	}
+
+	function downloadSciolyFF() {
+		const content = generateSciolyFF();
+		const url = URL.createObjectURL(new Blob([content], { type: 'text/yaml' }));
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = generateFilename(data.tournament).trim() + '.yaml';
+		a.hidden = true;
+		document.body.appendChild(a);
+		a.click();
+		a.remove();
+		URL.revokeObjectURL(url);
+	}
+
+	function generateFilename(tournament: Tournament) {
+		// ^(19|20)\d{2}-[01]\d-[0-3]\d_([\w]+_invitational|([ns]?[A-Z]{2})_[\w]+_regional|([ns]?[A-Z]{2})_states|nationals)_(no_builds_)?[abc]$
+		let output = '';
+		output += tournament.startDate.getUTCFullYear();
+		output += '-' + (tournament.startDate.getUTCMonth() + 1).toString().padStart(2, '0');
+		output += '-' + tournament.startDate.getUTCDate().toString().padStart(2, '0');
+		switch (tournament.level) {
+			case 'NATIONAL':
+				output += '_nationals';
+				break;
+			case 'STATE':
+				output += `_${tournament.state}_states`;
+				break;
+			case 'REGIONAL':
+				output += `_${tournament.state}_${(tournament.shortName ?? tournament.name)
+					.toLowerCase()
+					.split('regional')[0]
+					.replace(/\./g, '')
+					.replace(/[^\w]/g, '_')}regional`;
+				break;
+			default:
+				output += `_${(tournament.shortName ?? tournament.name)
+					.toLowerCase()
+					.split('invitational')[0]
+					.replace(/\./g, '')
+					.replace(/[^\w]/g, '_')}invitational`;
+				break;
+		}
+		output += '_' + tournament.division.toLowerCase();
+		return output;
+	}
 </script>
 
 <Head
@@ -201,7 +249,15 @@
 
 <SelectableTable items={events} bind:selected cols={7}>
 	<svelte:fragment slot="buttons">
-		<Button color="yellow" on:click={copySciolyFF}>Copy SciolyFF</Button>
+		<ButtonGroup class="space-x-px">
+			<Button color="yellow" class="hover:bg-yellow-400" tag="div">SciolyFF</Button>
+			<Button outline color="yellow" class="!p-2.5" on:click={copySciolyFF}
+				><FileCopyOutline size="md" /></Button
+			>
+			<Button outline color="yellow" class="!p-2.5" on:click={downloadSciolyFF}
+				><DownloadOutline size="md" /></Button
+			>
+		</ButtonGroup>
 		<Button
 			color="green"
 			on:click={() => {
