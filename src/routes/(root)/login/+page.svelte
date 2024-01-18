@@ -72,7 +72,7 @@
 						email,
 						password,
 						options: {
-							data: { name },
+							data: { name: name.trim() },
 							emailRedirectTo: invite
 								? `https://scoring.duosmium.org/invite/${invite}`
 								: 'https://scoring.duosmium.org/dashboard'
