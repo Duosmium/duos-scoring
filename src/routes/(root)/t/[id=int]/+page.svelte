@@ -225,15 +225,33 @@
 				</div>
 				<div class="flex flex-col pb-3">
 					<DescriptionList tag="dt">Start Date</DescriptionList>
-					<DescriptionList tag="dd">{data.tournament.startDate}</DescriptionList>
+					<DescriptionList tag="dd"
+						>{data.tournament.startDate
+							.toUTCString()
+							.split(' ')
+							.slice(0, 4)
+							.join(' ')}</DescriptionList
+					>
 				</div>
 				<div class="flex flex-col pb-3">
 					<DescriptionList tag="dt">End Date</DescriptionList>
-					<DescriptionList tag="dd">{data.tournament.endDate}</DescriptionList>
+					<DescriptionList tag="dd"
+						>{data.tournament.endDate
+							.toUTCString()
+							.split(' ')
+							.slice(0, 4)
+							.join(' ')}</DescriptionList
+					>
 				</div>
 				<div class="flex flex-col pb-3">
 					<DescriptionList tag="dt">Awards Date</DescriptionList>
-					<DescriptionList tag="dd">{data.tournament.awardsDate}</DescriptionList>
+					<DescriptionList tag="dd"
+						>{data.tournament.awardsDate
+							.toUTCString()
+							.split(' ')
+							.slice(0, 4)
+							.join(' ')}</DescriptionList
+					>
 				</div>
 				<div class="flex flex-col pb-3">
 					<DescriptionList tag="dt">Tracks Enabled?</DescriptionList>

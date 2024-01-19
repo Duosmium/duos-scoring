@@ -249,16 +249,8 @@
 
 <SelectableTable items={events} bind:selected cols={7}>
 	<svelte:fragment slot="buttons">
-		<ButtonGroup class="space-x-px">
-			<Button color="yellow" class="hover:bg-yellow-400" tag="div">SciolyFF</Button>
-			<Button outline color="yellow" class="!p-2.5" on:click={copySciolyFF}
-				><FileCopyOutline size="md" /></Button
-			>
-			<Button outline color="yellow" class="!p-2.5" on:click={downloadSciolyFF}
-				><DownloadOutline size="md" /></Button
-			>
-		</ButtonGroup>
 		<Button
+			class="py-2 border border-green-700 hover:border-green-800 dark:border-green-600 dark:hover:border-green-700"
 			color="green"
 			on:click={() => {
 				showPreview = true;
@@ -267,6 +259,17 @@
 				};
 			}}>Preview</Button
 		>
+		<ButtonGroup class="space-x-px">
+			<Button color="blue" class="dark:hover:bg-blue-600 hover:bg-blue-700 !py-2" tag="div"
+				>SciolyFF</Button
+			>
+			<Button outline color="blue" class="!p-2" on:click={copySciolyFF}
+				><FileCopyOutline size="md" /></Button
+			>
+			<Button outline color="blue" class="!p-2" on:click={downloadSciolyFF}
+				><DownloadOutline size="md" /></Button
+			>
+		</ButtonGroup>
 	</svelte:fragment>
 	<svelte:fragment slot="headers">
 		<TableHeadCell class="px-2">Event</TableHeadCell>
