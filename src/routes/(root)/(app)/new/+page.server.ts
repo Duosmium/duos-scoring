@@ -47,6 +47,6 @@ export const actions = {
 			drops
 		});
 		await updateMember(tournament.id, locals.userId, { role: 'TD' });
-		throw redirect(303, '/dashboard');
+		redirect(303, '/dashboard');
 	}
 } satisfies Actions;

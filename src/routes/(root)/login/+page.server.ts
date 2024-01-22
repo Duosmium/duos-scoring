@@ -6,7 +6,7 @@ export const load: PageServerLoad = async ({ url, locals: { getSession } }) => {
 	const session = await getSession();
 
 	if (session && url.searchParams.get('reset') === null) {
-		throw redirect(303, '/dashboard');
+		redirect(303, '/dashboard');
 	}
 
 	return { url: url.origin };

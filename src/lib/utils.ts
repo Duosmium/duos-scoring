@@ -13,7 +13,7 @@ export async function checkIsDirector(
 ) {
 	if (user == undefined) {
 		if (throwError) {
-			throw error(403, 'You do not have permission to view this page');
+			error(403, 'You do not have permission to view this page');
 		} else {
 			return false;
 		}
@@ -23,7 +23,7 @@ export async function checkIsDirector(
 	);
 	if (userRole == undefined) {
 		if (throwError) {
-			throw error(403, 'You do not have permission to view this page');
+			error(403, 'You do not have permission to view this page');
 		} else {
 			return false;
 		}
@@ -39,7 +39,7 @@ export async function checkScoremasterPerms(
 ) {
 	if (user == undefined) {
 		if (throwError) {
-			throw error(403, 'You do not have permission to view this page');
+			error(403, 'You do not have permission to view this page');
 		} else {
 			return false;
 		}
@@ -50,7 +50,7 @@ export async function checkScoremasterPerms(
 	);
 	if (userRole == undefined) {
 		if (throwError) {
-			throw error(403, 'You do not have permission to view this page');
+			error(403, 'You do not have permission to view this page');
 		} else {
 			return false;
 		}
@@ -67,7 +67,7 @@ export async function checkEventPerms(
 ) {
 	if (user == undefined) {
 		if (throwError) {
-			throw error(403, 'You do not have permission to view this page');
+			error(403, 'You do not have permission to view this page');
 		} else {
 			return false;
 		}
@@ -79,7 +79,7 @@ export async function checkEventPerms(
 			userRole.supEvents.find((event) => event.id === eventId) === undefined)
 	) {
 		if (throwError) {
-			throw error(403, 'You do not have permission to view this page');
+			error(403, 'You do not have permission to view this page');
 		} else {
 			return false;
 		}
@@ -95,7 +95,7 @@ export async function checkTournamentAccess(
 ) {
 	if (user == undefined) {
 		if (throwError) {
-			throw error(403, 'You do not have permission to view this page');
+			error(403, 'You do not have permission to view this page');
 		} else {
 			return false;
 		}
@@ -103,7 +103,7 @@ export async function checkTournamentAccess(
 	const userRole = user.roles.find((role) => role.tournamentId, toString() === tournamentId);
 	if (userRole == undefined) {
 		if (throwError) {
-			throw error(403, 'You do not have permission to view this page');
+			error(403, 'You do not have permission to view this page');
 		} else {
 			return false;
 		}

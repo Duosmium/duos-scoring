@@ -30,6 +30,6 @@ export async function sendInvite(
 				`Click here to accept the invite: https://scoring.duosmium.org/invite/${invite}`
 		});
 	} catch (err) {
-		throw error(500, 'Failed to send emails: ' + err);
+		error(500, 'Failed to send emails: ' + err);
 	}
 }

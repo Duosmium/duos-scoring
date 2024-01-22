@@ -14,9 +14,9 @@ export const GET: RequestHandler = async (event) => {
 	if (tokenHash && type) {
 		const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
 		if (!error) {
-			throw redirect(303, next);
+			redirect(303, next);
 		}
 	}
 
-	throw error(500, 'Something went wrong during authentication.');
+	error(500, 'Something went wrong during authentication.');
 };

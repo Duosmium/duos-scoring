@@ -6,5 +6,5 @@ export const GET: RequestHandler = async ({ locals }) => {
 	if (session) {
 		await locals.supabase.auth.signOut();
 	}
-	throw redirect(303, '/');
+	redirect(303, '/');
 };

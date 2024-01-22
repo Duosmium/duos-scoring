@@ -11,7 +11,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	const event = events.find((event) => event.id.toString() === params.event);
 
 	if (event == undefined) {
-		throw error(404, 'Event not found');
+		error(404, 'Event not found');
 	}
 
 	const scores = await getEventScores(event.id);

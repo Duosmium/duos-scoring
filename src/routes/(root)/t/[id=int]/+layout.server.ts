@@ -6,7 +6,7 @@ export const load: LayoutServerLoad = async ({ locals, params }) => {
 	await checkTournamentAccess(locals.user, params.id);
 
 	if (!locals.tournament || !locals.user || !locals.role) {
-		throw error(403, 'You are not authorized to view this page.');
+		error(403, 'You are not authorized to view this page.');
 	}
 
 	return {
