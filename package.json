@@ -12,6 +12,7 @@
 		"format": "prettier --plugin-search-dir . --write ."
 	},
 	"devDependencies": {
+		"@aws-sdk/client-sesv2": "^3.496.0",
 		"@popperjs/core": "^2.11.8",
 		"@prisma/client": "^5.8.1",
 		"@sentry/node": "^7.94.1",

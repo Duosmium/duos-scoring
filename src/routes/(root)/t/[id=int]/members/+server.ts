@@ -146,18 +146,23 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
 
 	await createInvites(params.id, invites);
 
-	invites.forEach((invite, i) => {
-		setTimeout(async () => {
-			if (invite.email) {
-				await sendInvite(
-					invite.email,
-					invite.link,
-					`${locals.tournament?.year} ${locals.tournament?.shortName} ${locals.tournament?.division}`,
-					invite.events?.map((e) => events.get(e) ?? '')
-				);
-			}
-		}, i * 110);
-	});
+	await Promise.all(
+		invites.map(
+			(invite, i) =>
+				new Promise((res, rej) => {
+					if (invite.email) {
+						setTimeout(() => {
+							sendInvite(
+								invite.email as string,
+								invite.link,
+								`${locals.tournament?.year} ${locals.tournament?.shortName} ${locals.tournament?.division}`,
+								invite.events?.map((e) => events.get(e) ?? '')
+							).then(res, rej);
+						}, i * 90);
+					}
+				})
+		)
+	);
 
 	return new Response('ok');
 };
