@@ -97,7 +97,7 @@
 							dirty: false
 						},
 						notes: { old: origScore.notes, new: origScore.notes, dirty: false }
-				  }
+					}
 				: {
 						id: undefined as bigint | undefined,
 						rawScore: { old: null, new: null, dirty: false } as {
@@ -125,7 +125,7 @@
 							new: string | null;
 							dirty: boolean;
 						}
-				  };
+					};
 			return {
 				...t,
 				score,
@@ -146,7 +146,7 @@
 					t.score.status.new === 'COMPETED'
 						? t.score.rawScore.new
 							? t.score.rawScore.new +
-							  ((t.score.tiebreak.new || 0) - 1000000 * (t.score.tier.new || 1)) *
+								((t.score.tiebreak.new || 0) - 1000000 * (t.score.tier.new || 1)) *
 									(data.event.highScoring ? 1 : -1)
 							: 'PARTICIPATION'
 						: t.score.status.new
@@ -155,10 +155,10 @@
 				typeof a.ranking === 'number' && typeof b.ranking === 'number'
 					? (b.ranking - a.ranking) * (data.event.highScoring ? 1 : -1)
 					: typeof a.ranking === 'string' && typeof b.ranking === 'string'
-					  ? statusOrder[a.ranking] - statusOrder[b.ranking]
-					  : typeof a.ranking === 'number'
-					    ? -1
-					    : 1
+						? statusOrder[a.ranking] - statusOrder[b.ranking]
+						: typeof a.ranking === 'number'
+							? -1
+							: 1
 			)
 			.map((t, i, s) => {
 				// check ties
@@ -212,10 +212,10 @@
 					return typeof a.ranking === 'number' && typeof b.ranking === 'number'
 						? a.ranking - b.ranking
 						: typeof a.ranking === 'string' && typeof b.ranking === 'string'
-						  ? statusOrder[a.ranking] - statusOrder[b.ranking]
-						  : typeof a.ranking === 'number'
-						    ? -1
-						    : 1;
+							? statusOrder[a.ranking] - statusOrder[b.ranking]
+							: typeof a.ranking === 'number'
+								? -1
+								: 1;
 				default:
 					return 0;
 			}
@@ -794,16 +794,19 @@
 							? `${t.abbreviation || t.school}${t.suffix ? ' ' + t.suffix : ''}`
 							: 'Team Not Found'}</span
 					>
-					<span class="dark:text-green-300 text-green-700">{score['Raw Score'] || score.Score}</span
+					<span class="dark:text-green-300 text-green-700"
+						>{score['Raw Score'] || score.Score || ''}</span
 					><span class="dark:text-blue-300 text-blue-700"
 						>{score.Tier ? ` [Tier ${score.Tier}]` : ''}</span
 					><span class="dark:text-pink-300 text-pink-700"
 						>{score.Tiebreak ? ` (*${score.Tiebreak})` : ''}</span
 					>
 					<span class="dark:text-violet-300 text-violet-700"
-						>{score.Status || score.Score
+						>{!score.Status && score.Score
 							? 'CO'
-							: scoreAliases.find((s) => s.value === t?.score.status.old)?.name}</span
+							: score.Status
+								? score.Status
+								: scoreAliases.find((s) => s.value === t?.score.status.old)?.name}</span
 					>
 				</li>
 			{/each}
