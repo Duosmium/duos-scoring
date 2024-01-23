@@ -12,7 +12,6 @@
 		"format": "prettier --plugin-search-dir . --write ."
 	},
 	"devDependencies": {
-		"@aws-sdk/client-sesv2": "^3.496.0",
 		"@popperjs/core": "^2.11.8",
 		"@prisma/client": "^5.8.1",
 		"@sentry/node": "^7.94.1",
@@ -29,6 +28,7 @@
 		"@types/cookie": "^0.6.0",
 		"@types/google-spreadsheet": "^3.3.2",
 		"@types/js-yaml": "^4.0.9",
+		"@types/nodemailer": "^6.4.14",
 		"@types/papaparse": "^5.3.14",
 		"@typescript-eslint/eslint-plugin": "^6.19.1",
 		"@typescript-eslint/parser": "^6.19.1",
@@ -45,6 +45,7 @@
 		"js-yaml": "^4.1.0",
 		"jspdf": "^2.5.1",
 		"nanoid": "^5.0.4",
+		"nodemailer": "^6.9.8",
 		"papaparse": "^5.4.1",
 		"postcss": "^8.4.33",
 		"postcss-load-config": "^5.0.2",
