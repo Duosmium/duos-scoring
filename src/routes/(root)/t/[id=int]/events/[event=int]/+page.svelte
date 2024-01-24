@@ -743,9 +743,13 @@
 	</P>
 </Modal>
 
-<Modal title="Import Teams" bind:open={showImportScores} autoclose outsideclose>
+<Modal title="Import Scores" bind:open={showImportScores} autoclose outsideclose>
 	<P>
-		To import teams, paste in a CSV or TSV of team data. Include the following headings:
+		To import scores, paste in a CSV or TSV of the data. You can use <a
+			href="https://docs.google.com/spreadsheets/d/12fKJX4-gEuy_tp1AaDC6MkLhHcHmcAVmy5BrZFr9yb4/copy"
+			>this spreadsheet</a
+		>
+		as a template for data import if necessary. Include the following headings when you copy and paste:
 		<List tag="ul" class="space-y-1 mt-2">
 			<Li
 				><code>Number</code>
