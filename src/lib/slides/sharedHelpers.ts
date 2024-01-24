@@ -1,0 +1,216 @@
+import type { Interpreter } from 'sciolyff';
+import type { Tournament, Team } from 'sciolyff/interpreter/types';
+
+const STATES_BY_POSTAL_CODE = {
+	AL: 'Alabama',
+	AK: 'Alaska',
+	AZ: 'Arizona',
+	AR: 'Arkansas',
+	CA: 'California',
+	nCA: 'Northern California',
+	sCA: 'Southern California',
+	CO: 'Colorado',
+	CT: 'Connecticut',
+	DE: 'Delaware',
+	DC: 'District of Columbia',
+	FL: 'Florida',
+	GA: 'Georgia',
+	HI: 'Hawaii',
+	ID: 'Idaho',
+	IL: 'Illinois',
+	IN: 'Indiana',
+	IA: 'Iowa',
+	KS: 'Kansas',
+	KY: 'Kentucky',
+	LA: 'Louisiana',
+	ME: 'Maine',
+	MD: 'Maryland',
+	MA: 'Massachusetts',
+	MI: 'Michigan',
+	MN: 'Minnesota',
+	MS: 'Mississippi',
+	MO: 'Missouri',
+	MT: 'Montana',
+	NE: 'Nebraska',
+	NV: 'Nevada',
+	NH: 'New Hampshire',
+	NJ: 'New Jersey',
+	NM: 'New Mexico',
+	NY: 'New York',
+	NC: 'North Carolina',
+	ND: 'North Dakota',
+	OH: 'Ohio',
+	OK: 'Oklahoma',
+	OR: 'Oregon',
+	PA: 'Pennsylvania',
+	RI: 'Rhode Island',
+	SC: 'South Carolina',
+	SD: 'South Dakota',
+	TN: 'Tennessee',
+	TX: 'Texas',
+	UT: 'Utah',
+	VT: 'Vermont',
+	VA: 'Virginia',
+	WA: 'Washington',
+	WV: 'West Virginia',
+	WI: 'Wisconsin',
+	WY: 'Wyoming'
+} as const;
+
+export function expandStateName(postalCode: keyof typeof STATES_BY_POSTAL_CODE) {
+	return STATES_BY_POSTAL_CODE[postalCode];
+}
+
+export function generateFilename(interpreter: Interpreter) {
+	// ^(19|20)\d{2}-[01]\d-[0-3]\d_([\w]+_invitational|([ns]?[A-Z]{2})_[\w]+_regional|([ns]?[A-Z]{2})_states|nationals)_(no_builds_)?[abc]$
+	let output = '';
+	output += interpreter.tournament.startDate.getUTCFullYear();
+	output += '-' + (interpreter.tournament.startDate.getUTCMonth() + 1).toString().padStart(2, '0');
+	output += '-' + interpreter.tournament.startDate.getUTCDate().toString().padStart(2, '0');
+	switch (interpreter.tournament.level) {
+		case 'Nationals':
+			output += '_nationals';
+			break;
+		case 'States':
+			output += `_${interpreter.tournament.state}_states`;
+			break;
+		case 'Regionals':
+			output += `_${interpreter.tournament.state}_${(
+				interpreter.tournament.shortName ?? interpreter.tournament.name
+			)
+				.toLowerCase()
+				.split('regional')[0]
+				.replace(/\./g, '')
+				.replace(/[^\w]/g, '_')}regional`;
+			break;
+		default:
+			output += `_${(interpreter.tournament.shortName ?? interpreter.tournament.name)
+				.toLowerCase()
+				.split('invitational')[0]
+				.replace(/\./g, '')
+				.replace(/[^\w]/g, '_')}invitational`;
+			break;
+	}
+	output += '_' + interpreter.tournament.division.toLowerCase();
+	return output;
+}
+
+export function findTournamentImage(filename: string, images: string[]) {
+	const tournamentYear = parseInt(filename.slice(0, 4));
+	const tournamentName = filename.slice(11, -2).replace('_no_builds', '');
+	const getYear = (image: string) => parseInt(image.match(/^\d+/)?.[0] ?? '0');
+
+	const sameDivision = images.filter((image) =>
+		filename.endsWith(image.split('.')[0].match(/_[abc]$/)?.[0] ?? '')
+	);
+
+	const hasTournName = sameDivision.filter(
+		(image) =>
+			image.startsWith(tournamentName) || image.startsWith(tournamentYear + '_' + tournamentName)
+	);
+
+	// use state logo if regional logo does not exist
+	let stateFallback: string[] = [];
+	if (/_regional_[abc]$/.test(filename)) {
+		const stateName = filename.split('_')[1] + '_states';
+		stateFallback = sameDivision.filter((image) => image.includes(stateName));
+	}
+
+	// remove format info from name
+	let withoutFormat: string[] = [];
+	if (/(mini|satellite|in-person|in_person)_?(so)?_/.test(filename)) {
+		const nameWithoutFormat = tournamentName.replace(
+			/(mini|satellite|in-person|in_person)_?(so)?_/,
+			''
+		);
+		withoutFormat = sameDivision.filter((image) => image.includes(nameWithoutFormat));
+	}
+
+	const recentYear = hasTournName
+		.concat(...withoutFormat, stateFallback, 'default.jpg')
+		.filter((image) => getYear(image) <= tournamentYear);
+	const selected = recentYear.reduce((prev, curr) => {
+		const currentScore = getYear(curr) + curr.length / 100;
+		const prevScore = getYear(prev) + prev.length / 100;
+		return currentScore > prevScore ? curr : prev;
+	});
+
+	return '/images/logos/' + selected;
+}
+
+export function tournamentTitle(tInfo: Tournament) {
+	if (tInfo.name) return tInfo.name;
+
+	switch (tInfo.level) {
+		case 'Nationals':
+			return 'Science Olympiad National Tournament';
+		case 'States':
+			return `${expandStateName(tInfo.state)} Science Olympiad State Tournament`;
+		case 'Regionals':
+			return `${tInfo.location} Regional Tournament`;
+		case 'Invitational':
+			return `${tInfo.location} Invitational`;
+	}
+}
+
+export function tournamentTitleShort(tInfo: Tournament) {
+	switch (tInfo.level) {
+		case 'Nationals':
+			return 'National Tournament';
+		case 'States':
+			return `${tInfo.state.replace('sCA', 'SoCal').replace('nCA', 'NorCal')} State Tournament`;
+		case 'Regionals':
+		case 'Invitational':
+			if (!tInfo.shortName) {
+				const cut = tInfo.level === 'Regionals' ? 'Regional' : 'Invitational';
+				const splits = tInfo.name.split(cut, 2)[0];
+				return `${splits} ${cut}${cut === 'Regional' ? ' Tournament' : ''}`;
+			}
+			return tInfo.shortName;
+	}
+}
+
+export function formatSchool(team: Team) {
+	if (team.schoolAbbreviation) {
+		return abbrSchool(team.schoolAbbreviation);
+	}
+	return abbrSchool(team.school);
+}
+
+export function abbrSchool(school: string) {
+	return school
+		.replace('Elementary School', 'Elementary')
+		.replace('Elementary/Middle School', 'E.M.S.')
+		.replace('Middle School', 'M.S.')
+		.replace('Junior High School', 'J.H.S.')
+		.replace(/Middle[ /-]High School/, 'M.H.S')
+		.replace('Junior/Senior High School', 'Jr./Sr. H.S.')
+		.replace('High School', 'H.S.')
+		.replace('Secondary School', 'Secondary');
+}
+
+export function fullSchoolName(team: Team) {
+	const location = team.city ? `(${team.city}, ${team.state})` : `(${team.state})`;
+	return `${team.school} ${location}`;
+}
+
+export function fullTeamName(team: Team) {
+	const location = team.city ? `(${team.city}, ${team.state})` : `(${team.state})`;
+	return `${team.school} ${team.suffix ? team.suffix + ' ' : ''}${location}`;
+}
+
+// from https://stackoverflow.com/questions/13627308/
+export function ordinalize(i: number) {
+	const j = i % 10,
+		k = i % 100;
+	if (j == 1 && k != 11) {
+		return i + 'st';
+	}
+	if (j == 2 && k != 12) {
+		return i + 'nd';
+	}
+	if (j == 3 && k != 13) {
+		return i + 'rd';
+	}
+	return i + 'th';
+}

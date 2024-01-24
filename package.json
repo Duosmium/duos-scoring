@@ -17,6 +17,7 @@
 		"@sentry/node": "^7.94.1",
 		"@sentry/svelte": "^7.94.1",
 		"@sentry/tracing": "^7.94.1",
+		"@shortcm/qr-image": "^9.0.4",
 		"@sparticuz/chromium": "^119.0.2",
 		"@supabase/ssr": "^0.0.10",
 		"@supabase/supabase-js": "^2.39.3",
