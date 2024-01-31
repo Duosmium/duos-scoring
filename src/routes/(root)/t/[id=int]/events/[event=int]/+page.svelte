@@ -592,6 +592,8 @@
 		>
 	</span>
 
+
+
 	<P> Raw Score: The team's score for the event.</P>
 
 	<P> Tier: Only used in some build and hybrid events. Leave blank if not used. Lower number tier (1) is ranked better than a higher number tier (2, 3, 4).</P>
