@@ -538,13 +538,14 @@
 
 <div class="w-full flex justify-between flex-wrap mb-2">
 	<Heading tag="h2" class="w-fit">{data.event.name}</Heading>
-	<P> Place each team's <STRONG> Raw Score</STRONG> in the raw score column. For engineering and physics events,
-the <STRONG>Tier</STRONG> column can be used to rank the teams; this can be left blank if unused. <STRONG>Ties</STRONG> will be
-highlighted - they can be broken with a decimal value in the "Tiebreak" column.</P>
+	<P> Raw Score: The team's score for the event.</P>
 
+	<P> Tier: Only used in some build and hybrid events. Leave blank if not used. Lower number tier (1) is ranked better than a higher number tier (2, 3, 4).</P>
 
-	<P> For each team, fill in the <STRONG>Status</STRONG> column: CO for "Competed," PO for "Participation," and "NS" for No Show. </P><br>
+	<P> Tiebreak: A decimal value between 0 and 1. Give the tiebreaker points to the better ranked team. Break all ties, highlighted in red.</P>
 
+	<P> Status: If a team competed, selected "CO" (Competed). Otherwise, select "PO" (Participation), "NS" (No Show), or "DQ" (Disqualification).</P>						
+								
 	<span class="space-x-4 flex items-center flex-wrap">
 		<Select
 			class="w-36"
