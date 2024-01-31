@@ -19,7 +19,7 @@ export default {
 		['Reach for the Stars', true],
 		['Road Scholar', true],
 		['Roller Coaster', true],
-		['Towers', true],
+		['Tower', true],
 		['Wheeled Vehicle', false],
 		['Wind Power', true],
 		['Write It Do It', true]
@@ -28,7 +28,7 @@ export default {
 		['Air Trajectory', true],
 		['Anatomy and Physiology', true],
 		['Astronomy', true],
-		['Chem Lab', true],
+		['Chemistry Lab', true],
 		['Codebusters', true],
 		['Detector Building', true],
 		['Disease Detectives', true],
@@ -45,7 +45,7 @@ export default {
 		['Optics', true],
 		['Robot Tour', false],
 		['Scrambler', false],
-		['Towers', true],
+		['Tower', true],
 		['Wind Power', true],
 		['Write It Do It', true]
 	]
