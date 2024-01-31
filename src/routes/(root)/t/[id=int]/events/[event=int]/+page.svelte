@@ -537,8 +537,8 @@
 />
 
 <div class="w-full flex justify-between flex-wrap mb-2">
-	<Heading tag="h2" class="w-fit">{data.event.name}</Heading>			
-	<span class="space-x-4 flex items-right flex-wrap">
+	<Heading tag="h2" class="w-fit">{data.event.name}</Heading>
+	<span class="space-x-4 flex items-center flex-wrap">
 		<Select
 			class="w-36"
 			items={[
@@ -590,7 +590,7 @@
 				showHelp = true;
 			}}>?</Button
 		>
-	</span>			
+	</span>
 </div>
 <SelectableTable items={modifiedTeams} bind:selected cols={10}>
 	<svelte:fragment slot="headers">
