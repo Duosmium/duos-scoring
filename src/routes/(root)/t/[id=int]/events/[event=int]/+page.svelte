@@ -538,6 +538,13 @@
 
 <div class="w-full flex justify-between flex-wrap mb-2">
 	<Heading tag="h2" class="w-fit">{data.event.name}</Heading>
+
+	<P> Place each team's <B> Raw Score</B> in the raw score column. For engineering and physics events,
+the <B>Tier</B> column can be used to rank the teams; this can be left blank if unused. <B>Ties</B> will be
+highlighted - they can be broken with a decimal value in the "Tiebreak" column.</P><br>
+	<P> For each team, fill in the <B>Status</B> column: CO for "Competed," PO for "Participation," and "NS" for No Show. </P><br>
+
+
 	<span class="space-x-4 flex items-center flex-wrap">
 		<Select
 			class="w-36"
