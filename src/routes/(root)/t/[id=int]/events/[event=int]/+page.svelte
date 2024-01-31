@@ -537,16 +537,7 @@
 />
 
 <div class="w-full flex justify-between flex-wrap mb-2">
-	<Heading tag="h2" class="w-fit">{data.event.name}</Heading>
-
-	<P> Raw Score: The team's score for the event.</P>
-
-	<P> Tier: Only used in some build and hybrid events. Leave blank if not used. Lower number tier (1) is ranked better than a higher number tier (2, 3, 4).</P>
-
-	<P> Tiebreak: A decimal value between 0 and 1. Give the tiebreaker points to the better ranked team. Break all ties, highlighted in red.</P>
-
-	<P> Status: If a team competed, selected "CO" (Competed). Otherwise, select "PO" (Participation), "NS" (No Show), or "DQ" (Disqualification).</P>						
-								
+	<Heading tag="h2" class="w-fit">{data.event.name}</Heading>			
 	<span class="space-x-4 flex items-right flex-wrap">
 		<Select
 			class="w-36"
@@ -600,6 +591,15 @@
 			}}>?</Button
 		>
 	</span>
+
+	<P> Raw Score: The team's score for the event.</P>
+
+	<P> Tier: Only used in some build and hybrid events. Leave blank if not used. Lower number tier (1) is ranked better than a higher number tier (2, 3, 4).</P>
+
+	<P> Tiebreak: A decimal value between 0 and 1. Give the tiebreaker points to the better ranked team. Break all ties, highlighted in red.</P>
+
+	<P> Status: If a team competed, selected "CO" (Competed). Otherwise, select "PO" (Participation), "NS" (No Show), or "DQ" (Disqualification).</P>						
+					
 </div>
 <SelectableTable items={modifiedTeams} bind:selected cols={10}>
 	<svelte:fragment slot="headers">
