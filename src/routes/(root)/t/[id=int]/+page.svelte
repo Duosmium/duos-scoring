@@ -213,7 +213,10 @@
 				</div>
 				<div class="flex flex-col pb-3">
 					<DescriptionList tag="dt">Level</DescriptionList>
-					<DescriptionList tag="dd">{data.tournament.level}</DescriptionList>
+					<DescriptionList tag="dd"
+						>{data.tournament.level[0] +
+							data.tournament.level.slice(1).toLowerCase()}</DescriptionList
+					>
 				</div>
 				<div class="flex flex-col pb-3">
 					<DescriptionList tag="dt">Division</DescriptionList>
@@ -255,7 +258,7 @@
 				</div>
 				<div class="flex flex-col pb-3">
 					<DescriptionList tag="dt">Tracks Enabled?</DescriptionList>
-					<DescriptionList tag="dd">{data.tournament.enableTracks}</DescriptionList>
+					<DescriptionList tag="dd">{data.tournament.enableTracks ? 'Yes' : 'No'}</DescriptionList>
 				</div>
 				<div class="flex flex-col pb-3">
 					<DescriptionList tag="dt">Medals</DescriptionList>
@@ -267,15 +270,15 @@
 				</div>
 				<div class="flex flex-col pb-3">
 					<DescriptionList tag="dt">Bids</DescriptionList>
-					<DescriptionList tag="dd">{data.tournament.bids}</DescriptionList>
+					<DescriptionList tag="dd">{data.tournament.bids ?? 'None'}</DescriptionList>
 				</div>
 				<div class="flex flex-col pb-3">
 					<DescriptionList tag="dt">Drops</DescriptionList>
-					<DescriptionList tag="dd">{data.tournament.drops}</DescriptionList>
+					<DescriptionList tag="dd">{data.tournament.drops ?? 'None'}</DescriptionList>
 				</div>
 				<div class="flex flex-col pb-3">
 					<DescriptionList tag="dt">N Offset</DescriptionList>
-					<DescriptionList tag="dd">{data.tournament.nOffset}</DescriptionList>
+					<DescriptionList tag="dd">{data.tournament.nOffset ?? 'None'}</DescriptionList>
 				</div>
 			</List>
 		</Card>
