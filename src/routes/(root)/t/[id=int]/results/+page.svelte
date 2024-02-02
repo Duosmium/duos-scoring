@@ -340,7 +340,7 @@
 			color="green"
 			on:click={() => {
 				showPreview = true;
-			}}>Preview</Button
+			}}>Preview Results</Button
 		>
 		<Button
 			class="py-2 border border-purple-700 hover:border-purple-800 dark:border-purple-600 dark:hover:border-purple-700"
