@@ -65,7 +65,7 @@ export function computeEventRankings(event: Event, teams: Team[], scores: Score[
 					...s,
 					ranking:
 						s.status === 'COMPETED'
-							? s.rawScore
+							? s.rawScore != null
 								? s.rawScore +
 									((s.tiebreak || 0) - 1000000 * (s.tier || 1)) * (s.event.highScoring ? 1 : -1)
 								: 'PARTICIPATION'

@@ -144,7 +144,7 @@
 				...t,
 				ranking:
 					t.score.status.new === 'COMPETED'
-						? t.score.rawScore.new
+						? t.score.rawScore.new != null
 							? t.score.rawScore.new +
 								((t.score.tiebreak.new || 0) - 1000000 * (t.score.tier.new || 1)) *
 									(data.event.highScoring ? 1 : -1)
