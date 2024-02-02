@@ -72,17 +72,24 @@
 	}
 
 	const emailRegex =
-		/^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/;
+		/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 	let showInviteMembers = false;
 	let inviteMembersData = '';
 	let parsedInvites: string[][];
 	let parsedError = '';
-	$: events = new Map(data.events.map((e) => [e.name, e]));
+	$: events = new Map(data.events.map((e) => [e.name.toLowerCase(), e]));
 	$: {
 		parsedInvites = (
-			papaparse.parse(inviteMembersData, { header: false, skipEmptyLines: 'greedy' })
-				.data as typeof parsedInvites
-		).map((row) => row.filter((d) => d !== ''));
+			papaparse.parse(inviteMembersData, {
+				header: false,
+				skipEmptyLines: 'greedy',
+				transform: (v) => v.trim()
+			}).data as typeof parsedInvites
+		).map((row) =>
+			row
+				.filter((d) => d !== '')
+				.map((d, i) => (i === 0 ? d : events.get(d.toLowerCase())?.name ?? d))
+		);
 		parsedError = '';
 		parsedInvites.forEach((t) => {
 			if (!emailRegex.test(t[0])) {
@@ -90,7 +97,7 @@
 			}
 			if (t.slice(1).length !== 0) {
 				t.slice(1).forEach((e) => {
-					if (!events.has(e)) {
+					if (!events.has(e.toLowerCase())) {
 						parsedError += `Invalid event '${e}'\n`;
 					}
 				});
@@ -110,7 +117,7 @@
 			body: JSON.stringify(
 				parsedInvites.slice(0, 15).map((i) => ({
 					email: i[0],
-					events: i.slice(1).map((name) => events.get(name)?.id.toString())
+					events: i.slice(1).map((name) => events.get(name.toLowerCase())?.id.toString())
 				}))
 			)
 		}).then((res) => {
@@ -392,18 +399,18 @@
 
 <Modal title="Edit Member" bind:open={showEditMember} autoclose outsideclose>
 	<Heading tag="h2" class="text-2xl">Events</Heading>
-	{#each events.entries() as event}
+	{#each events.values() as event}
 		<Checkbox
 			class="mr-2 mt-2"
-			checked={editMemberData.events.includes(event[1].id)}
+			checked={editMemberData.events.includes(event.id)}
 			on:click={(e) => {
 				// @ts-ignore
 				if (e.target?.checked) {
-					editMemberData.events.push(event[1].id);
+					editMemberData.events.push(event.id);
 				} else {
-					editMemberData.events.splice(editMemberData.events.indexOf(event[1].id), 1);
+					editMemberData.events.splice(editMemberData.events.indexOf(event.id), 1);
 				}
-			}}>{event[0]}</Checkbox
+			}}>{event.name}</Checkbox
 		>
 	{/each}
 	{#if editMemberData.userId !== data.user.id}
@@ -423,18 +430,18 @@
 
 <Modal title="Edit Invite" bind:open={showEditInvite} autoclose outsideclose>
 	<Heading tag="h2" class="text-2xl">Events</Heading>
-	{#each events.entries() as event}
+	{#each events.values() as event}
 		<Checkbox
 			class="mt-2 mr-2"
-			checked={editInviteData.events.includes(event[1].id)}
+			checked={editInviteData.events.includes(event.id)}
 			on:click={(e) => {
 				// @ts-ignore
 				if (e.target?.checked) {
-					editInviteData.events.push(event[1].id);
+					editInviteData.events.push(event.id);
 				} else {
-					editInviteData.events.splice(editInviteData.events.indexOf(event[1].id), 1);
+					editInviteData.events.splice(editInviteData.events.indexOf(event.id), 1);
 				}
-			}}>{event[0]}</Checkbox
+			}}>{event.name}</Checkbox
 		>
 	{/each}
 
