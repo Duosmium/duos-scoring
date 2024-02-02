@@ -1,4 +1,4 @@
-import { updateEvent, addScores, updateScores, getUserInfo, getEvent } from '$lib/db';
+import { updateEvent, addScores, updateScores, deleteScores, getUserInfo, getEvent } from '$lib/db';
 import type { ScoreStatus, Score } from '@prisma/client';
 import type { RequestHandler } from './$types';
 import { checkEventPerms } from '$lib/utils';
@@ -107,7 +107,7 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 			(score) =>
 				(!score.status && !score.id) ||
 				(score.status &&
-					!['COMPETED', 'PARTICIPATION', 'NOSHOW', 'DISQUALIFICATION'].includes(score.status))
+					!['COMPETED', 'PARTICIPATION', 'NOSHOW', 'DISQUALIFICATION', 'NA'].includes(score.status))
 		)
 	)
 		return new Response('missing/invalid status', { status: 400 });
@@ -117,20 +117,23 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 	// TODO: validate to prevent duplicate team/event combos
 
 	const eventId = BigInt(params.event);
-	const [newScores, existingScores] = payload.reduce(
+	const [newScores, existingScores, scoresToDelete] = payload.reduce(
 		(acc, score) => {
-			if (score.id) {
-				acc[1].push({ ...score, id: BigInt(score.id), teamId: BigInt(score.teamId), eventId });
-			} else {
+			if (!score.id) {
 				acc[0].push({ ...score, teamId: BigInt(score.teamId), eventId });
+			} else if ((score.status as ScoreStatus | 'NA') === 'NA') {
+				acc[2].push(BigInt(score.id));
+			} else {
+				acc[1].push({ ...score, id: BigInt(score.id), teamId: BigInt(score.teamId), eventId });
 			}
 			return acc;
 		},
-		[[], []] as [Omit<Score, 'id'>[], Score[]]
+		[[], [], []] as [Omit<Score, 'id'>[], Score[], bigint[]]
 	);
 
 	await addScores(newScores);
 	await updateScores(existingScores);
+	await deleteScores(scoresToDelete);
 
 	return new Response('ok');
 };

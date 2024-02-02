@@ -403,8 +403,7 @@
 						rawScore: t.score.rawScore.dirty ? t.score.rawScore.new : undefined,
 						tier: t.score.tier.dirty ? t.score.tier.new : undefined,
 						tiebreak: t.score.tiebreak.dirty ? t.score.tiebreak.new : undefined,
-						status:
-							t.score.status.dirty && t.score.status.new !== 'NA' ? t.score.status.new : undefined,
+						status: t.score.status.dirty ? t.score.status.new : undefined,
 						notes: t.score.notes.dirty ? t.score.notes.new : undefined
 					}))
 			)

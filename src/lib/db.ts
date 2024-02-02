@@ -569,3 +569,15 @@ export async function addScores(scores: Omit<Score, 'id'>[]) {
 		return false;
 	}
 }
+
+export async function deleteScores(scores: bigint[]) {
+	try {
+		await prisma.score.deleteMany({
+			where: {
+				id: { in: scores }
+			}
+		});
+	} catch (e) {
+		return false;
+	}
+}
