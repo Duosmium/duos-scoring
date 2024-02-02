@@ -381,8 +381,9 @@
 				<Avatar class={`user_${event.audited.id} -ml-2`}
 					>{event.audited.name
 						.split(' ')
-						.map((w) => w[0].toUpperCase())
-						.join('')}</Avatar
+						.map((w) => w[0])
+						.join('')
+						.toUpperCase()}</Avatar
 				>
 			{:else}
 				No

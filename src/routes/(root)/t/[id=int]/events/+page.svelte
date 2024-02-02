@@ -185,7 +185,7 @@
 						trialStatus: editEventTrialStatus as any,
 						highScoring: editHighScoring === 'true',
 						medals: parseInt(editEventMedals) || null
-				  }
+					}
 				: ev
 		);
 		// TODO: validate event names for canonicalization
@@ -291,10 +291,10 @@
 			{#if event.audited}
 				<Avatar class={`user_${event.audited.id} -ml-2`}
 					>{event.audited.name
-						.trim()
 						.split(' ')
-						.map((w) => w[0].toUpperCase())
-						.join('')}</Avatar
+						.map((w) => w[0])
+						.join('')
+						.toUpperCase()}</Avatar
 				>
 			{:else}
 				No
@@ -306,10 +306,10 @@
 				{#each event.supervisors as { user }}
 					<Avatar class={`user_${user.id}`} stacked
 						>{user.name
-							.trim()
 							.split(' ')
-							.map((w) => w[0].toUpperCase())
-							.join('')}</Avatar
+							.map((w) => w[0])
+							.join('')
+							.toUpperCase()}</Avatar
 					>
 				{:else}
 					Not Assigned
