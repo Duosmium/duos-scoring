@@ -8,8 +8,11 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 	await checkScoremasterPerms(locals.user, params.id);
 
 	const events = (await getEvents(params.id)) || [];
+	const teams = (await getTeams(params.id)) || [];
+	const tracks = (await getTracks(params.id)) || [];
+	const roles = (await getRoles(params.id)) || [];
 
-	const rankings = events.map((e) => computeEventRankings(e.scores));
+	const rankings = events.map((e) => computeEventRankings(e, teams, e.scores));
 	const rankingsByTeam = rankings.reduce((acc, cur) => {
 		cur.forEach((r) => {
 			if (acc.get(r.teamId) === undefined) {
@@ -26,9 +29,6 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		return acc;
 	}, new Map<bigint, { start: number; width: number; counts: number[]; info: Record<string, string> }>());
 
-	const teams = (await getTeams(params.id)) || [];
-	const tracks = (await getTracks(params.id)) || [];
-	const roles = (await getRoles(params.id)) || [];
 	return {
 		events,
 		roles,

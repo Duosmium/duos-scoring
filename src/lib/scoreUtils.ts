@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, type Event, type Team } from '@prisma/client';
 
 const eventWithScores = Prisma.validator<Prisma.EventDefaultArgs>()({ include: { scores: true } });
 type EventWithScores = Prisma.EventGetPayload<typeof eventWithScores>;
@@ -43,39 +43,59 @@ export function generateHisto(event: EventWithScores) {
 	};
 }
 
-const scoreWithEventAndTeam = Prisma.validator<Prisma.ScoreArgs>()({
+const scoreWithEventAndTeam = Prisma.validator<Prisma.ScoreDefaultArgs>()({
 	include: { event: true, team: true }
 });
 type Score = Prisma.ScoreGetPayload<typeof scoreWithEventAndTeam>;
 
-export function computeEventRankings(scores: Score[]) {
+export function computeEventRankings(event: Event, teams: Team[], scores: Score[]) {
 	const statusOrder = {
 		COMPETED: 0,
 		PARTICIPATION: 1,
 		NOSHOW: 2,
-		DISQUALIFICATION: 3,
-		NA: 4
+		NA: 2,
+		DISQUALIFICATION: 3
 	} as const;
-	return scores
-		.map((s) => ({
-			...s,
-			ranking:
-				s.status === 'COMPETED'
-					? s.rawScore
-						? s.rawScore +
-						  ((s.tiebreak || 0) - 1000000 * (s.tier || 1)) * (s.event.highScoring ? 1 : -1)
-						: 'PARTICIPATION'
-					: s.status,
-			tie: false
-		}))
+	const teamScores = new Map(scores.map((s) => [s.teamId, s] as const));
+	return teams
+		.map((t) => {
+			const s = teamScores.get(t.id);
+			if (s) {
+				return {
+					...s,
+					ranking:
+						s.status === 'COMPETED'
+							? s.rawScore
+								? s.rawScore +
+									((s.tiebreak || 0) - 1000000 * (s.tier || 1)) * (s.event.highScoring ? 1 : -1)
+								: 'PARTICIPATION'
+							: s.status,
+					tie: false
+				};
+			} else {
+				return {
+					event,
+					team: t,
+					eventId: event.id,
+					teamId: t.id,
+					rawScore: null,
+					tier: null,
+					tiebreak: null,
+					notes: null,
+					status: 'NOSHOW',
+					ranking: 'NOSHOW' as const,
+					tie: false
+				};
+			}
+		})
 		.sort((a, b) =>
 			typeof a.ranking === 'number' && typeof b.ranking === 'number'
 				? (b.ranking - a.ranking) * (a.event.highScoring ? 1 : -1)
 				: typeof a.ranking === 'string' && typeof b.ranking === 'string'
-				  ? statusOrder[a.ranking] - statusOrder[b.ranking]
-				  : typeof a.ranking === 'number'
-				    ? -1
-				    : 1
+					? statusOrder[a.ranking] - statusOrder[b.ranking]
+					: typeof a.ranking === 'number'
+						? -1
+						: 1
 		)
 		.map((t, i, s) => {
 			// check ties

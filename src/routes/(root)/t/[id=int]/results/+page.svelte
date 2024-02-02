@@ -33,7 +33,7 @@
 	$: roles = data.roles;
 	$: events = data.events.map((e) => ({
 		...e,
-		disabled: e.audited == null
+		initiallyChecked: e.scores.length === data.teams.length
 	}));
 	let selected: typeof events = [];
 
