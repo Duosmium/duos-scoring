@@ -587,7 +587,7 @@
 			pill
 			on:click={() => {
 				showHelp = true;
-			}}>?</Button
+			}}>Help</Button
 		>
 	</span>
 </div>
