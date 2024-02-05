@@ -272,7 +272,9 @@
 		</TableHeadCell>
 	</svelte:fragment>
 	<svelte:fragment slot="item" let:item={event}>
-		<TableBodyCell class="py-0 px-2">{event.name}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2">
+			<a href="/t/{data.tournament.id}/events/{event.id.toString()}/">{event.name}</a>
+		</TableBodyCell>
 		<TableBodyCell class="py-0 px-2">{event.medals ?? data.tournament.medals}</TableBodyCell>
 		<TableBodyCell class="py-0 px-2">
 			<Label>
@@ -319,7 +321,7 @@
 		<TableBodyCell class="py-0 px-2">
 			<Button
 				color="alternative"
-				class="border-none p-1 font-medium text-primary-600 hover:underline dark:text-primary-500"
+				class="border-none p-1 text-primary-600 hover:underline dark:text-primary-500"
 				on:click={() => {
 					openEditEvent(event.id);
 				}}
@@ -330,7 +332,7 @@
 		<TableBodyCell class="py-0 px-2">
 			<a
 				href="/t/{data.tournament.id}/events/{event.id.toString()}/"
-				class="font-medium text-primary-600 hover:underline dark:text-primary-500"
+				class="text-primary-600 hover:underline dark:text-primary-500"
 			>
 				View
 			</a>
