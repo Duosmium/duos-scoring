@@ -51,6 +51,12 @@
 	let showPreview = false;
 
 	function generateSciolyFF() {
+		const levelLookup = {
+			INVITATIONAL: 'Invitational',
+			REGIONAL: 'Regionals',
+			STATE: 'States',
+			NATIONAL: 'Nationals'
+		} as const;
 		const selectedEvents = new Set(selected.flatMap((e) => e.id));
 		const sciolyffRep = {
 			Tournament: {
@@ -58,13 +64,12 @@
 				'short name': data.tournament.shortName ?? undefined,
 				location: data.tournament.location,
 				state: data.tournament.state,
-				level:
-					data.tournament.level.toUpperCase()[0] + data.tournament.level.toLowerCase().slice(1),
+				level: levelLookup[data.tournament.level],
 				division: data.tournament.division,
 				year: data.tournament.year,
-				'start date': data.tournament.startDate,
-				'end date': data.tournament.endDate,
-				'awards date': data.tournament.awardsDate,
+				'start date': data.tournament.startDate.toISOString().split('T')[0],
+				'end date': data.tournament.endDate.toISOString().split('T')[0],
+				'awards date': data.tournament.awardsDate.toISOString().split('T')[0],
 				medals: data.tournament.medals,
 				trophies: data.tournament.trophies,
 				bids: data.tournament.bids ?? undefined,
