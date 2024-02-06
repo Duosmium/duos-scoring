@@ -261,6 +261,7 @@
 		'https://www.duosmium.org/results/' + generateFilename(data.tournament).trim() + '/';
 	let showSlides = false;
 	let slidesURL = '';
+	let qrCode = true;
 	async function initializeSlides() {
 		const sciolyff = generateSciolyFF();
 		const filename = generateFilename(data.tournament).trim();
@@ -289,7 +290,7 @@
 			randomOrder,
 			combineTracks,
 			overallSchools,
-			tournamentUrl
+			tournamentUrl: qrCode ? tournamentUrl : ''
 		});
 	}
 	$: {
@@ -315,7 +316,7 @@
 				randomOrder,
 				combineTracks,
 				overallSchools,
-				tournamentUrl
+				tournamentUrl: qrCode ? tournamentUrl : ''
 			}).then((url) => {
 				slidesURL = url;
 			});
@@ -487,6 +488,10 @@
 			<label>
 				Clear Logo:
 				<button id="clearLogo">Clear</button>
+			</label>
+			<label>
+				Enable QR code for full results:
+				<input type="checkbox" id="qrCode" bind:checked={qrCode} />
 			</label>
 
 			<details>
