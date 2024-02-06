@@ -615,8 +615,10 @@
 		<TableBodyCell class="p-0">
 			<Input
 				disabled={locked}
-				class={`rounded-none !bg-transparent p-2 w-24 !border-orange-500 ${
-					team.score.rawScore.dirty ? '!border-2' : '!border-0'
+				class={`rounded-none !bg-transparent p-2 w-24 ${
+					team.score.rawScore.dirty
+						? 'border-2 !border-orange-500'
+						: 'border-x-0 border-t-0 border-b-1 dark:border-b-slate-500 border-b-slate-400'
 				} disabled:cursor-text disabled:opacity-100`}
 				type="text"
 				inputmode="numeric"
@@ -628,8 +630,10 @@
 		<TableBodyCell class="p-0">
 			<Input
 				disabled={locked}
-				class={`rounded-none !bg-transparent p-2 w-12 !border-orange-500 ${
-					team.score.tier.dirty ? '!border-2' : '!border-0'
+				class={`rounded-none !bg-transparent p-2 w-12 ${
+					team.score.tier.dirty
+						? 'border-2 !border-orange-500'
+						: 'border-x-0 border-t-0 border-b-1 dark:border-b-slate-500 border-b-slate-400'
 				} disabled:cursor-text disabled:opacity-100`}
 				type="text"
 				inputmode="numeric"
@@ -641,8 +645,10 @@
 		<TableBodyCell class="p-0">
 			<Input
 				disabled={locked}
-				class={`rounded-none !bg-transparent p-2 w-16 !border-orange-500 ${
-					team.score.tiebreak.dirty ? '!border-2' : '!border-0'
+				class={`rounded-none !bg-transparent p-2 w-16 ${
+					team.score.tiebreak.dirty
+						? 'border-2 !border-orange-500'
+						: 'border-x-0 border-t-0 border-b-1 dark:border-b-slate-500 border-b-slate-400'
 				} disabled:cursor-text disabled:opacity-100`}
 				type="text"
 				inputmode="numeric"
@@ -666,9 +672,11 @@
 		<TableBodyCell class="p-0">
 			<Textarea
 				disabled={locked}
-				class={`rounded-none !bg-transparent p-2 w-36 !border-orange-500 ${
-					team.score.notes.dirty ? '!border-2' : '!border-0'
-				}`}
+				class={`rounded-none !bg-transparent p-2 w-36 ${
+					team.score.notes.dirty
+						? 'border-2 !border-orange-500'
+						: 'border-x-0 border-t-0 border-b-1 dark:border-b-slate-500 border-b-slate-400'
+				} disabled:cursor-text disabled:opacity-100`}
 				rows="1"
 				value={team.score.notes.new ?? ''}
 				on:change={updateData(team.number, 'notes')}
@@ -932,5 +940,8 @@
 	}
 	dt {
 		@apply font-semibold;
+	}
+	* :global(input[type='text']) {
+		@apply border-b-white border-b-2;
 	}
 </style>
