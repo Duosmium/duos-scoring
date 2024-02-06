@@ -22,8 +22,10 @@ export const actions = {
 
 		const enableTracks = !!formData.get('enableTracks') || false;
 
-		const medals = parseInt(formData.get('medals')?.toString() ?? '') || 6;
-		const trophies = parseInt(formData.get('trophies')?.toString() ?? '') || 3;
+		const medals = ((m) => (isNaN(m) ? 6 : m))(parseInt(formData.get('medals')?.toString() ?? ''));
+		const trophies = ((t) => (isNaN(t) ? 3 : t))(
+			parseInt(formData.get('trophies')?.toString() ?? '')
+		);
 		const bids = parseInt(formData.get('bids')?.toString() ?? '') || null;
 		const nOffset = parseInt(formData.get('nOffset')?.toString() ?? '') || null;
 		const drops = parseInt(formData.get('drops')?.toString() ?? '') || null;

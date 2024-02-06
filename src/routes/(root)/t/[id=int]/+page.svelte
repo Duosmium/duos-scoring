@@ -119,11 +119,11 @@
 				? new Date(editTournamentData.awardsDate)
 				: undefined,
 			enableTracks: editTournamentData.enableTracks || undefined,
-			medals: parseInt(editTournamentData.medals as any) || undefined,
-			trophies: parseInt(editTournamentData.trophies as any) || undefined,
-			bids: parseInt(editTournamentData.bids as any) || undefined,
-			drops: parseInt(editTournamentData.drops as any) || undefined,
-			nOffset: parseInt(editTournamentData.nOffset as any) || undefined
+			medals: ((m) => (isNaN(m) ? undefined : m))(parseInt(editTournamentData.medals as any)),
+			trophies: ((t) => (isNaN(t) ? undefined : t))(parseInt(editTournamentData.trophies as any)),
+			bids: parseInt(editTournamentData.bids as any) || null,
+			drops: parseInt(editTournamentData.drops as any) || null,
+			nOffset: parseInt(editTournamentData.nOffset as any) || null
 		};
 		fetch(`/t/${$page.params['id']}`, {
 			method: 'PATCH',
