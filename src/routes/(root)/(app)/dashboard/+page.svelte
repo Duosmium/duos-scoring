@@ -15,7 +15,7 @@
 
 <Head title="Dashboard | Duosmium Scoring" />
 
-<Heading tag="h1" class="mb-12">Welcome {data.user.name}!</Heading>
+<Heading tag="h1" class="mb-12">Welcome, {data.user.name}!</Heading>
 
 <Heading tag="h2" class="mb-8">Your Tournaments</Heading>
 {#if data.user.roles.length === 0}
