@@ -355,8 +355,10 @@
 </ConfirmModal>
 
 <Modal title="Add Events" bind:open={showAddEvent} autoclose outsideclose>
+	<P><span class="text-red-600">*</span> Indicates required field.</P>
+
 	<Label>
-		Event Name
+		Event Name <span class="text-red-600">*</span>
 		<Input
 			class="mt-2"
 			type="text"
@@ -374,7 +376,7 @@
 		<Select underline class="mt-2" items={highScoring} bind:value={addHighScoring} />
 	</Label>
 	<Label>
-		Medals (Optional)
+		Number of Medals (Optional, overrides tournament level setting)
 		<Input class="mt-2" type="text" required bind:value={addEventMedals} />
 	</Label>
 

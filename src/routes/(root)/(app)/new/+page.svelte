@@ -127,14 +127,14 @@
 		>Enable Tracks (Optional)</Checkbox
 	>
 	<Label>
-		Medals (Optional, default 6): <Input
+		Number of Medals Awarded (Optional, default 6): <Input
 			type="number"
 			name="medals"
 			value={form?.returned.medals}
 		/>
 	</Label>
 	<Label>
-		Trophies (Optional, default 3): <Input
+		Number of Trophies Awarded (Optional, default 3): <Input
 			type="number"
 			name="trophies"
 			value={form?.returned.trophies}

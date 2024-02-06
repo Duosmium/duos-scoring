@@ -9,7 +9,8 @@
 		Button,
 		Heading,
 		Modal,
-		Input
+		Input,
+		P
 	} from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import { invalidateAll } from '$app/navigation';
@@ -162,19 +163,20 @@
 </ConfirmModal>
 
 <Modal title="Add Track" bind:open={showAddTrack} autoclose outsideclose>
+	<P><span class="text-red-600">*</span> Indicates required field.</P>
+
 	<Label>
-		<div>Track Name</div>
-		<div class="text-sm">Required</div>
+		<div>Track Name: <span class="text-red-600">*</span></div>
 		<Input class="mt-2" type="text" bind:value={addTrackData.name} />
 	</Label>
 	<Label>
-		<div>Number of Medals</div>
-		<div class="text-sm">Optional</div>
+		<div>Number of Medals:</div>
+		<div class="text-sm">Optional, overrides tournament level setting</div>
 		<Input class="mt-2" type="number" bind:value={addTrackData.medals} />
 	</Label>
 	<Label>
 		<div>Number of Trophies</div>
-		<div class="text-sm">Optional</div>
+		<div class="text-sm">Optional, overrides tournament level setting</div>
 		<Input class="mt-2" type="number" bind:value={addTrackData.trophies} />
 	</Label>
 
