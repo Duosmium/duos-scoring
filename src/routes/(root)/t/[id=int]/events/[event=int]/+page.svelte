@@ -55,6 +55,11 @@
 		{ value: 'NOSHOW', name: 'NS' },
 		{ value: 'DISQUALIFICATION', name: 'DQ' }
 	];
+	const scoreStatusesWhenScores = [
+		{ value: 'NA', name: 'N/A' },
+		{ value: 'COMPETED', name: 'CO' },
+		{ value: 'DISQUALIFICATION', name: 'DQ' }
+	];
 	const scoreAliases = [
 		{ value: 'NA', name: 'N/A' },
 		{ value: 'COMPETED', name: 'CO' },
@@ -62,7 +67,7 @@
 		{ value: 'PARTICIPATION', name: 'PO' },
 		{ value: 'NOSHOW', name: 'NS' },
 		{ value: 'DISQUALIFICATION', name: 'DQ' }
-	];
+	] as const;
 	const statusOrder = {
 		COMPETED: 0,
 		PARTICIPATION: 1,
@@ -250,7 +255,7 @@
 				case 'rawScore':
 					const raw = parseFloat((e.target as HTMLInputElement).value);
 					team.score.rawScore.new = isNaN(raw) ? null : raw;
-					if (!isNaN(raw) && team.score.status.new === 'NA') {
+					if (!isNaN(raw) && team.score.status.new !== 'DISQUALIFICATION') {
 						team.score.status.new = 'COMPETED';
 					}
 					if (isNaN(raw) && team.score.status.new === 'COMPETED') {
@@ -282,7 +287,7 @@
 
 	let showImportScores = false;
 	let importScoresData = '';
-	let parsedImportScores: {
+	let rawParsedImport: {
 		Number: string;
 		'Team #': string;
 		'Raw Score': string;
@@ -292,16 +297,37 @@
 		Tiebreaker: string;
 		Status: string;
 	}[] = [];
+	let parsedImportScores: {
+		number: number;
+		rawScore: number | null;
+		tier: number | null;
+		tiebreak: number | null;
+		status: ScoreStatus | 'NA';
+	}[] = [];
 	let parsedError = '';
 	$: {
-		parsedImportScores = papaparse.parse(importScoresData, { header: true }).data as any;
+		rawParsedImport = papaparse.parse(importScoresData, { header: true }).data as any;
 		parsedError = '';
 		const missingFields: Set<string> = new Set();
 		const invalidStatuses: Set<string> = new Set();
+		const invalidTeams: Set<string> = new Set();
+		const seenTeams: Set<number> = new Set();
+		const duplicateTeams: Set<string> = new Set();
 		// TODO: validate stuff
-		parsedImportScores.forEach((t) => {
+		parsedImportScores = [];
+		rawParsedImport.forEach((t) => {
+			const parsedNumber = parseInt(/\d+/.exec(t.Number || t['Team #'])?.[0] ?? '');
+			const team = teamLookup.get(parsedNumber);
+
+			if (!isNaN(parsedNumber) && seenTeams.has(parsedNumber)) {
+				duplicateTeams.add(t.Number || t['Team #']);
+			} else if (!isNaN(parsedNumber)) {
+				seenTeams.add(parsedNumber);
+			}
 			if (!t.Number && !t['Team #']) {
 				missingFields.add('Number');
+			} else if (!team) {
+				invalidTeams.add(t.Number || t['Team #']);
 			}
 			if (!t.Status && !t['Raw Score'] && !t.Score) {
 				missingFields.add('Status');
@@ -311,6 +337,23 @@
 			if (!t['Raw Score'] && !t.Score && (t.Status === 'CO' || t.Status === 'C')) {
 				missingFields.add('Score');
 			}
+
+			if (team) {
+				const rawScore = ((r) => (isNaN(r) ? null : r))(parseFloat(t['Raw Score'] || t.Score));
+				const tier = ((t) => (isNaN(t) ? null : t))(parseInt(t.Tier));
+				const tiebreak = ((t) => (isNaN(t) ? null : t))(parseFloat(t.Tiebreak || t.Tiebreaker));
+				const status = scoreAliases.find((s) => s.name === t.Status)?.value;
+				parsedImportScores.push({
+					number: parsedNumber,
+					rawScore,
+					tier,
+					tiebreak,
+					status:
+						(rawScore != null || tier != null || tiebreak != null) && status !== 'DISQUALIFICATION'
+							? 'COMPETED'
+							: status ?? team.score.status.old
+				});
+			}
 		});
 		if (missingFields.size > 0) {
 			parsedError += `Missing fields: ${[...missingFields].join(', ')}; `;
@@ -318,24 +361,24 @@
 		if (invalidStatuses.size > 0) {
 			parsedError += `Invalid statuses: ${[...invalidStatuses].join(', ')}`;
 		}
+		if (invalidTeams.size > 0) {
+			parsedError += `Invalid teams: ${[...invalidTeams].join(', ')}`;
+		}
+		if (duplicateTeams.size > 0) {
+			parsedError += `Duplicate teams: ${[...duplicateTeams].join(', ')}`;
+		}
 	}
 	function importScores() {
 		if (locked) return;
 		if (parsedError) return;
 		parsedImportScores.forEach((parsedScore) => {
-			const team = teamLookup.get(
-				parseInt(/\d+/.exec(parsedScore.Number || parsedScore['Team #'])?.[0] ?? '')
-			);
+			const team = teamLookup.get(parsedScore.number);
 			if (!team) return;
 
-			const raw = parseFloat(parsedScore['Raw Score'] || parsedScore.Score);
-			const tier = parseInt(parsedScore.Tier);
-			const tiebreak = parseFloat(parsedScore.Tiebreak || parsedScore.Tiebreaker);
-			team.score.rawScore.new = isNaN(raw) ? null : raw;
-			team.score.tier.new = isNaN(tier) ? null : tier;
-			team.score.tiebreak.new = isNaN(tiebreak) ? null : tiebreak;
-			team.score.status.new = (scoreAliases.find((s) => s.name === parsedScore.Status)?.value ??
-				(isNaN(raw) ? team.score.status.old : 'COMPETED')) as any;
+			team.score.rawScore.new = parsedScore.rawScore;
+			team.score.tier.new = parsedScore.tier;
+			team.score.tiebreak.new = parsedScore.tiebreak;
+			team.score.status.new = parsedScore.status;
 		});
 		modifiedTeams = modifiedTeams;
 	}
@@ -604,6 +647,8 @@
 		<TableHeadCell class="px-0">Notes</TableHeadCell>
 	</svelte:fragment>
 	<svelte:fragment slot="item" let:item={team}>
+		{@const disableScores =
+			team.score.status.new === 'NOSHOW' || team.score.status.new === 'PARTICIPATION'}
 		<TableBodyCell class="px-2">{team.number}</TableBodyCell>
 		<TableBodyCell class="px-2"
 			>{team.abbreviation ??
@@ -614,12 +659,14 @@
 		</TableBodyCell>
 		<TableBodyCell class="p-0">
 			<Input
-				disabled={locked}
+				disabled={locked || disableScores}
 				class={`rounded-none !bg-transparent p-2 w-24 ${
 					team.score.rawScore.dirty
 						? 'border-2 !border-orange-500'
-						: 'border-x-0 border-t-0 border-b-1 dark:border-b-slate-500 border-b-slate-400'
-				} disabled:cursor-text disabled:opacity-100`}
+						: locked || disableScores
+							? 'border-0'
+							: 'border-x-0 border-t-0 border-b-1 dark:border-b-slate-500 border-b-slate-400'
+				} ${locked ? 'disabled:cursor-text' : 'disabled:cursor-not-allowed'} disabled:opacity-100`}
 				type="text"
 				inputmode="numeric"
 				value={team.score.rawScore.new ?? ''}
@@ -629,12 +676,14 @@
 		</TableBodyCell>
 		<TableBodyCell class="p-0">
 			<Input
-				disabled={locked}
+				disabled={locked || disableScores}
 				class={`rounded-none !bg-transparent p-2 w-12 ${
 					team.score.tier.dirty
 						? 'border-2 !border-orange-500'
-						: 'border-x-0 border-t-0 border-b-1 dark:border-b-slate-500 border-b-slate-400'
-				} disabled:cursor-text disabled:opacity-100`}
+						: locked || disableScores
+							? 'border-0'
+							: 'border-x-0 border-t-0 border-b-1 dark:border-b-slate-500 border-b-slate-400'
+				} ${locked ? 'disabled:cursor-text' : 'disabled:cursor-not-allowed'} disabled:opacity-100`}
 				type="text"
 				inputmode="numeric"
 				value={team.score.tier.new ?? ''}
@@ -644,12 +693,14 @@
 		</TableBodyCell>
 		<TableBodyCell class="p-0">
 			<Input
-				disabled={locked}
+				disabled={locked || disableScores}
 				class={`rounded-none !bg-transparent p-2 w-16 ${
 					team.score.tiebreak.dirty
 						? 'border-2 !border-orange-500'
-						: 'border-x-0 border-t-0 border-b-1 dark:border-b-slate-500 border-b-slate-400'
-				} disabled:cursor-text disabled:opacity-100`}
+						: locked || disableScores
+							? 'border-0'
+							: 'border-x-0 border-t-0 border-b-1 dark:border-b-slate-500 border-b-slate-400'
+				} ${locked ? 'disabled:cursor-text' : 'disabled:cursor-not-allowed'} disabled:opacity-100`}
 				type="text"
 				inputmode="numeric"
 				value={team.score.tiebreak.new ?? ''}
@@ -660,7 +711,11 @@
 		<TableBodyCell class="p-0">
 			<Select
 				disabled={locked}
-				items={scoreStatuses}
+				items={team.score.rawScore.new != undefined ||
+				team.score.tier.new != undefined ||
+				team.score.tiebreak.new != undefined
+					? scoreStatusesWhenScores
+					: scoreStatuses}
 				class={`rounded-none !bg-transparent w-20 p-2 !border-orange-500 ${
 					team.score.status.dirty ? '!border-2' : '!border-0'
 				}`}
@@ -675,8 +730,10 @@
 				class={`rounded-none !bg-transparent p-2 w-36 ${
 					team.score.notes.dirty
 						? 'border-2 !border-orange-500'
-						: 'border-x-0 border-t-0 border-b-1 dark:border-b-slate-500 border-b-slate-400'
-				} disabled:cursor-text disabled:opacity-100`}
+						: locked
+							? 'border-0'
+							: 'border-x-0 border-t-0 border-b-1 dark:border-b-slate-500 border-b-slate-400'
+				} ${locked ? 'disabled:cursor-text' : 'disabled:cursor-not-allowed'} disabled:opacity-100`}
 				rows="1"
 				value={team.score.notes.new ?? ''}
 				on:change={updateData(team.number, 'notes')}
@@ -743,7 +800,9 @@
 					participated but cannot be assigned a raw score, select
 					<strong>"PO" (Participation)</strong>. If a team did not show up, select
 					<strong>"NS" (No Show)</strong>. If a team is disqualified, select
-					<strong>"DQ" (Disqualification)</strong>.
+					<strong>"DQ" (Disqualification)</strong>. If any score is entered into the "Raw Score",
+					"Tier", or "Tiebreak" columns, status cannot be set to "PO" or "NS". Remove scores before
+					modifying the status.
 				</dd>
 			</div>
 		</dl>
@@ -795,30 +854,21 @@
 	{:else if parsedImportScores.length !== 0}
 		<ol>
 			{#each parsedImportScores as score}
-				{@const t = teamLookup.get(
-					parseInt(/\d+/.exec(score.Number || score['Team #'])?.[0] ?? '')
-				)}
+				{@const t = teamLookup.get(score.number)}
 				<li>
-					<span class="tabular-nums">#{score.Number || score['Team #']}:</span>
+					<span class="tabular-nums">#{score.number}:</span>
 					<span
 						>{t
 							? `${t.abbreviation || t.school}${t.suffix ? ' ' + t.suffix : ''}`
 							: 'Team Not Found'}</span
 					>
-					<span class="dark:text-green-300 text-green-700"
-						>{score['Raw Score'] || score.Score || ''}</span
-					><span class="dark:text-blue-300 text-blue-700"
-						>{score.Tier ? ` [Tier ${score.Tier}]` : ''}</span
+					<span class="dark:text-green-300 text-green-700">{score.rawScore ?? ''}</span><span
+						class="dark:text-blue-300 text-blue-700"
+						>{score.tier ? ` [Tier ${score.tier}]` : ''}</span
 					><span class="dark:text-pink-300 text-pink-700"
-						>{score.Tiebreak ? ` (*${score.Tiebreak})` : ''}</span
+						>{score.tiebreak ? ` (*${score.tiebreak})` : ''}</span
 					>
-					<span class="dark:text-violet-300 text-violet-700"
-						>{!score.Status && score.Score
-							? 'CO'
-							: score.Status
-								? score.Status
-								: scoreAliases.find((s) => s.value === t?.score.status.old)?.name}</span
-					>
+					<span class="dark:text-violet-300 text-violet-700">{statusLookup[score.status]}</span>
 				</li>
 			{/each}
 		</ol>
@@ -940,8 +990,5 @@
 	}
 	dt {
 		@apply font-semibold;
-	}
-	* :global(input[type='text']) {
-		@apply border-b-white border-b-2;
 	}
 </style>
