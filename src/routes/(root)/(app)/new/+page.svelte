@@ -2,7 +2,7 @@
 	import type { ActionData } from './$types';
 	import Head from '$lib/components/Head.svelte';
 	import { enhance } from '$app/forms';
-	import { Button, Checkbox, Input, Label, Select } from 'flowbite-svelte';
+	import { Button, Checkbox, Input, Label, P, Select } from 'flowbite-svelte';
 
 	export let form: ActionData;
 
@@ -80,55 +80,66 @@
 
 <h2>General Info</h2>
 
+<P><span class="text-red-600">*</span> Indicates required field.</P>
+
 <form use:enhance method="post">
 	<Label>
-		Name: <Input type="text" name="name" value={form?.returned.name} required />
+		Name: <span class="text-red-600">*</span>
+		<Input type="text" name="name" value={form?.returned.name} required />
 	</Label>
 	<Label>
-		Short Name: <Input type="text" name="shortName" value={form?.returned.shortName} required />
+		Short Name: <span class="text-red-600">*</span>
+		<Input type="text" name="shortName" value={form?.returned.shortName} required />
 	</Label>
 	<Label>
-		Location: <Input type="text" name="location" value={form?.returned.location} required />
+		Location: <span class="text-red-600">*</span>
+		<Input type="text" name="location" value={form?.returned.location} required />
 	</Label>
 	<Label>
-		State:
+		State: <span class="text-red-600">*</span>
 		<Select name="state" items={states} value={form?.returned.state} required />
 	</Label>
 	<Label>
-		Level:
+		Level: <span class="text-red-600">*</span>
 		<Select name="level" items={levels} value={form?.returned.level} required />
 	</Label>
 	<Label>
-		Division:
+		Division: <span class="text-red-600">*</span>
 		<Select name="division" items={divisions} value={form?.returned.division} required />
 	</Label>
 	<Label>
-		Year: <Input type="number" name="year" value={form?.returned.year} required />
+		Year: <span class="text-red-600">*</span>
+		<Input type="number" name="year" value={form?.returned.year} required />
 	</Label>
 	<Label>
-		Start Date: <Input type="date" name="startDate" value={form?.returned.startDate} required />
+		Start Date: <span class="text-red-600">*</span>
+		<Input type="date" name="startDate" value={form?.returned.startDate} required />
 	</Label>
 	<Label>
-		End Date: <Input type="date" name="endDate" value={form?.returned.endDate} required />
+		End Date: <span class="text-red-600">*</span>
+		<Input type="date" name="endDate" value={form?.returned.endDate} required />
 	</Label>
 	<Label>
-		Awards Date: <Input type="date" name="awardsDate" value={form?.returned.awardsDate} required />
+		Awards Date: <span class="text-red-600">*</span>
+		<Input type="date" name="awardsDate" value={form?.returned.awardsDate} required />
 	</Label>
-	<Checkbox name="enableTracks" checked={form?.returned.enableTracks}>Enable Tracks</Checkbox>
+	<Checkbox name="enableTracks" checked={form?.returned.enableTracks}
+		>Enable Tracks (Optional)</Checkbox
+	>
 	<Label>
-		Medals: <Input type="number" name="medals" value={form?.returned.medals} />
-	</Label>
-	<Label>
-		Trophies: <Input type="number" name="trophies" value={form?.returned.trophies} />
-	</Label>
-	<Label>
-		Bids: <Input type="number" name="bids" value={form?.returned.bids} />
+		Medals (Optional): <Input type="number" name="medals" value={form?.returned.medals} />
 	</Label>
 	<Label>
-		N-Offset: <Input type="number" name="nOffset" value={form?.returned.nOffset} />
+		Trophies (Optional): <Input type="number" name="trophies" value={form?.returned.trophies} />
 	</Label>
 	<Label>
-		Drops: <Input type="number" name="drops" value={form?.returned.drops} />
+		Bids (Optional): <Input type="number" name="bids" value={form?.returned.bids} />
+	</Label>
+	<Label>
+		N-Offset (Optional): <Input type="number" name="nOffset" value={form?.returned.nOffset} />
+	</Label>
+	<Label>
+		Drops (Optional): <Input type="number" name="drops" value={form?.returned.drops} />
 	</Label>
 	<Button type="submit">Save</Button>
 </form>
