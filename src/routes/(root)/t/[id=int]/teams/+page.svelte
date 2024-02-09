@@ -331,35 +331,37 @@
 </ConfirmModal>
 
 <Modal title="Add Team" bind:open={showAddTeam} autoclose outsideclose>
+	<P><span class="text-red-600">*</span> Indicates required field.</P>
+
 	<Label>
-		Team Number
+		Team Number: <span class="text-red-600">*</span>
 		<Input class="mt-2" type="text" required bind:value={addTeamData.number} />
 	</Label>
 	<Label>
-		School Name
+		School Name: <span class="text-red-600">*</span>
 		<Input class="mt-2" type="text" required bind:value={addTeamData.school} />
 	</Label>
 	<Label>
-		<div>School Abbreviation</div>
+		<div>School Abbreviation:</div>
 		<div class="text-sm">Optional, only if a school has a long name and common abbreviation.</div>
 		<Input class="mt-2" type="text" bind:value={addTeamData.abbreviation} />
 	</Label>
 	<Label>
-		<div>Team Name</div>
+		<div>Team Name:</div>
 		<div class="text-sm">Optional if a school only has one team.</div>
 		<Input class="mt-2" type="text" bind:value={addTeamData.suffix} />
 	</Label>
 	<Label>
-		City
+		City: <span class="text-red-600">*</span>
 		<Input class="mt-2" type="text" required bind:value={addTeamData.city} />
 	</Label>
 	<Label>
-		State
+		State: <span class="text-red-600">*</span>
 		<Select underline class="mt-2" items={states} bind:value={addTeamData.state} />
 	</Label>
 	{#if data.tournament.enableTracks}
 		<Label>
-			Track
+			Track:
 			<Select underline class="mt-2" items={tracks} bind:value={addTeamData.trackId} />
 		</Label>
 	{/if}
