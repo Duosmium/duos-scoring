@@ -267,7 +267,11 @@
 					break;
 				case 'status':
 					team.score.status.new = (e.target as HTMLSelectElement).value as any;
-					if (team.score.status.new === 'NOSHOW' || team.score.status.new === 'PARTICIPATION') {
+					if (
+						team.score.status.new === 'NOSHOW' ||
+						team.score.status.new === 'PARTICIPATION' ||
+						team.score.status.new === 'NA'
+					) {
 						team.score.rawScore.new = null;
 						team.score.tier.new = null;
 						team.score.tiebreak.new = null;
