@@ -55,11 +55,6 @@
 		{ value: 'NOSHOW', name: 'NS' },
 		{ value: 'DISQUALIFICATION', name: 'DQ' }
 	];
-	const scoreStatusesWhenScores = [
-		{ value: 'NA', name: 'N/A' },
-		{ value: 'COMPETED', name: 'CO' },
-		{ value: 'DISQUALIFICATION', name: 'DQ' }
-	];
 	const scoreAliases = [
 		{ value: 'NA', name: 'N/A' },
 		{ value: 'COMPETED', name: 'CO' },
@@ -272,6 +267,15 @@
 					break;
 				case 'status':
 					team.score.status.new = (e.target as HTMLSelectElement).value as any;
+					if (
+						team.score.status.new === 'NOSHOW' ||
+						team.score.status.new === 'PARTICIPATION' ||
+						team.score.status.new === 'NA'
+					) {
+						team.score.rawScore.new = null;
+						team.score.tier.new = null;
+						team.score.tiebreak.new = null;
+					}
 					break;
 				case 'notes':
 					team.score.notes.new = (e.target as HTMLTextAreaElement).value || null;
@@ -711,11 +715,7 @@
 		<TableBodyCell class="p-0">
 			<Select
 				disabled={locked}
-				items={team.score.rawScore.new != undefined ||
-				team.score.tier.new != undefined ||
-				team.score.tiebreak.new != undefined
-					? scoreStatusesWhenScores
-					: scoreStatuses}
+				items={scoreStatuses}
 				class={`rounded-none !bg-transparent w-20 p-2 !border-orange-500 ${
 					team.score.status.dirty ? '!border-2' : '!border-0'
 				}`}
