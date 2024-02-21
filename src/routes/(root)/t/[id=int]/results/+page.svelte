@@ -332,7 +332,7 @@
 <Heading tag="h2" class="w-fit">Results</Heading>
 
 <P
-	>Preview and export results on this page. Select the events you want to export, then use the
+	>Preview and export results on this page. Select the events you want to export with the checkboxes on the left, or check the top-most checkbox to check all the events. Then use the
 	"Preview" button to preview the results page, where you can download a PDF version. In order to
 	select an event, the event must be marked as audited by a tournament director or scoremaster.</P
 >
