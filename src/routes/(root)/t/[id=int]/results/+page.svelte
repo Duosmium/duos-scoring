@@ -338,7 +338,7 @@
 >
 
 <P
-	>To update/publish results to duosmium.org, email admin@duosmium.org.<P
+	>To update/publish results to duosmium.org, email admin@duosmium.org.</P
 >
 
 
