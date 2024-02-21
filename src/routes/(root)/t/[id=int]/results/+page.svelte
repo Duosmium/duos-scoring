@@ -337,6 +337,11 @@
 	select an event, the event must be marked as audited by a tournament director or scoremaster.</P
 >
 
+<P
+	>To update/publish results to duosmium.org, email admin@duosmium.org.<P
+>
+
+
 <Checkbox class="mb-4" bind:checked={exportHistos}>Export Histograms</Checkbox>
 
 <SelectableTable items={events} bind:selected cols={7}>
