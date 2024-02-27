@@ -498,7 +498,7 @@ export async function generatePdf(
 
 		// i apologize for all these ternary operators
 		const rankedTeams = event.placings
-			.filter((p) => (track ? p.team.track === track : true)) // use teams from the correct track
+			.filter((p) => (track ? p.team.track === track : true) && !p.team.exhibition) // use non-exhibition teams from the correct track
 			.sort(
 				(a, b) =>
 					(track
@@ -542,8 +542,8 @@ export async function generatePdf(
 			addPlacingSlides(
 				overallTitle,
 				interpreter.teams
-					// filter by track if necessary
-					.filter((t) => (track ? t.track === track : true))
+					// filter by track and exhibition if necessary
+					.filter((t) => (track ? t.track === track : true) && !t.exhibition)
 					// sort by rank
 					.sort((a, b) => (track ? a.trackRank - b.trackRank : a.rank - b.rank))
 					// filter by school if necessary
