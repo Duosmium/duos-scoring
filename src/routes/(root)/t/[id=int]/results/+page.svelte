@@ -255,6 +255,7 @@
 	let headerTextColor = '#353535';
 	let randomOrder = false;
 	let combineTracks = false;
+	let separateTracks = false;
 	let overallSchools = true;
 	let defaultImage: [string, [number, number]] | undefined = undefined;
 	let tournamentUrl =
@@ -289,6 +290,7 @@
 			headerTextColor,
 			randomOrder,
 			combineTracks,
+			separateTracks,
 			overallSchools,
 			tournamentUrl: qrCode ? tournamentUrl : ''
 		});
@@ -315,6 +317,7 @@
 				headerTextColor,
 				randomOrder,
 				combineTracks,
+				separateTracks,
 				overallSchools,
 				tournamentUrl: qrCode ? tournamentUrl : ''
 			}).then((url) => {
@@ -552,8 +555,12 @@
 					<input type="checkbox" bind:checked={randomOrder} />
 				</label>
 				<label
-					>Combine Tracks:
+					>Score Tracks Together:
 					<input type="checkbox" bind:checked={combineTracks} />
+				</label>
+				<label
+					>Group Events By Track:
+					<input type="checkbox" bind:checked={separateTracks} />
 				</label>
 				<label
 					>Rank Overall by Schools:

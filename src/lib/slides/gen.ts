@@ -1,7 +1,7 @@
 import { jsPDF } from 'jspdf';
 import { getPNG } from '@shortcm/qr-image/lib/png';
 import Interpreter from 'sciolyff/interpreter';
-import type { SciOlyFF, Team } from 'sciolyff/interpreter/types';
+import type { SciOlyFF, Team, Event } from 'sciolyff/interpreter/types';
 
 import './fonts/Roboto-Bold-normal';
 import './fonts/Roboto-Regular-normal';
@@ -95,6 +95,7 @@ export async function generatePdf(
 		headerTextColor: string;
 		randomOrder: boolean;
 		combineTracks: boolean;
+		separateTracks: boolean;
 		overallSchools: boolean;
 		tournamentUrl: string;
 	}
@@ -159,6 +160,7 @@ export async function generatePdf(
 
 	const randomOrder = options.randomOrder;
 	const combineTracks = options.combineTracks;
+	const separateTracks = options.separateTracks;
 	const overallSchools = options.overallSchools;
 
 	const tournamentUrl = options.tournamentUrl;
@@ -421,7 +423,7 @@ export async function generatePdf(
 	);
 
 	// create a list of events, with an event entry for each track
-	const events = [];
+	const events: Event[][] = [];
 	if (interpreter1.tournament.hasTracks && !combineTracks) {
 		interpreter1.tournament.tracks.forEach((track) => {
 			events.push(...interpreter1.events.map((e) => [e, track]));
@@ -438,12 +440,9 @@ export async function generatePdf(
 			events.push(...interpreter2.events.map((e) => [e]));
 		}
 	}
-	// sort (or shuffle) events
-	if (randomOrder) {
-		shuffleArray(events);
-	} else {
+	const sortEvents = (eventsList: Event[][]) => {
 		// this nonsense sorts the events by name, grouping non-trials (including trialed events) and trials separately
-		events.sort((a, b) =>
+		return eventsList.sort((a, b) =>
 			a[0].trial === b[0].trial
 				? (a[0].name + ' ' + a[0].tournament.division).localeCompare(
 						b[0].name + ' ' + b[0].tournament.division
@@ -452,6 +451,29 @@ export async function generatePdf(
 					? 1
 					: -1
 		);
+	};
+	// sort (or shuffle) events
+	if (randomOrder) {
+		shuffleArray(events);
+	} else if (
+		separateTracks &&
+		!combineTracks &&
+		(interpreter1?.tournament.hasTracks || interpreter2?.tournament.hasTracks)
+	) {
+		const newEvents: Event[][] = [];
+		interpreter1?.tournament.tracks
+			?.sort((a, b) => a.name.localeCompare(b.name))
+			.forEach((t) => {
+				newEvents.push(...sortEvents(events.filter(([e, track]) => track === t)));
+			});
+		interpreter2?.tournament.tracks
+			?.sort((a, b) => a.name.localeCompare(b.name))
+			.forEach((t) => {
+				newEvents.push(...sortEvents(events.filter(([e, track]) => track === t)));
+			});
+		events.splice(0, events.length, ...newEvents);
+	} else {
+		sortEvents(events);
 	}
 	// generate event placing slides
 	const placementOutline = doc.outline.add(null, 'Placements');
