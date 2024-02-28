@@ -21,6 +21,7 @@
 	import yaml from 'js-yaml';
 	import type { Tournament } from '@prisma/client';
 	import { generatePdf, getColor, getImage } from '$lib/slides/gen';
+	import printable from '$lib/slides/printable';
 
 	export let data: PageData;
 
@@ -325,6 +326,21 @@
 			});
 		}
 	}
+
+	let showPrintable = false;
+	let reversePrintable = true;
+	let printableHtml = '';
+	$: {
+		if (showPrintable) {
+			printableHtml = printable(generateSciolyFF(), '', {
+				combineTracks,
+				separateTracks,
+				overallSchools,
+				reverse: reversePrintable,
+				contentOnly: false
+			});
+		}
+	}
 </script>
 
 <Head
@@ -343,36 +359,57 @@
 
 <P>To update/publish results to duosmium.org, email admin@duosmium.org.</P>
 
-<Checkbox class="mb-4" bind:checked={exportHistos}>Export Histograms</Checkbox>
-
-<SelectableTable items={events} bind:selected cols={7}>
-	<svelte:fragment slot="buttons">
+<div class="w-full flex justify-between items-center flex-wrap mb-2">
+	<Checkbox class="mb-4" bind:checked={exportHistos}>Export Histograms</Checkbox>
+	<span class="space-x-4 flex items-center flex-wrap">
 		<Button
 			class="py-2 border border-green-700 hover:border-green-800 dark:border-green-600 dark:hover:border-green-700"
 			color="green"
+			disabled={selected.length === 0}
 			on:click={() => {
 				showPreview = true;
 			}}>Preview Results</Button
 		>
 		<Button
-			class="py-2 border border-purple-700 hover:border-purple-800 dark:border-purple-600 dark:hover:border-purple-700"
-			color="purple"
+			class="py-2 border border-yellow-400 hover:border-yellow-500"
+			color="yellow"
+			disabled={selected.length === 0}
 			on:click={() => {
 				showSlides = true;
 			}}>Slides</Button
+		>
+		<Button
+			class="py-2 border border-purple-700 hover:border-purple-800 dark:border-purple-600 dark:hover:border-purple-700"
+			color="purple"
+			disabled={selected.length === 0}
+			on:click={() => {
+				showPrintable = true;
+			}}>Printable Medals List</Button
 		>
 		<ButtonGroup class="space-x-px">
 			<Button color="blue" class="dark:hover:bg-blue-600 hover:bg-blue-700 !py-2" tag="div"
 				>SciolyFF</Button
 			>
-			<Button outline color="blue" class="!p-2" on:click={copySciolyFF}
-				><FileCopyOutline size="md" /></Button
+			<Button
+				outline
+				class="!p-2"
+				color="blue"
+				disabled={selected.length === 0}
+				on:click={copySciolyFF}><FileCopyOutline size="md" /></Button
 			>
-			<Button outline color="blue" class="!p-2" on:click={downloadSciolyFF}
-				><DownloadOutline size="md" /></Button
+			<Button
+				outline
+				class="!p-2"
+				color="blue"
+				disabled={selected.length === 0}
+				on:click={downloadSciolyFF}><DownloadOutline size="md" /></Button
 			>
 		</ButtonGroup>
-	</svelte:fragment>
+	</span>
+</div>
+
+<SelectableTable items={events} bind:selected cols={7}>
+	<svelte:fragment slot="buttons"></svelte:fragment>
 	<svelte:fragment slot="headers">
 		<TableHeadCell class="px-2">Event</TableHeadCell>
 		<TableHeadCell class="px-2">Medals</TableHeadCell>
@@ -570,6 +607,33 @@
 		</details>
 		<iframe title="Slides Preview" class="w-full h-[calc(100vh-200px)]" src={slidesURL} />
 	{/await}
+</Modal>
+
+<Modal title="Printable Medals List" bind:open={showPrintable} autoclose outsideclose size="xl">
+	<details>
+		<summary>Settings</summary>
+		<label
+			>Rank Overall By Schools:
+			<input type="checkbox" bind:checked={overallSchools} />
+		</label>
+		<label
+			>Score Tracks Together:
+			<input type="checkbox" bind:checked={combineTracks} />
+		</label>
+		<label
+			>Group Events By Track:
+			<input type="checkbox" bind:checked={separateTracks} />
+		</label>
+		<label
+			>Reverse Medal Order:
+			<input type="checkbox" bind:checked={reversePrintable} />
+		</label>
+	</details>
+	<iframe
+		title="Printable Medals List"
+		class="w-full h-[calc(100vh-200px)]"
+		srcdoc={printableHtml}
+	/>
 </Modal>
 
 <Modal title="Results Preview" bind:open={showPreview} autoclose outsideclose size="xl">
