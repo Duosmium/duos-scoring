@@ -258,6 +258,7 @@
 	let combineTracks = false;
 	let separateTracks = false;
 	let overallSchools = true;
+	let overallPoints = true;
 	let defaultImage: [string, [number, number]] | undefined = undefined;
 	let tournamentUrl =
 		'https://www.duosmium.org/results/' + generateFilename(data.tournament).trim() + '/';
@@ -293,6 +294,7 @@
 			combineTracks,
 			separateTracks,
 			overallSchools,
+			overallPoints,
 			tournamentUrl: qrCode ? tournamentUrl : ''
 		});
 	}
@@ -320,6 +322,7 @@
 				combineTracks,
 				separateTracks,
 				overallSchools,
+				overallPoints,
 				tournamentUrl: qrCode ? tournamentUrl : ''
 			}).then((url) => {
 				slidesURL = url;
@@ -540,6 +543,27 @@
 			<details>
 				<summary>Advanced</summary>
 				<label>
+					Shuffle Event Order:
+					<input type="checkbox" bind:checked={randomOrder} />
+				</label>
+				<label>
+					Score Tracks Together:
+					<input type="checkbox" bind:checked={combineTracks} />
+				</label>
+				<label>
+					Group Events By Track:
+					<input type="checkbox" bind:checked={separateTracks} />
+				</label>
+				<label>
+					Rank Overall by Schools:
+					<input type="checkbox" bind:checked={overallSchools} />
+				</label>
+				<label>
+					Display Overall Point Totals:
+					<input type="checkbox" bind:checked={overallPoints} />
+				</label>
+
+				<label>
 					Header Text Color:
 					<input type="color" bind:value={headerTextColor} />
 				</label>
@@ -586,22 +610,6 @@
 				<label>
 					Divider Offset:
 					<input type="number" bind:value={dividerOffset} />
-				</label>
-				<label
-					>Shuffle Event Order:
-					<input type="checkbox" bind:checked={randomOrder} />
-				</label>
-				<label
-					>Score Tracks Together:
-					<input type="checkbox" bind:checked={combineTracks} />
-				</label>
-				<label
-					>Group Events By Track:
-					<input type="checkbox" bind:checked={separateTracks} />
-				</label>
-				<label
-					>Rank Overall by Schools:
-					<input type="checkbox" bind:checked={overallSchools} />
 				</label>
 			</details>
 		</details>

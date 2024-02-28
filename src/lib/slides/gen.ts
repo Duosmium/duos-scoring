@@ -97,6 +97,7 @@ export async function generatePdf(
 		combineTracks: boolean;
 		separateTracks: boolean;
 		overallSchools: boolean;
+		overallPoints: boolean;
 		tournamentUrl: string;
 	}
 ) {
@@ -165,6 +166,7 @@ export async function generatePdf(
 	const combineTracks = options.combineTracks;
 	const separateTracks = options.separateTracks;
 	const overallSchools = options.overallSchools;
+	const overallPoints = options.overallPoints;
 
 	const tournamentUrl = options.tournamentUrl;
 
@@ -367,7 +369,7 @@ export async function generatePdf(
 					baseline: 'middle',
 					lineHeightFactor: teamLineHeight
 				});
-				if (overall && !schoolOnly) {
+				if (overall && overallPoints) {
 					doc.setFontSize(teamFontSize * 0.75);
 					doc.setFont('Roboto-Light');
 					doc.text(
