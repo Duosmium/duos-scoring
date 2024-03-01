@@ -13,7 +13,7 @@
 				start: data.histograms.start,
 				width: data.histograms.width,
 				count: data.histograms.counts
-		  }
+			}
 		: null;
 
 	const labels = histogramData
@@ -21,7 +21,7 @@
 				(histogramData.start + histogramData.width * i).toFixed(
 					histogramData.width.toString().split('.')[1]?.length || 0
 				)
-		  )
+			)
 		: null;
 
 	let chart: HTMLDivElement;
