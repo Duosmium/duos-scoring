@@ -165,7 +165,9 @@
 				throw new Error(`${res.status} ${res.statusText}`);
 			}
 			const data = await res.text();
-			return data;
+			return data
+				.replace('/main.css', 'https://www.duosmium.org/main.css')
+				.replace('/main.js', 'https://www.duosmium.org/main.js');
 		} catch (e) {
 			return `<!doctype html><html><body>
           <style>body,html {
@@ -236,6 +238,16 @@
 		}
 		output += '_' + tournament.division.toLowerCase();
 		return output;
+	}
+
+	let printPreview: HTMLIFrameElement;
+	async function printPdf() {
+		const content = await generatePreview();
+		printPreview.contentDocument?.write(content);
+		printPreview.contentDocument?.close();
+		printPreview.contentWindow?.print();
+		printPreview.contentDocument?.write('');
+		printPreview.contentDocument?.close();
 	}
 
 	let tournamentLogo = '';
@@ -365,14 +377,25 @@
 <div class="w-full flex justify-between items-center flex-wrap mb-2">
 	<Checkbox class="mb-4" bind:checked={exportHistos}>Export Histograms</Checkbox>
 	<span class="space-x-4 flex items-center flex-wrap">
-		<Button
-			class="py-2 border border-green-700 hover:border-green-800 dark:border-green-600 dark:hover:border-green-700"
-			color="green"
-			disabled={selected.length === 0}
-			on:click={() => {
-				showPreview = true;
-			}}>Preview Results</Button
-		>
+		<ButtonGroup class="space-x-px">
+			<Button
+				class="py-2 border border-green-700 hover:border-green-800 dark:border-green-600 dark:hover:border-green-700"
+				color="green"
+				disabled={selected.length === 0}
+				on:click={() => {
+					showPreview = true;
+				}}>Website</Button
+			>
+			<Button
+				class="py-2 border border-green-700 hover:border-green-800 dark:border-green-600 dark:hover:border-green-700"
+				color="green"
+				disabled={selected.length === 0}
+				on:click={() => {
+					addToastMessage('Generating PDF...', 'success');
+					printPdf();
+				}}>PDF</Button
+			>
+		</ButtonGroup>
 		<Button
 			class="py-2 border border-yellow-400 hover:border-yellow-500"
 			color="yellow"
@@ -664,15 +687,20 @@
 			</span>
 		</div>
 	{:then previewContent}
-		<iframe
-			title="Results Preview"
-			class="w-full h-[calc(100vh-200px)]"
-			srcdoc={previewContent
-				.replace('/main.css', 'https://www.duosmium.org/main.css')
-				.replace('/main.js', 'https://www.duosmium.org/main.js')}
-		/>
+		<iframe title="Results Preview" class="w-full h-[calc(100vh-200px)]" srcdoc={previewContent} />
 	{/await}
 </Modal>
+
+{#await generatePreview()}
+	<!-- nothing here -->
+{:then previewContent}
+	<iframe
+		title="Results Preview"
+		class="w-full h-[calc(100vh-200px)] invisible"
+		bind:this={printPreview}
+		srcdoc={previewContent}
+	/>
+{/await}
 
 <style>
 	label {
