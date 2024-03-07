@@ -9,6 +9,8 @@
 		Button,
 		ButtonGroup,
 		Checkbox,
+		Dropdown,
+		DropdownItem,
 		Heading,
 		Modal,
 		P,
@@ -16,7 +18,7 @@
 		TableHeadCell,
 		Tooltip
 	} from 'flowbite-svelte';
-	import { DownloadOutline, FileCopyOutline } from 'flowbite-svelte-icons';
+	import { ChevronDownSolid } from 'flowbite-svelte-icons';
 	import { page } from '$app/stores';
 	import yaml from 'js-yaml';
 	import type { Tournament } from '@prisma/client';
@@ -356,6 +358,30 @@
 			});
 		}
 	}
+
+	function downloadRaws() {
+		const header = ['Team #', 'Name'].concat(...data.events.map((e) => e.name));
+		const body = data.teams.map((t) => [
+			t.number,
+			t.school + (t.suffix ? ` ${t.suffix}` : ''),
+			...data.events.map((e) => {
+				const score = e.scores.find((s) => s.teamId === t.id);
+				return ['NOSHOW', 'DISQUALIFICATION', 'PARTICIPATION'].includes(score?.status ?? '')
+					? score?.status ?? ''
+					: score?.rawScore ?? '';
+			})
+		]);
+		const csv = [header, ...body].map((row) => row.join(',')).join('\n');
+		const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = generateFilename(data.tournament).trim() + '_RAW_SCORES.csv';
+		a.hidden = true;
+		document.body.appendChild(a);
+		a.click();
+		a.remove();
+		URL.revokeObjectURL(url);
+	}
 </script>
 
 <Head
@@ -412,25 +438,23 @@
 				showPrintable = true;
 			}}>Printable Medals List</Button
 		>
-		<ButtonGroup class="space-x-px">
-			<Button color="blue" class="dark:hover:bg-blue-600 hover:bg-blue-700 !py-2" tag="div"
-				>SciolyFF</Button
+
+		<Button
+			color="blue"
+			class="py-1.5 border border-blue-700 hover:border-blue-800 dark:border-blue-600 dark:hover:border-blue-700"
+			>Other <ChevronDownSolid class="w-6 h-6 fill-transparent" /></Button
+		>
+		<Dropdown class="dark:bg-gray-800">
+			<DropdownItem disabled={selected.length === 0} on:click={downloadRaws}
+				>Export Raw Scores Only</DropdownItem
 			>
-			<Button
-				outline
-				class="!p-2"
-				color="blue"
-				disabled={selected.length === 0}
-				on:click={copySciolyFF}><FileCopyOutline size="md" /></Button
+			<DropdownItem disabled={selected.length === 0} on:click={copySciolyFF}
+				>Copy SciolyFF</DropdownItem
 			>
-			<Button
-				outline
-				class="!p-2"
-				color="blue"
-				disabled={selected.length === 0}
-				on:click={downloadSciolyFF}><DownloadOutline size="md" /></Button
+			<DropdownItem disabled={selected.length === 0} on:click={downloadSciolyFF}
+				>Download SciolyFF</DropdownItem
 			>
-		</ButtonGroup>
+		</Dropdown>
 	</span>
 </div>
 
