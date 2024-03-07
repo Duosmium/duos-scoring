@@ -34,7 +34,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		roles,
 		teams,
 		tracks,
-		rankings: [...rankingsByTeam.values()],
+		rankings: [...rankingsByTeam.values()].flat(),
 		histos
 	};
 };

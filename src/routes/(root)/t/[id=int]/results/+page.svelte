@@ -21,6 +21,7 @@
 	import { ChevronDownSolid } from 'flowbite-svelte-icons';
 	import { page } from '$app/stores';
 	import yaml from 'js-yaml';
+	import * as zip from '@zip.js/zip.js';
 	import type { Tournament } from '@prisma/client';
 	import { generatePdf, getColor, getImage } from '$lib/slides/gen';
 	import printable from '$lib/slides/printable';
@@ -109,26 +110,20 @@
 				track: t.tracks?.name ?? undefined,
 				exhibition: t.exhibition || undefined
 			})),
-			Placings: data.rankings.flatMap((r) =>
-				r.flatMap((s) =>
-					selectedEvents.has(s.event.id)
-						? [
-								{
-									team: s.team.number,
-									event: s.event.name,
-									participated:
-										s.ranking === 'PARTICIPATION'
-											? true
-											: s.ranking === 'NOSHOW'
-												? false
-												: undefined,
-									disqualified: s.status === 'DISQUALIFICATION' ? true : undefined,
-									place: typeof s.ranking === 'number' ? s.ranking : undefined,
-									tie: s.tie || undefined
-								}
-							]
-						: []
-				)
+			Placings: data.rankings.flatMap((s) =>
+				selectedEvents.has(s.event.id)
+					? [
+							{
+								team: s.team.number,
+								event: s.event.name,
+								participated:
+									s.ranking === 'PARTICIPATION' ? true : s.ranking === 'NOSHOW' ? false : undefined,
+								disqualified: s.status === 'DISQUALIFICATION' ? true : undefined,
+								place: typeof s.ranking === 'number' ? s.ranking : undefined,
+								tie: s.tie || undefined
+							}
+						]
+					: []
 			),
 			Penalties:
 				data.teams.flatMap((t) =>
@@ -360,7 +355,7 @@
 	}
 
 	function downloadRaws() {
-		const header = ['Team #', 'Name'].concat(...data.events.map((e) => e.name));
+		const header = ['Team #', 'Team'].concat(...data.events.map((e) => e.name));
 		const body = data.teams.map((t) => [
 			t.number,
 			t.school + (t.suffix ? ` ${t.suffix}` : ''),
@@ -376,6 +371,56 @@
 		const a = document.createElement('a');
 		a.href = url;
 		a.download = generateFilename(data.tournament).trim() + '_RAW_SCORES.csv';
+		a.hidden = true;
+		document.body.appendChild(a);
+		a.click();
+		a.remove();
+		URL.revokeObjectURL(url);
+	}
+
+	async function downloadEventZip() {
+		const blobWriter = new zip.BlobWriter('application/zip');
+		const writer = new zip.ZipWriter(blobWriter);
+
+		await Promise.all(
+			data.events.map(async (event) => {
+				const header = [
+					'Team #',
+					'Team',
+					'Raw Score',
+					'Tier',
+					'Tiebreak',
+					'Status',
+					'Ranking',
+					'Notes'
+				];
+				const body = data.teams.map((t) => {
+					const s = event.scores.find((s) => s.teamId === t.id);
+					return [
+						t.number,
+						t.school + (t.suffix ? ` ${t.suffix}` : ''),
+						s?.rawScore ?? '',
+						s?.tier ?? '',
+						s?.tiebreak ?? '',
+						s?.status ?? '',
+						data.rankings.find((r) => r.teamId === t.id && r.event.id === event.id)?.ranking ?? '',
+						s?.notes ?? ''
+					];
+				});
+				const csv = [header, ...body].map((row) => row.join(',')).join('\n');
+				await writer.add(
+					`${event.name}.csv`,
+					new zip.BlobReader(new Blob([csv], { type: 'text/csv' }))
+				);
+			})
+		);
+
+		await writer.close();
+		const blob = await blobWriter.getData();
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = generateFilename(data.tournament).trim() + '_ALL_SCORES.zip';
 		a.hidden = true;
 		document.body.appendChild(a);
 		a.click();
@@ -447,6 +492,9 @@
 		<Dropdown class="dark:bg-gray-800">
 			<DropdownItem disabled={selected.length === 0} on:click={downloadRaws}
 				>Export Raw Scores Only</DropdownItem
+			>
+			<DropdownItem disabled={selected.length === 0} on:click={downloadEventZip}
+				>Export All Event Data</DropdownItem
 			>
 			<DropdownItem disabled={selected.length === 0} on:click={copySciolyFF}
 				>Copy SciolyFF</DropdownItem
