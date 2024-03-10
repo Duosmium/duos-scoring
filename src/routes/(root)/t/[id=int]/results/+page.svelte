@@ -455,7 +455,7 @@
 				disabled={selected.length === 0}
 				on:click={() => {
 					showPreview = true;
-				}}>Website</Button
+				}}>Scoreboard</Button
 			>
 			<Button
 				class="py-2 border border-green-700 hover:border-green-800 dark:border-green-600 dark:hover:border-green-700"
