@@ -517,21 +517,22 @@ export async function generatePdf(
 	}
 
 	// create a list of events, with an event entry for each track
-	const events: [Event, Track | null][] = [];
+	const events1: [Event, Track | null][] = [];
 	if (interpreter1.tournament.hasTracks && !combineTracks) {
 		interpreter1.tournament.tracks?.forEach((track) => {
-			events.push(...interpreter1.events.map((e) => [e, track] as [Event, Track]));
+			events1.push(...interpreter1.events.map((e) => [e, track] as [Event, Track]));
 		});
 	} else {
-		events.push(...interpreter1!.events.map((e) => [e, null] as [Event, null]));
+		events1.push(...interpreter1!.events.map((e) => [e, null] as [Event, null]));
 	}
+	const events2: [Event, Track | null][] = [];
 	if (interpreter2) {
 		if (interpreter2.tournament.hasTracks && !combineTracks) {
 			interpreter2.tournament.tracks?.forEach((track) => {
-				events.push(...interpreter2.events.map((e) => [e, track] as [Event, Track]));
+				events2.push(...interpreter2.events.map((e) => [e, track] as [Event, Track]));
 			});
 		} else {
-			events.push(...interpreter2.events.map((e) => [e, null] as [Event, null]));
+			events2.push(...interpreter2.events.map((e) => [e, null] as [Event, null]));
 		}
 	}
 
@@ -574,7 +575,7 @@ export async function generatePdf(
 				const outline = doc.outline.add(null, 'Placements - ' + t.name, {
 					pageNumber: doc.getNumberOfPages()
 				});
-				addEventSlides(sortEvents(events.filter(([_, track]) => track === t)), outline);
+				addEventSlides(sortEvents(events1.filter(([_, track]) => track === t)), outline);
 				if (!eventsOnly) {
 					addOverallSlides(interpreter1, t);
 				}
@@ -585,7 +586,7 @@ export async function generatePdf(
 				const outline = doc.outline.add(null, 'Placements - ' + t.name, {
 					pageNumber: doc.getNumberOfPages()
 				});
-				addEventSlides(sortEvents(events.filter(([_, track]) => track === t)), outline);
+				addEventSlides(sortEvents(events2.filter(([_, track]) => track === t)), outline);
 				if (!eventsOnly) {
 					addOverallSlides(interpreter2, t);
 				}
@@ -594,6 +595,7 @@ export async function generatePdf(
 		const outline = doc.outline.add(null, 'Placements', {
 			pageNumber: doc.getNumberOfPages()
 		});
+		const events = events1.concat(...events2);
 		shuffleArray(events);
 		addEventSlides(events, outline);
 		if (!eventsOnly) {
@@ -604,7 +606,19 @@ export async function generatePdf(
 		const outline = doc.outline.add(null, 'Placements', {
 			pageNumber: doc.getNumberOfPages()
 		});
-		addEventSlides(sortEvents(events), outline);
+		sortEvents(events1);
+		sortEvents(events2);
+		// alternate B/C event slides
+		const events = Array(events1.length + events2.length)
+			.fill(0)
+			.map((_, i) => {
+				if (i % 2 === 0) {
+					return events1[i / 2] || events2[i / 2];
+				} else {
+					return events2[(i - 1) / 2] || events1[(i - 1) / 2];
+				}
+			});
+		addEventSlides(events, outline);
 		if (!eventsOnly) {
 			genOverall(interpreter1);
 			if (interpreter2) genOverall(interpreter2);
