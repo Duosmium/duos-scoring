@@ -14,6 +14,7 @@
 		Heading,
 		Modal,
 		P,
+		Select,
 		TableBodyCell,
 		TableHeadCell,
 		Tooltip
@@ -40,6 +41,24 @@
 		initiallyChecked: e.scores.length === data.teams.length
 	}));
 	let selected: typeof events = [];
+
+	let sortBy = 'event';
+	$: {
+		events = events.sort((a, b) => {
+			switch (sortBy) {
+				case 'event':
+					return a.name.localeCompare(b.name);
+				case 'scoresIn':
+					return a.scores.length - b.scores.length;
+				case 'auditor':
+					return (a.audited?.name ?? '').localeCompare(b.audited?.name ?? '');
+				case 'auditTime':
+					return (b.auditedAt?.getTime() ?? 0) - (a.auditedAt?.getTime() ?? 0);
+				default:
+					return 0;
+			}
+		});
+	}
 
 	let exportHistos = false;
 
@@ -451,6 +470,16 @@
 <div class="w-full flex justify-between items-center flex-wrap mb-2">
 	<Checkbox class="mb-4" bind:checked={exportHistos}>Export Histograms</Checkbox>
 	<span class="space-x-4 flex items-center flex-wrap">
+		<Select
+			class="w-36"
+			items={[
+				{ value: 'event', name: 'By Event' },
+				{ value: 'scoresIn', name: 'By Scores In' },
+				{ value: 'auditor', name: 'By Auditor' },
+				{ value: 'auditTime', name: 'By Audit Time' }
+			]}
+			bind:value={sortBy}
+		/>
 		<ButtonGroup class="space-x-px">
 			<Button
 				class="py-2 border border-green-700 hover:border-green-800 dark:border-green-600 dark:hover:border-green-700"
@@ -554,9 +583,11 @@
 	</svelte:fragment>
 </SelectableTable>
 
-{#each roles as { user }}
-	<Tooltip triggeredBy={`.user_${user.id}`}>{user.name}</Tooltip>
-{/each}
+{#key events}
+	{#each roles as { user }}
+		<Tooltip triggeredBy={`.user_${user.id}`}>{user.name}</Tooltip>
+	{/each}
+{/key}
 
 <Modal
 	title={events.find((e) => e.id === histoEvent)?.name}
