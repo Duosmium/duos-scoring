@@ -1,0 +1,5 @@
+<table>
+	<tbody>
+		<slot />
+	</tbody>
+</table>

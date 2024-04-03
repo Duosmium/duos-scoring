@@ -25,6 +25,7 @@
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
+	import { stringify } from 'postcss';
 
 	export let data: PageData;
 
@@ -80,6 +81,11 @@
 		{ value: 'WI', name: 'Wisconsin' },
 		{ value: 'WY', name: 'Wyoming' }
 	];
+	const stateLookup = states.reduce(
+		(a, s) => a.set(s.name.toLowerCase(), s.value),
+		new Map<string, string>()
+	);
+
 	$: tracks = [{ value: '', name: 'None' }].concat(
 		data.tracks.map((track) => ({
 			value: track.id.toString(),
@@ -120,7 +126,7 @@
 		// TODO: validation, canonicalization
 		const payloadData = {
 			...addTeamData,
-			number: parseInt(addTeamData.number as any),
+			number: parseInt(/\d+/.exec(addTeamData.number as any)?.[0] ?? ''),
 			trackId: addTeamData.trackId?.toString() || null
 		};
 		fetch(`/t/${$page.params['id']}/teams`, {
@@ -193,8 +199,10 @@
 	}[] = [];
 	let parsedError = '';
 	$: {
+		parsedError = '';
 		parsedImportTeams = papaparse.parse(importTeamsData, { header: true }).data as any;
 		const missingFields: Set<string> = new Set();
+		const invalidStates: Set<string> = new Set();
 		// TODO: validate numbers, suffix, exhibition; canonicalization
 		parsedImportTeams.forEach((t) => {
 			if (!importGenerateNumbers && !t.Number) {
@@ -206,15 +214,26 @@
 			if (!t.State) {
 				missingFields.add('State');
 			}
+			if (!stateLookup.has(t.State.toLowerCase()) && ![...stateLookup.values()].includes(t.State)) {
+				invalidStates.add(t.State);
+			}
 		});
 		if (missingFields.size > 0) {
-			parsedError = `Missing fields: ${[...missingFields].join(', ')}`;
-		} else {
-			parsedError = '';
+			parsedError += `Missing fields: ${[...missingFields].join(', ')}\n`;
 		}
-		if (importGenerateNumbers) {
+		if (invalidStates.size > 0) {
+			parsedError = `Invalid states: ${[...invalidStates].join(', ')}\n`;
+		}
+		if (!parsedError) {
 			parsedImportTeams.forEach((t, i) => {
-				t.Number = (nextNumber + i).toString();
+				if (importGenerateNumbers) {
+					t.Number = (nextNumber + i).toString();
+				} else {
+					t.Number = parseInt(/\d+/.exec(t.Number)?.[0] ?? '').toString();
+				}
+				if (stateLookup.has(t.State.toLowerCase())) {
+					t.State = stateLookup.get(t.State.toLowerCase()) ?? t.State;
+				}
 			});
 		}
 	}

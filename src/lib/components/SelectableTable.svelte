@@ -10,14 +10,14 @@
 		Button
 	} from 'flowbite-svelte';
 
-	type T = $$Generic<{ id: any; disabled?: boolean }>;
+	type T = $$Generic<{ id: any; disabled?: boolean; initiallyChecked?: boolean }>;
 
 	export let cols: number;
 	export let items: T[];
 	export let selected: typeof items;
 	$: selected = items.filter((item) => checked.get(item.id));
 
-	let checked = new Map(items.map((item) => [item.id, false]));
+	let checked = new Map(items.map((item) => [item.id, !!item.initiallyChecked]));
 
 	$: checked = items.reduce((acc, cur) => {
 		if (acc.has(cur.id)) return acc;
