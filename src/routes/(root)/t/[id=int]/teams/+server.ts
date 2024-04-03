@@ -64,7 +64,10 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 		trackId: team.trackId ? BigInt(team.trackId) : null
 	}));
 
-	await addTeams(params.id, data);
+	const status = await addTeams(params.id, data);
 
+	if (!status) {
+		return new Response('failed to add teams', { status: 500 });
+	}
 	return new Response('ok');
 };

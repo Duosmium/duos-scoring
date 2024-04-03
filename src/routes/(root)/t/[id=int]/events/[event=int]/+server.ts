@@ -50,23 +50,27 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 		return new Response('unauthorized user', { status: 403 });
 
 	const eventId = BigInt(params.event);
+	let status: boolean;
 	if (payload.audited === true) {
-		await updateEvent(eventId, {
+		status = await updateEvent(eventId, {
 			auditedUserId: user.id
 		});
 	} else if (payload.locked === false && event.auditedUserId != undefined) {
-		await updateEvent(eventId, {
+		status = await updateEvent(eventId, {
 			auditedUserId: null,
 			locked: false
 		});
 	} else {
-		await updateEvent(eventId, {
+		status = await updateEvent(eventId, {
 			highScoring: payload.highScoring ? payload.highScoring === 'true' : undefined,
 			medals: payload.medals ?? undefined,
 			locked: payload.locked ?? undefined
 		});
 	}
 
+	if (!status) {
+		return new Response('error updating event', { status: 500 });
+	}
 	return new Response('ok');
 };
 
@@ -131,9 +135,12 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 		[[], [], []] as [Omit<Score, 'id'>[], Score[], bigint[]]
 	);
 
-	await addScores(newScores);
-	await updateScores(existingScores);
-	await deleteScores(scoresToDelete);
+	const addSuccess = await addScores(newScores);
+	const updateSuccess = await updateScores(existingScores);
+	const deleteSuccess = await deleteScores(scoresToDelete);
 
+	if (!addSuccess || !updateSuccess || !deleteSuccess) {
+		return new Response('error updating scores', { status: 500 });
+	}
 	return new Response('ok');
 };

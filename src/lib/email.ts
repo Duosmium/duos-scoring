@@ -42,5 +42,7 @@ export async function sendInvite(
 	} catch (err) {
 		console.error(err);
 		error(500, 'Failed to send email!');
+		return false;
 	}
+	return true;
 }

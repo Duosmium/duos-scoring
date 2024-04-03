@@ -38,13 +38,18 @@ export const DELETE: RequestHandler = async ({ request, locals, params }) => {
 		return new Response('invalid invites', { status: 400 });
 	}
 
+	let memberStatus: boolean | undefined = undefined;
+	let inviteStatus: boolean | undefined = undefined;
 	if (payload.members) {
-		await deleteMembers(params.id, payload.members);
+		memberStatus = await deleteMembers(params.id, payload.members);
 	}
 	if (payload.invites) {
-		await deleteInvites(payload.invites);
+		inviteStatus = await deleteInvites(payload.invites);
 	}
 
+	if (memberStatus === false || inviteStatus === false) {
+		return new Response('failed to delete', { status: 500 });
+	}
 	return new Response('ok');
 };
 
@@ -97,19 +102,24 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 		return new Response('invalid events', { status: 400 });
 	}
 
+	let memberStatus: boolean | undefined = undefined;
+	let inviteStatus: boolean | undefined = undefined;
 	if (payload.member) {
-		await updateMember(params.id, payload.member.userId, {
+		memberStatus = await updateMember(params.id, payload.member.userId, {
 			events: payload.member.events?.map((e) => BigInt(e)),
 			role: payload.member.role
 		});
 	}
 	if (payload.invite) {
-		await updateInvite(
+		inviteStatus = await updateInvite(
 			payload.invite.link,
 			payload.invite.events.map((e) => BigInt(e))
 		);
 	}
 
+	if (memberStatus === false || inviteStatus === false) {
+		return new Response('failed to update', { status: 500 });
+	}
 	return new Response('ok');
 };
 
@@ -146,23 +156,28 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
 
 	await createInvites(params.id, invites);
 
-	await Promise.all(
-		invites.map(
-			(invite, i) =>
-				new Promise((res, rej) => {
-					if (invite.email) {
-						setTimeout(() => {
-							sendInvite(
-								invite.email as string,
-								invite.link,
-								`${locals.tournament?.year} ${locals.tournament?.shortName} ${locals.tournament?.division}`,
-								invite.events?.map((e) => events.get(e) ?? '')
-							).then(res, rej);
-						}, i * 90);
-					}
-				})
+	const status = (
+		await Promise.all(
+			invites.map(
+				(invite, i) =>
+					new Promise<boolean>((res, rej) => {
+						if (invite.email) {
+							setTimeout(() => {
+								sendInvite(
+									invite.email as string,
+									invite.link,
+									`${locals.tournament?.year} ${locals.tournament?.shortName} ${locals.tournament?.division}`,
+									invite.events?.map((e) => events.get(e) ?? '')
+								).then(res, rej);
+							}, i * 90);
+						}
+					})
+			)
 		)
-	);
+	).every((b) => b);
 
+	if (!status) {
+		return new Response('failed to send invites', { status: 500 });
+	}
 	return new Response('ok');
 };

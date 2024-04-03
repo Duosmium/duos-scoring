@@ -40,14 +40,19 @@ export async function updateTournament(
 	if (typeof tournamentId === 'string') {
 		tournamentId = BigInt(tournamentId);
 	}
-	await prisma.tournament.update({
-		where: {
-			id: tournamentId
-		},
-		data: {
-			...tournament
-		}
-	});
+	try {
+		await prisma.tournament.update({
+			where: {
+				id: tournamentId
+			},
+			data: {
+				...tournament
+			}
+		});
+	} catch (e) {
+		return false;
+	}
+	return true;
 }
 
 export async function createInvites(
@@ -79,6 +84,7 @@ export async function createInvites(
 	} catch (e) {
 		return false;
 	}
+	return true;
 }
 
 export async function getInvite(link: string) {
@@ -94,6 +100,7 @@ export async function getInvite(link: string) {
 	} catch (e) {
 		return false;
 	}
+	return true;
 }
 
 export async function updateInvite(link: string, events: bigint[]) {
@@ -111,6 +118,7 @@ export async function updateInvite(link: string, events: bigint[]) {
 	} catch (e) {
 		return false;
 	}
+	return true;
 }
 
 export async function deleteInvites(invites: string[]) {
@@ -125,6 +133,7 @@ export async function deleteInvites(invites: string[]) {
 	} catch (e) {
 		return false;
 	}
+	return true;
 }
 
 export async function updateMember(
@@ -161,6 +170,7 @@ export async function updateMember(
 	} catch (e) {
 		return false;
 	}
+	return true;
 }
 
 export async function deleteMembers(tournamentId: bigint | string, members: string[]) {
@@ -181,6 +191,7 @@ export async function deleteMembers(tournamentId: bigint | string, members: stri
 	} catch (e) {
 		return false;
 	}
+	return true;
 }
 
 export async function getEvent(id: bigint) {
@@ -221,6 +232,7 @@ export async function addEvents(
 	} catch (e) {
 		return false;
 	}
+	return true;
 }
 
 export async function updateEvent(
@@ -270,6 +282,7 @@ export async function updateEvent(
 	} catch (e) {
 		return false;
 	}
+	return true;
 }
 
 export async function deleteEvent(eventId: bigint) {
@@ -282,6 +295,7 @@ export async function deleteEvent(eventId: bigint) {
 	} catch (e) {
 		return false;
 	}
+	return true;
 }
 
 export async function addTeams(tournamentId: bigint | string, teams: Team[]) {
@@ -298,6 +312,7 @@ export async function addTeams(tournamentId: bigint | string, teams: Team[]) {
 	} catch (e) {
 		return false;
 	}
+	return true;
 }
 
 export async function updateTeam(teamId: bigint, team: Partial<Team>) {
@@ -313,6 +328,7 @@ export async function updateTeam(teamId: bigint, team: Partial<Team>) {
 	} catch (e) {
 		return false;
 	}
+	return true;
 }
 
 export async function deleteTeam(teamId: bigint) {
@@ -325,6 +341,7 @@ export async function deleteTeam(teamId: bigint) {
 	} catch (e) {
 		return false;
 	}
+	return true;
 }
 
 export async function addTracks(tournamentId: bigint | string, tracks: Track[]) {
@@ -341,6 +358,7 @@ export async function addTracks(tournamentId: bigint | string, tracks: Track[]) 
 	} catch (e) {
 		return false;
 	}
+	return true;
 }
 
 export async function updateTrack(trackId: bigint, track: Partial<Track>) {
@@ -356,6 +374,7 @@ export async function updateTrack(trackId: bigint, track: Partial<Track>) {
 	} catch (e) {
 		return false;
 	}
+	return true;
 }
 
 export async function deleteTrack(trackId: bigint) {
@@ -368,6 +387,7 @@ export async function deleteTrack(trackId: bigint) {
 	} catch (e) {
 		return false;
 	}
+	return true;
 }
 
 export async function getUserInfo(userId: string) {
@@ -558,6 +578,7 @@ export async function updateScores(scores: Partial<Score>[]) {
 	} catch (e) {
 		return false;
 	}
+	return true;
 }
 
 export async function addScores(scores: Omit<Score, 'id'>[]) {
@@ -568,6 +589,7 @@ export async function addScores(scores: Omit<Score, 'id'>[]) {
 	} catch (e) {
 		return false;
 	}
+	return true;
 }
 
 export async function deleteScores(scores: bigint[]) {
@@ -580,4 +602,5 @@ export async function deleteScores(scores: bigint[]) {
 	} catch (e) {
 		return false;
 	}
+	return true;
 }

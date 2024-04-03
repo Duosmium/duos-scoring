@@ -23,8 +23,11 @@ export const DELETE: RequestHandler = async ({ request, params, locals }) => {
 		return new Response('missing event', { status: 404 });
 	}
 
-	await Promise.all(events.map((eventId) => deleteEvent(eventId)));
+	const status = (await Promise.all(events.map((eventId) => deleteEvent(eventId)))).every((b) => b);
 
+	if (!status) {
+		return new Response('failed to delete', { status: 500 });
+	}
 	return new Response('ok');
 };
 
@@ -50,13 +53,16 @@ export const PATCH: RequestHandler = async ({ request, locals, params }) => {
 		return new Response('invalid medals', { status: 400 });
 
 	const eventId = BigInt(payload.event);
-	await updateEvent(eventId, {
+	const status = await updateEvent(eventId, {
 		name: payload.name,
 		trialStatus: payload.trialStatus,
 		highScoring: payload.highScoring ? payload.highScoring === 'true' : undefined,
 		medals: payload.medals
 	});
 
+	if (!status) {
+		return new Response('error updating event', { status: 500 });
+	}
 	return new Response('ok');
 };
 
@@ -78,7 +84,7 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 	if (payload.medals && typeof payload.medals !== 'number')
 		return new Response('invalid medals', { status: 400 });
 
-	await addEvents(params.id, [
+	const status = await addEvents(params.id, [
 		{
 			name: payload.name,
 			trialStatus: payload.trialStatus,
@@ -87,5 +93,8 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 		}
 	]);
 
+	if (!status) {
+		return new Response('error adding event', { status: 500 });
+	}
 	return new Response('ok');
 };

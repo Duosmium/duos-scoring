@@ -12,7 +12,10 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 		return new Response('invalid payload', { status: 400 });
 	}
 
-	await updateTournament(params.id, payload);
+	const status = await updateTournament(params.id, payload);
 
+	if (!status) {
+		return new Response('failed to update', { status: 500 });
+	}
 	return new Response('ok');
 };

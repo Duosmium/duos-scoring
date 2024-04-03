@@ -23,8 +23,11 @@ export const DELETE: RequestHandler = async ({ request, locals, params }) => {
 		return new Response('missing track', { status: 404 });
 	}
 
-	await Promise.all(tracks.map((trackId) => deleteTrack(trackId)));
+	const status = (await Promise.all(tracks.map((trackId) => deleteTrack(trackId)))).every((b) => b);
 
+	if (!status) {
+		return new Response('failed to delete', { status: 500 });
+	}
 	return new Response('ok');
 };
 
@@ -44,8 +47,11 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 	}
 
 	const trackId = BigInt(payload.id);
-	await updateTrack(trackId, payload.data);
+	const status = await updateTrack(trackId, payload.data);
 
+	if (!status) {
+		return new Response('failed to update', { status: 500 });
+	}
 	return new Response('ok');
 };
 
@@ -56,7 +62,10 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 
 	// TODO: validate data
 
-	await addTracks(params.id, payload);
+	const status = await addTracks(params.id, payload);
 
+	if (!status) {
+		return new Response('failed to add tracks', { status: 500 });
+	}
 	return new Response('ok');
 };
