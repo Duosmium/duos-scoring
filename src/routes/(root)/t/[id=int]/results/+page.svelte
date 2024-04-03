@@ -268,6 +268,7 @@
 	let separateTracks = false;
 	let overallSchools = true;
 	let overallPoints = true;
+	let eventsOnly = false;
 	let defaultImage: [string, [number, number]] | undefined = undefined;
 	let tournamentUrl =
 		'https://www.duosmium.org/results/' + generateFilename(data.tournament).trim() + '/';
@@ -304,6 +305,7 @@
 			separateTracks,
 			overallSchools,
 			overallPoints,
+			eventsOnly,
 			tournamentUrl: qrCode ? tournamentUrl : ''
 		});
 	}
@@ -332,6 +334,7 @@
 				separateTracks,
 				overallSchools,
 				overallPoints,
+				eventsOnly,
 				tournamentUrl: qrCode ? tournamentUrl : ''
 			}).then((url) => {
 				slidesURL = url;
@@ -637,6 +640,10 @@
 
 			<details>
 				<summary>Advanced</summary>
+				<label>
+					Include Event Slides Only:
+					<input type="checkbox" bind:checked={eventsOnly} />
+				</label>
 				<label>
 					Shuffle Event Order:
 					<input type="checkbox" bind:checked={randomOrder} />
