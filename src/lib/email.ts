@@ -37,7 +37,6 @@ export async function sendInvite(
 					? `<p>You will be added to these events: ${events?.join(', ')}</p>\n`
 					: '') +
 				`<p><a href="https://scoring.duosmium.org/invite/${invite}">Click here</a> to accept the invite.</p>\n` +
-				`<p>Make sure you have access to the system before the tournament. If you are on multiple events (or the same event in both division), make sure you have access to both. If you don't, reach out to Jason (jasonchang@socalscioly.org) as soon as possible.</p>\n` +
 				'<hr /><p style="color:#898989;font-size:12px;">Duosmium Scoring</p>'
 		});
 	} catch (err) {
