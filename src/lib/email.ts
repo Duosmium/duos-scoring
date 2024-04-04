@@ -32,12 +32,12 @@ export async function sendInvite(
 					: '') +
 				`Click here to accept the invite: https://scoring.duosmium.org/invite/${invite}`,
 			html:
-				`<h2>Jason has invited you to join ${tournamentName} on Duosmium Scoring!</h2>\n` +
+				`<h2>You have been invited to join ${tournamentName} on Duosmium Scoring!</h2>\n` +
 				((events?.length ?? 0) > 0
 					? `<p>You will be added to these events: ${events?.join(', ')}</p>\n`
 					: '') +
 				`<p><a href="https://scoring.duosmium.org/invite/${invite}">Click here</a> to accept the invite. For scoring-related questions, reach out to Simon Li, the scoremaster for the tournament.</p>\n` +
-				`<p>Make sure you have access to the system before the tournament. If you are on multiple events (or the same event in both division), make sure you have access to both. If you don't, reach out to Antonio Velasco and Simon as soon as possible.</p>\n` +
+				`<p>Make sure you have access to the system before the tournament. If you are on multiple events (or the same event in both division), make sure you have access to both. If you don't, reach out in the Event Supervisor Discord Server as soon as possible.</p>\n` +
 				'<hr /><p style="color:#898989;font-size:12px;">Duosmium Scoring</p>'
 		});
 	} catch (err) {
