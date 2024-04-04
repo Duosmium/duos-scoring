@@ -235,6 +235,24 @@ export async function addEvents(
 	return true;
 }
 
+export async function touchEventsExport(eventIds: bigint[]) {
+	try {
+		await prisma.event.updateMany({
+			where: {
+				id: {
+					in: eventIds
+				}
+			},
+			data: {
+				lastExportedAt: new Date()
+			}
+		});
+	} catch (e) {
+		return false;
+	}
+	return true;
+}
+
 export async function updateEvent(
 	eventId: bigint,
 	event: {

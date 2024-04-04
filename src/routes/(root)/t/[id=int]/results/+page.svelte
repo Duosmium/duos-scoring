@@ -26,6 +26,7 @@
 	import type { Tournament } from '@prisma/client';
 	import { generatePdf, getColor, getImage } from '$lib/slides/gen';
 	import printable from '$lib/slides/printable';
+	import { invalidateAll } from '$app/navigation';
 
 	export let data: PageData;
 
@@ -38,7 +39,7 @@
 	$: roles = data.roles;
 	$: events = data.events.map((e) => ({
 		...e,
-		initiallyChecked: e.scores.length === data.teams.length
+		initiallyChecked: e.scores.length === data.teams.length && e.lastExportedAt == null
 	}));
 	let selected: typeof events = [];
 
@@ -54,6 +55,8 @@
 					return (a.audited?.name ?? '').localeCompare(b.audited?.name ?? '');
 				case 'auditTime':
 					return (b.auditedAt?.getTime() ?? 0) - (a.auditedAt?.getTime() ?? 0);
+				case 'exportTime':
+					return (b.lastExportedAt?.getTime() ?? 0) - (a.lastExportedAt?.getTime() ?? 0);
 				default:
 					return 0;
 			}
@@ -73,7 +76,19 @@
 
 	let showPreview = false;
 
+	function touchEventsExportedAt() {
+		fetch(`/t/${$page.params.id}/results/touch`, {
+			method: 'PATCH',
+			body: JSON.stringify(selected.flatMap((e) => e.id.toString()))
+		}).then((res) => {
+			if (res.status === 200) {
+				invalidateAll();
+			}
+		});
+	}
 	function generateSciolyFF() {
+		touchEventsExportedAt();
+
 		const levelLookup = {
 			INVITATIONAL: 'Invitational',
 			REGIONAL: 'Regionals',
@@ -468,7 +483,7 @@
 <P>To update/publish results to duosmium.org, email admin@duosmium.org.</P>
 
 <div class="w-full flex justify-between items-center flex-wrap mb-2">
-	<Checkbox class="mb-4" bind:checked={exportHistos}>Export Histograms</Checkbox>
+	<Checkbox bind:checked={exportHistos}>Export Histograms</Checkbox>
 	<span class="space-x-4 flex items-center flex-wrap">
 		<Select
 			class="w-36"
@@ -476,7 +491,8 @@
 				{ value: 'event', name: 'By Event' },
 				{ value: 'scoresIn', name: 'By Scores In' },
 				{ value: 'auditor', name: 'By Auditor' },
-				{ value: 'auditTime', name: 'By Audit Time' }
+				{ value: 'auditTime', name: 'By Audit Time' },
+				{ value: 'exportTime', name: 'By Export Time' }
 			]}
 			bind:value={sortBy}
 		/>
@@ -546,6 +562,7 @@
 		<TableHeadCell class="px-2">Trial Status</TableHeadCell>
 		<TableHeadCell class="px-2">Scores In</TableHeadCell>
 		<TableHeadCell class="px-2">Audited</TableHeadCell>
+		<TableHeadCell class="px-2">Last Export</TableHeadCell>
 		<TableHeadCell class="px-2">
 			<span class="sr-only"> Histogram </span>
 		</TableHeadCell>
@@ -567,6 +584,15 @@
 			{:else}
 				No
 			{/if}</TableBodyCell
+		>
+		<TableBodyCell class="py-0 px-2"
+			>{event.lastExportedAt?.toLocaleString('en-US', {
+				month: 'numeric',
+				day: 'numeric',
+				hour12: false,
+				hour: '2-digit',
+				minute: '2-digit'
+			}) ?? 'None'}</TableBodyCell
 		>
 		<TableBodyCell class="py-0 px-2">
 			<Button
