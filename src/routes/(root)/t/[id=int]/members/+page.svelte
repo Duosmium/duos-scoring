@@ -79,17 +79,26 @@
 	let parsedError = '';
 	$: events = new Map(data.events.map((e) => [e.name.toLowerCase(), e]));
 	$: {
-		parsedInvites = (
-			papaparse.parse(inviteMembersData, {
-				header: false,
-				skipEmptyLines: 'greedy',
-				transform: (v) => v.trim()
-			}).data as typeof parsedInvites
-		).map((row) =>
-			row
-				.filter((d) => d !== '')
-				.map((d, i) => (i === 0 ? d : events.get(d.toLowerCase())?.name ?? d))
-		);
+		parsedInvites = [
+			...(
+				papaparse.parse(inviteMembersData, {
+					header: false,
+					skipEmptyLines: 'greedy',
+					transform: (v) => v.trim()
+				}).data as typeof parsedInvites
+			)
+				.reduce((acc, row) => {
+					row = row.filter((d) => d !== '');
+					const userEvents = acc.get(row[0]) || new Set<string>();
+					row
+						.slice(1)
+						.map((d) => events.get(d.toLowerCase())?.name ?? d)
+						.forEach((e) => userEvents.add(e));
+					acc.set(row[0], userEvents);
+					return acc;
+				}, new Map<string, Set<string>>())
+				.entries()
+		].map(([email, events]) => [email, ...events]);
 		parsedError = '';
 		parsedInvites.forEach((t) => {
 			if (!emailRegex.test(t[0])) {

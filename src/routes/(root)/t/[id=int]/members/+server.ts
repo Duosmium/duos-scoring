@@ -4,13 +4,16 @@ import {
 	createInvites,
 	updateMember,
 	updateInvite,
-	getEvents
+	getEvents,
+	getInvites,
+	getRoles
 } from '$lib/db';
 import type { RequestHandler } from './$types';
 import { checkIsDirector } from '$lib/utils';
 import { customAlphabet } from 'nanoid';
 import type { UserRole } from '@prisma/client';
 import { sendInvite } from '$lib/email';
+import { supabase } from '$lib/supabaseAdmin';
 
 const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 8);
 
@@ -147,18 +150,91 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
 		return new Response('too many invites - max 15 at a time', { status: 400 });
 	}
 
-	const invites = payload.map((i) => ({
-		link: nanoid(),
-		email: i.email,
-		events: i.events?.map((e) => BigInt(e))
-	}));
+	const roles = (await getRoles(params.id)) || [];
+
+	const existingUsers = new Map(
+		(
+			await Promise.all(
+				roles.map(async (role) => {
+					const { data, error } = await supabase.auth.admin.getUserById(role.user.id);
+					if (error) {
+						return [];
+					}
+					return [[data.user?.email?.toLowerCase() ?? '', role]] as [string, typeof role][];
+				})
+			)
+		).flat()
+	);
+	const existingInvites = ((await getInvites(params.id)) || []).reduce((acc, i) => {
+		if (i.email)
+			acc.set(i.email.toLowerCase(), { link: i.link, events: i.events.map((e) => e.id) });
+		return acc;
+	}, new Map<string, { link: string; events: bigint[] }>());
+	const updateInvites = payload
+		.filter(
+			(i) =>
+				i.email &&
+				existingInvites.has(i.email.toLowerCase()) &&
+				!existingUsers.has(i.email.toLowerCase())
+		)
+		.map((i) => ({
+			link: existingInvites.get(i.email as string)?.link as string,
+			email: i.email,
+			events: [
+				...new Set(
+					existingInvites
+						.get(i.email as string)
+						?.events.concat(...(i.events?.map((e) => BigInt(e)) ?? []))
+				)
+			]
+		}));
+	const updateMembers = payload
+		.filter((i) => i.email && existingUsers.has(i.email.toLowerCase()))
+		.map((i) => {
+			const role = existingUsers.get(i.email?.toLowerCase() as string)!;
+			return {
+				userId: role.userId,
+				role: role.role,
+				events: [
+					...new Set(
+						(role.supEvents.map((e) => e.id) ?? []).concat(
+							...(i.events?.map((e) => BigInt(e)) ?? [])
+						)
+					)
+				]
+			};
+		});
+
+	const newInvites = payload
+		.filter(
+			(i) =>
+				!i.email ||
+				(!existingInvites.has(i.email.toLowerCase()) && !existingUsers.has(i.email.toLowerCase()))
+		)
+		.map((i) => ({
+			link: nanoid(),
+			email: i.email,
+			events: i.events?.map((e) => BigInt(e))
+		}));
 	const events = new Map(((await getEvents(params.id)) || []).map((e) => [e.id, e.name]));
 
-	await createInvites(params.id, invites);
+	const createStatus = await createInvites(params.id, newInvites);
 
-	const status = (
+	const updateInviteStatus = (
+		await Promise.all(updateInvites.map((i) => updateInvite(i.link, i.events)))
+	).every((b) => b);
+
+	const updateMemberStatus = (
 		await Promise.all(
-			invites.map(
+			updateMembers.map((m) =>
+				updateMember(params.id, m.userId, { events: m.events, role: m.role })
+			)
+		)
+	).every((b) => b);
+
+	const emailStatus = (
+		await Promise.all(
+			newInvites.map(
 				(invite, i) =>
 					new Promise<boolean>((res, rej) => {
 						if (invite.email) {
@@ -176,7 +252,7 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
 		)
 	).every((b) => b);
 
-	if (!status) {
+	if (!createStatus || !updateInviteStatus || !updateMemberStatus || !emailStatus) {
 		return new Response('failed to send invites', { status: 500 });
 	}
 	return new Response('ok');
