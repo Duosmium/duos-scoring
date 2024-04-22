@@ -383,6 +383,10 @@
 				<i>(Required)</i>: An invite link will be sent to this email
 			</Li>
 			<Li
+				><code class="dark:text-blue-300 text-blue-700">Tournament Role</code>
+				<i>(Optional)</i>: Supported roles include "TD", "SM", "ES" (default)</Li
+			>
+			<Li
 				><code class="dark:text-blue-300 text-blue-700">Events</code>
 				<i>(Optional)</i>: The invite will automatically add them to these events</Li
 			>
