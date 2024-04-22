@@ -11,7 +11,7 @@ import {
 import type { RequestHandler } from './$types';
 import { checkIsDirector } from '$lib/utils';
 import { customAlphabet } from 'nanoid';
-import type { UserRole } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 import { sendInvite } from '$lib/email';
 import { supabase } from '$lib/supabaseAdmin';
 
@@ -68,6 +68,7 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 		invite?: {
 			link: string;
 			events: string[];
+			role: UserRole;
 		};
 	} = await request.json();
 
@@ -81,9 +82,12 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 		payload.member &&
 		(!payload.member.role ||
 			typeof payload.member.role !== 'string' ||
-			!['TD', 'SM', 'ES'].includes(payload.member.role))
+			!Object.values(UserRole).includes(payload.member.role))
 	) {
 		return new Response('missing role', { status: 400 });
+	}
+	if (payload.invite?.role && !Object.values(UserRole).includes(payload.invite.role)) {
+		return new Response('invalid role', { status: 400 });
 	}
 	if (payload.invite && !payload.invite.link) {
 		return new Response('missing link', { status: 400 });
@@ -116,7 +120,8 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 	if (payload.invite) {
 		inviteStatus = await updateInvite(
 			payload.invite.link,
-			payload.invite.events.map((e) => BigInt(e))
+			payload.invite.events.map((e) => BigInt(e)),
+			payload.invite.role
 		);
 	}
 
@@ -132,12 +137,16 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
 	const payload: {
 		email?: string;
 		events?: string[];
+		role?: UserRole;
 	}[] = await request.json();
 
 	const emailRegex =
-		/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+		/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 	if (payload.some((d) => d.email && (typeof d.email !== 'string' || !emailRegex.test(d.email)))) {
 		return new Response('invalid email', { status: 400 });
+	}
+	if (payload.some((d) => d.role && !Object.values(UserRole).includes(d.role))) {
+		return new Response('invalid role', { status: 400 });
 	}
 	if (
 		payload.some(
@@ -179,6 +188,7 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
 		)
 		.map((i) => ({
 			link: existingInvites.get(i.email as string)?.link as string,
+			role: i.role,
 			email: i.email,
 			events: [
 				...new Set(
@@ -194,7 +204,7 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
 			const role = existingUsers.get(i.email?.toLowerCase() as string)!;
 			return {
 				userId: role.userId,
-				role: role.role,
+				role: i.role ?? role.role,
 				events: [
 					...new Set(
 						(role.supEvents.map((e) => e.id) ?? []).concat(
@@ -214,6 +224,7 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
 		.map((i) => ({
 			link: nanoid(),
 			email: i.email,
+			role: i.role,
 			events: i.events?.map((e) => BigInt(e))
 		}));
 	const events = new Map(((await getEvents(params.id)) || []).map((e) => [e.id, e.name]));
@@ -221,7 +232,7 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
 	const createStatus = await createInvites(params.id, newInvites);
 
 	const updateInviteStatus = (
-		await Promise.all(updateInvites.map((i) => updateInvite(i.link, i.events)))
+		await Promise.all(updateInvites.map((i) => updateInvite(i.link, i.events, i.role)))
 	).every((b) => b);
 
 	const updateMemberStatus = (

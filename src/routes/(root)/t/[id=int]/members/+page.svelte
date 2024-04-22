@@ -23,6 +23,7 @@
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 	import papaparse from 'papaparse';
+	import type { UserRole } from '@prisma/client';
 
 	export let data: PageData;
 
@@ -75,7 +76,7 @@
 		/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 	let showInviteMembers = false;
 	let inviteMembersData = '';
-	let parsedInvites: string[][];
+	let parsedInvites: { email: string; events: string[]; role: UserRole }[];
 	let parsedError = '';
 	$: events = new Map(data.events.map((e) => [e.name.toLowerCase(), e]));
 	$: {
@@ -85,27 +86,34 @@
 					header: false,
 					skipEmptyLines: 'greedy',
 					transform: (v) => v.trim()
-				}).data as typeof parsedInvites
+				}).data as string[][]
 			)
 				.reduce((acc, row) => {
 					row = row.filter((d) => d !== '');
-					const userEvents = acc.get(row[0]) || new Set<string>();
+					const userEvents = acc.get(row[0])?.events || new Set<string>();
+					let role: UserRole = 'ES';
 					row
 						.slice(1)
 						.map((d) => events.get(d.toLowerCase())?.name ?? d)
-						.forEach((e) => userEvents.add(e));
-					acc.set(row[0], userEvents);
+						.forEach((e) => {
+							if ([...roleNames.keys()].includes(e.toUpperCase())) {
+								role = e.toUpperCase() as UserRole;
+								return;
+							}
+							userEvents.add(e);
+						});
+					acc.set(row[0], { events: userEvents, role });
 					return acc;
-				}, new Map<string, Set<string>>())
+				}, new Map<string, { events: Set<string>; role: UserRole }>())
 				.entries()
-		].map(([email, events]) => [email, ...events]);
+		].map(([email, { events, role }]) => ({ email, events: [...events], role }));
 		parsedError = '';
 		parsedInvites.forEach((t) => {
-			if (!emailRegex.test(t[0])) {
-				parsedError += `Invalid email '${t[0]}'\n`;
+			if (!emailRegex.test(t.email)) {
+				parsedError += `Invalid email '${t.email}'\n`;
 			}
-			if (t.slice(1).length !== 0) {
-				t.slice(1).forEach((e) => {
+			if (t.events.length !== 0) {
+				t.events.forEach((e) => {
 					if (!events.has(e.toLowerCase())) {
 						parsedError += `Invalid event '${e}'\n`;
 					}
@@ -125,8 +133,9 @@
 			},
 			body: JSON.stringify(
 				parsedInvites.slice(0, 15).map((i) => ({
-					email: i[0],
-					events: i.slice(1).map((name) => events.get(name.toLowerCase())?.id.toString())
+					email: i.email,
+					events: i.events.map((name) => events.get(name.toLowerCase())?.id.toString()),
+					role: i.role
 				}))
 			)
 		}).then((res) => {
@@ -143,7 +152,7 @@
 	let showEditMember = false;
 	let editMemberData: {
 		userId: string;
-		role: 'ES' | 'SM' | 'TD';
+		role: UserRole;
 		events: bigint[];
 	} = { userId: '', role: 'ES', events: [] };
 	function openEditMember(member: bigint) {
@@ -184,7 +193,11 @@
 	}
 
 	let showEditInvite = false;
-	let editInviteData: { link: string; events: bigint[] } = { link: '', events: [] };
+	let editInviteData: { link: string; events: bigint[]; role: UserRole } = {
+		link: '',
+		events: [],
+		role: 'ES'
+	};
 	function openEditInvite(invite: string) {
 		showEditInvite = true;
 		const foundInvite = invites.find((i) => i.link === invite);
@@ -192,7 +205,11 @@
 			addToastMessage('Failed to find invite!', 'error');
 			return;
 		}
-		editInviteData = { link: foundInvite.link, events: foundInvite.events.map((e) => e.id) };
+		editInviteData = {
+			link: foundInvite.link,
+			events: foundInvite.events.map((e) => e.id),
+			role: foundInvite.role
+		};
 	}
 	function editInvite() {
 		// TODO: validation
@@ -204,7 +221,8 @@
 			body: JSON.stringify({
 				invite: {
 					link: editInviteData.link,
-					events: editInviteData.events.map((e) => e.toString())
+					events: editInviteData.events.map((e) => e.toString()),
+					role: editInviteData.role
 				}
 			}) // TODO: validate
 		}).then((res) => {
@@ -296,6 +314,7 @@
 	<svelte:fragment slot="headers">
 		<TableHeadCell class="px-2">Invite Link</TableHeadCell>
 		<TableHeadCell class="px-2">Sent To Email</TableHeadCell>
+		<TableHeadCell class="px-2">Invited As</TableHeadCell>
 		<TableHeadCell class="px-2">Events</TableHeadCell>
 		<TableHeadCell class="px-2">
 			<span class="sr-only"> Edit </span>
@@ -306,6 +325,7 @@
 			><button on:click={copyInvite(invite.id)}>{invite.id}</button></TableBodyCell
 		>
 		<TableBodyCell class="py-0 px-2">{invite.email}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2">{roleNames.get(invite.role)}</TableBodyCell>
 		<TableBodyCell class="py-0 px-2"
 			>{invite.events
 				.map((e) => e.name)
@@ -383,9 +403,9 @@
 			{#each parsedInvites.slice(0, 15) as invite}
 				<li>
 					<span class="dark:text-red-300 text-red-700"
-						>{invite[0] + (invite.slice(1).length !== 0 ? ': ' : '')}</span
+						>{invite.email} ({invite.role}){invite.events.length !== 0 ? ': ' : ''}</span
 					><span class="dark:text-blue-300 text-blue-700"
-						>{invite.slice(1).length !== 0 ? invite.slice(1).join(', ') : ''}</span
+						>{invite.events.length !== 0 ? invite.events.join(', ') : ''}</span
 					>
 				</li>
 			{/each}
@@ -453,6 +473,12 @@
 			}}>{event.name}</Checkbox
 		>
 	{/each}
+
+	<Heading tag="h2" class="text-2xl mt-20">Permissions</Heading>
+	<Label class="!mt-4">
+		Role
+		<Select underline class="mt-2" bind:value={editInviteData.role} items={roleOptions} />
+	</Label>
 
 	<svelte:fragment slot="footer">
 		<!-- TODO: validation -->

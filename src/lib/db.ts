@@ -61,6 +61,7 @@ export async function createInvites(
 		link: string;
 		email?: string;
 		events?: bigint[];
+		role?: UserRole;
 	}[]
 ) {
 	if (typeof tournamentId === 'string') {
@@ -74,6 +75,7 @@ export async function createInvites(
 						tournamentId: tournamentId as bigint,
 						link: invite.link,
 						email: invite.email,
+						role: invite.role,
 						events: {
 							connect: invite.events?.map((e) => ({ id: e }))
 						}
@@ -100,10 +102,9 @@ export async function getInvite(link: string) {
 	} catch (e) {
 		return false;
 	}
-	return true;
 }
 
-export async function updateInvite(link: string, events: bigint[]) {
+export async function updateInvite(link: string, events: bigint[], role?: UserRole) {
 	try {
 		await prisma.invite.update({
 			where: {
@@ -112,7 +113,8 @@ export async function updateInvite(link: string, events: bigint[]) {
 			data: {
 				events: {
 					set: events.map((e) => ({ id: e }))
-				}
+				},
+				role: role
 			}
 		});
 	} catch (e) {
