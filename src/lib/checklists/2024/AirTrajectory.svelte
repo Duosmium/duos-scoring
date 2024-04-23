@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Checkbox, { type CheckboxValue } from '../components/Checkbox.svelte';
+	import { type CheckboxValue } from '../components/Checkbox.svelte';
 	import Checklist from '../components/Checklist.svelte';
 	import Disqualified from '../components/Disqualified.svelte';
 	import Question from '../components/Question.svelte';
@@ -38,7 +38,55 @@
 	let logDistinctTables: string;
 	let logDiagram: string;
 	let logExCalcs: string;
+
+	let dqed: boolean = false;
+
+	$: bestNTS =
+		Math.max(
+			0,
+			(2000 - parseInt(near1Dist) || 0) * ($meetsNear1Rules === 'False' ? 0.9 : 1),
+			$nearBucket === 'True'
+				? 0
+				: (2000 - parseInt(near2Dist) || 0) * ($meetsNear2Rules === 'False' ? 0.9 : 1)
+		) * ($impounded === 'False' ? 0.7 : 1);
+	$: bestFTS =
+		Math.max(
+			0,
+			(4000 - parseInt(far1Dist) || 0) * ($meetsFar1Rules === 'False' ? 0.9 : 1),
+			$farBucket === 'True'
+				? 0
+				: (4000 - parseInt(far2Dist) || 0) * ($meetsFar2Rules === 'False' ? 0.9 : 1)
+		) * ($impounded === 'False' ? 0.7 : 1);
+	$: logScore = [
+		parseInt(logBasePoints) || 0,
+		parseInt(logDataSpansVar) || 0,
+		parseInt(logDataPts) || 0,
+		parseInt(logLabeled) || 0,
+		parseInt(logDistinctTables) || 0,
+		parseInt(logDiagram) || 0,
+		parseInt(logExCalcs) || 0
+	].reduce((a, b) => a + b, 0);
+	$: bucketScore = [
+		$nearBucket === 'True' && $nearBucketHit === 'True' ? 200 : 0,
+		$nearBucket === 'True' && $nearBucketInside === 'True' ? 300 : 0,
+		$farBucket === 'True' && $farBucketHit === 'True' ? 200 : 0,
+		$farBucket === 'True' && $farBucketInside === 'True' ? 300 : 0
+	].reduce((a, b) => a + b, 0);
+
+	$: score = ($hasDevice === 'False' || dqed ? 0 : bestNTS + bestFTS + bucketScore) + logScore;
+	$: tier = $meetsParams === 'False' ? 2 : 1;
+	$: status = dqed
+		? 'DISQUALIFICATION'
+		: score > 0 || $hasDevice !== 'False'
+			? 'COMPETED'
+			: 'NOSHOW';
 </script>
+
+<div
+	class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-slate-300 dark:bg-slate-700 z-40 rounded-lg p-4 flex items-center space-x-4"
+>
+	Score: {score} | Tier: {tier} | Status: {status}
+</div>
 
 <Checklist event="Air Trajectory B/C" year={2024}>
 	<Section title="Check In">
@@ -152,8 +200,8 @@
 
 			<svelte:fragment slot="summary">Bucket shot parameters:</svelte:fragment>
 			<svelte:fragment slot="children">
-				<Question parent={nearBucketHit} rule="7.e.">{rules['7.e.1']}</Question>
-				<Question parent={nearBucketInside} rule="7.e.">{rules['7.e.2']}</Question>
+				<Question bind:checkbox={nearBucketHit} rule="7.e.">{rules['7.e.1']}</Question>
+				<Question bind:checkbox={nearBucketInside} rule="7.e.">{rules['7.e.2']}</Question>
 			</svelte:fragment>
 		</Question>
 	</Section>
@@ -187,8 +235,8 @@
 
 			<svelte:fragment slot="summary">Bucket shot parameters:</svelte:fragment>
 			<svelte:fragment slot="children">
-				<Question parent={farBucketHit} rule="7.e.">{rules['7.e.1']}</Question>
-				<Question parent={farBucketInside} rule="7.e.">{rules['7.e.2']}</Question>
+				<Question bind:checkbox={farBucketHit} rule="7.e.">{rules['7.e.1']}</Question>
+				<Question bind:checkbox={farBucketInside} rule="7.e.">{rules['7.e.2']}</Question>
 			</svelte:fragment>
 		</Question>
 	</Section>
@@ -221,5 +269,5 @@
 		>
 	</Section>
 
-	<Disqualified checklistItem={25} {status} />
+	<Disqualified checklistItem={25} {status} bind:checked={dqed} />
 </Checklist>

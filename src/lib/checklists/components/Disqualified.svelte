@@ -6,7 +6,7 @@
 	export let checklistItem: number;
 
 	const id = nanoid(5);
-	let checked: boolean = status === 'DISQUALIFICATION';
+	export let checked: boolean = status === 'DISQUALIFICATION';
 
 	$: highlight = checked ? 'bg-red-100 dark:bg-red-800 ring-red-500' : 'ring-gray-500';
 </script>
