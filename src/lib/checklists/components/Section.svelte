@@ -3,9 +3,7 @@
 </script>
 
 <div>
-	<div>
-		<h3>{title}</h3>
-	</div>
+	<h3 class="mb-6">{title}</h3>
 
 	<slot />
 </div>

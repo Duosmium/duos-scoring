@@ -2,8 +2,7 @@
 	import Checkbox, { type CheckboxValue } from '../components/Checkbox.svelte';
 	import Checklist from '../components/Checklist.svelte';
 	import Disqualified from '../components/Disqualified.svelte';
-	import Parameter from '../components/Parameter.svelte';
-	import ParameterTable from '../components/ParameterTable.svelte';
+	import Question from '../components/Question.svelte';
 	import Section from '../components/Section.svelte';
 
 	import type { ScoreStatus } from '@prisma/client';
@@ -43,222 +42,183 @@
 
 <Checklist event="Air Trajectory B/C" year={2024}>
 	<Section title="Check In">
-		<ParameterTable>
-			<Parameter bind:value={hasDevice} rule="7.g." checklistItem={1}
-				>Team operates safely & has a device within spec before the end of the allotted competition
-				period.</Parameter
-			>
-		</ParameterTable>
+		<Question bind:checkbox={hasDevice} rule="7.g." checklistItem={1}
+			>Team operates safely & has a device within spec before the end of the allotted competition
+			period.</Question
+		>
 	</Section>
 
 	<Section title="Construction Parameters">
-		<ParameterTable>
-			<Parameter parent={meetsParams} rule="3.a."
-				>When ready-to-launch, the launch device, projectiles, stabilizing weights, and all other
-				device components fit in a 75.0 cm (Div C) or 85.0 cm (Div B) per side cube, in any
-				orientation chosen by the team.</Parameter
-			>
-			<Parameter parent={meetsParams} rule="3.b."
-				>Launch force is entirely supplied by gravitational potential energy from a falling mass ≤
-				3.500 kg (Div C) or 5.000 kg (Div B).</Parameter
-			>
-			<Parameter parent={meetsParams} rule="3.d."
-				>The gravitational potential energy is converted to air pressure or air movement, which is
-				then used to launch the projectile.</Parameter
-			>
-			<Parameter parent={meetsParams} rule="3.e."
-				>All device air chambers start each launch at ambient air pressure and automatically return
-				to ambient air pressure.</Parameter
-			>
-			<Parameter parent={meetsParams} rule="3.f."
-				>Activating the triggering device does not contribute significant energy to the launch. It
-				extends out of the launch area, allow for competitors to remain at least 75 cm away from the
-				launch area. The triggering device does not pose a danger due to flying parts or excessive
-				movement outside of the launch area.</Parameter
-			>
-			<Parameter parent={meetsParams} rule="3.g."
-				>Team provides unmodified, standard tennis, racquet, and/or Ping Pong balls to be used as
-				projectiles.</Parameter
-			>
-			<Parameter parent={meetsParams} rule="3.h."
-				>The launch device is designed and operated in such a way to not damage or alter the floor.</Parameter
-			>
-			<Parameter parent={meetsParams} rule="3.i."
-				>Electrical components are not part of the device or triggering device.</Parameter
-			>
-			<Parameter bind:value={meetsParams} checklistItem={2}
-				><strong
-					>DEVICE MEETS ALL CONSTRUCTION PARAMETERS ABOVE BY THE END OF THE COMPETITION PERIOD (If
-					any construction violations are not corrected during the competition period, circle F.
-					teams may still be permitted to compete but will be ranked behind every team.)</strong
-				></Parameter
-			>
-			<Parameter bind:value={impounded} rule="2.b." checklistItem={3}
-				><strong
-					>Team impounds one launch device with the mass(es) detached, design log, and any
-					projectiles.</strong
-				></Parameter
-			>
-		</ParameterTable>
+		<Question bind:checkbox={meetsParams} rule="3.x." checklistItem={2}>
+			<strong>Were all construction parameters met?</strong>
+			(If any construction violations are not corrected during the competition period, circle F. teams
+			may still be permitted to compete but will be ranked behind every team.)
+
+			<svelte:fragment slot="children">
+				<Question parent={meetsParams} rule="3.a."
+					>When ready-to-launch, the launch device, projectiles, stabilizing weights, and all other
+					device components fit in a 75.0 cm (Div C) or 85.0 cm (Div B) per side cube, in any
+					orientation chosen by the team.</Question
+				>
+				<Question parent={meetsParams} rule="3.b."
+					>Launch force is entirely supplied by gravitational potential energy from a falling mass ≤
+					3.500 kg (Div C) or 5.000 kg (Div B).</Question
+				>
+				<Question parent={meetsParams} rule="3.d."
+					>The gravitational potential energy is converted to air pressure or air movement, which is
+					then used to launch the projectile.</Question
+				>
+				<Question parent={meetsParams} rule="3.e."
+					>All device air chambers start each launch at ambient air pressure and automatically
+					return to ambient air pressure.</Question
+				>
+				<Question parent={meetsParams} rule="3.f."
+					>Activating the triggering device does not contribute significant energy to the launch. It
+					extends out of the launch area, allow for competitors to remain at least 75 cm away from
+					the launch area. The triggering device does not pose a danger due to flying parts or
+					excessive movement outside of the launch area.</Question
+				>
+				<Question parent={meetsParams} rule="3.g."
+					>Team provides unmodified, standard tennis, racquet, and/or Ping Pong balls to be used as
+					projectiles.</Question
+				>
+				<Question parent={meetsParams} rule="3.h."
+					>The launch device is designed and operated in such a way to not damage or alter the
+					floor.</Question
+				>
+				<Question parent={meetsParams} rule="3.i."
+					>Electrical components are not part of the device or triggering device.</Question
+				>
+			</svelte:fragment>
+		</Question>
+
+		<Question bind:checkbox={impounded} rule="2.b." checklistItem={3}
+			><strong
+				>Team impounds one launch device with the mass(es) detached, design log, and any
+				projectiles.</strong
+			></Question
+		>
 	</Section>
 
-	<Section title="Competition">
-		<table>
-			<thead>
-				<tr>
-					<td><span class="sr-only">Rule Number</span></td>
-					<td><span class="sr-only">Rule</span></td>
-					<td colspan="4"><strong class="mx-auto block w-fit">Near Target</strong></td>
-					<td colspan="4"><strong class="mx-auto block w-fit">Far Target</strong></td>
-				</tr>
-				<tr>
-					<td></td>
-					<td></td>
-					<td></td>
-					<td><strong>Launch 1</strong></td>
-					<td></td>
-					<td><strong>Launch 2</strong></td>
-					<td></td>
-					<td><strong>Launch 1</strong></td>
-					<td></td>
-					<td><strong>Launch 2</strong></td>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td>5.b.</td>
-					<td
-						>Team places their device at a location they select in the launch area. Competitors are
-						not within 75 cm of launch area or in front of the front edge of launch area during a
-						launch. Competitors only touch the part of the triggering device that extends at least
-						75cm outside of launch area.</td
-					>
-					<td></td>
-					<td><Checkbox parent={meetsNear1Rules} /></td>
-					<td></td>
-					<td><Checkbox parent={meetsNear2Rules} /></td>
-					<td></td>
-					<td><Checkbox parent={meetsFar1Rules} /></td>
-					<td></td>
-					<td><Checkbox parent={meetsFar2Rules} /></td>
-				</tr>
-				<tr>
-					<td>5.c.</td>
-					<td
-						>No part of the launch device extends outside of the launch area before or after a shot.
-						Any part of the launching device extending beyond launch area during the launching
-						action returns to and remains in launch area immediately after the launch without
-						assistance of the competitors.</td
-					>
-					<td></td>
-					<td><Checkbox parent={meetsNear1Rules} /></td>
-					<td></td>
-					<td><Checkbox parent={meetsNear2Rules} /></td>
-					<td></td>
-					<td><Checkbox parent={meetsFar1Rules} /></td>
-					<td></td>
-					<td><Checkbox parent={meetsFar2Rules} /></td>
-				</tr>
-				<tr>
-					<td></td>
-					<td><strong>DEVICE MEETS ALL COMPETITION RULES FOR THIS LAUNCH</strong></td>
-					<td><strong>4.</strong></td>
-					<td><Checkbox bind:value={meetsNear1Rules} /></td>
-					<td><strong>6.</strong></td>
-					<td><Checkbox bind:value={meetsNear2Rules} /></td>
-					<td><strong>11.</strong></td>
-					<td><Checkbox bind:value={meetsFar1Rules} /></td>
-					<td><strong>13.</strong></td>
-					<td><Checkbox bind:value={meetsFar2Rules} /></td>
-				</tr>
-				<tr>
-					<td></td>
-					<td
-						>Straight line distance, in mm, from the center of the initial impact of the projectile
-						to the center of the target.</td
-					>
-					<td><strong>5.</strong></td>
-					<td><input bind:value={near1Dist} type="text" inputmode="numeric" /></td>
-					<td><strong>7.</strong></td>
-					<td><input bind:value={near2Dist} type="text" inputmode="numeric" /></td>
-					<td><strong>12.</strong></td>
-					<td><input bind:value={far1Dist} type="text" inputmode="numeric" /></td>
-					<td><strong>14.</strong></td>
-					<td><input bind:value={far2Dist} type="text" inputmode="numeric" /></td>
-				</tr>
-				<tr>
-					<td></td>
-					<td
-						>For Launch 2 only: If Launch 1 at a target lands within 500mm, a bucket shot may be
-						requested in place of the second shot. If this is a bucket shot, circle T and fill out
-						the items below and leave 7.b. blank. Otherwise, leave the items below blank and fill
-						out 7.b.</td
-					>
-					<td></td>
-					<td></td>
-					<td><strong>8.</strong></td>
-					<td><Checkbox bind:value={nearBucket} /></td>
-					<td></td>
-					<td></td>
-					<td><strong>15.</strong></td>
-					<td><Checkbox bind:value={farBucket} /></td>
-				</tr>
-				<tr>
-					<td>7.e.</td>
-					<td>The projectile hits the bucket at first impact</td>
-					<td></td>
-					<td></td>
-					<td><strong>9.</strong></td>
-					<td><Checkbox bind:value={nearBucketHit} /></td>
-					<td></td>
-					<td></td>
-					<td><strong>16.</strong></td>
-					<td><Checkbox bind:value={farBucketHit} /></td>
-				</tr>
-				<tr>
-					<td>7.e.</td>
-					<td>The projectile contacts with the inside bottom surface of the bucket.</td>
-					<td></td>
-					<td></td>
-					<td><strong>10.</strong></td>
-					<td><Checkbox bind:value={nearBucketInside} /></td>
-					<td></td>
-					<td></td>
-					<td><strong>17.</strong></td>
-					<td><Checkbox bind:value={farBucketInside} /></td>
-				</tr>
-			</tbody>
-		</table>
+	{@const rules = {
+		'5.b.':
+			'Team places their device at a location they select in the launch area. Competitors are ' +
+			'not within 75 cm of launch area or in front of the front edge of launch area during a ' +
+			'launch. Competitors only touch the part of the triggering device that extends at least ' +
+			'75cm outside of launch area.',
+		'5.c.':
+			'No part of the launch device extends outside of the launch area before or after a shot. ' +
+			'Any part of the launching device extending beyond launch area during the launching ' +
+			'action returns to and remains in launch area immediately after the launch without ' +
+			'assistance of the competitors. ',
+		dist:
+			'Straight line distance, in mm, from the center of the initial impact of the projectile ' +
+			'to the center of the target.',
+		bucket:
+			'For Launch 2 only: If Launch 1 at a target lands within 500mm, a bucket shot may be ' +
+			'requested in place of the second shot. If this is a bucket shot, circle T and fill out ' +
+			'the items below and leave 7.b. blank. Otherwise, leave the items below blank and fill ' +
+			'out 7.b.',
+		'7.e.1': 'The projectile hits the bucket at first impact.',
+		'7.e.2': 'The projectile contacts with the inside bottom surface of the bucket.'
+	}}
+	<Section title="Near Target: Launch 1">
+		<Question bind:checkbox={meetsNear1Rules} rule="5.x." checklistItem={4}>
+			<strong>Were all competition parameters met for this launch?</strong>
+
+			<svelte:fragment slot="children">
+				<Question parent={meetsNear1Rules} rule="5.b.">{rules['5.b.']}</Question>
+				<Question parent={meetsNear1Rules} rule="5.c.">{rules['5.c.']}</Question>
+			</svelte:fragment>
+		</Question>
+		<Question bind:value={near1Dist} input={true} rule="7.b." checklistItem={5}
+			>{rules.dist}</Question
+		>
+	</Section>
+	<Section title="Near Target: Launch 2">
+		<Question bind:checkbox={meetsNear2Rules} rule="5.x." checklistItem={4}>
+			<strong>Were all competition parameters met for this launch?</strong>
+
+			<svelte:fragment slot="children">
+				<Question parent={meetsNear2Rules} rule="5.b.">{rules['5.b.']}</Question>
+				<Question parent={meetsNear2Rules} rule="5.c.">{rules['5.c.']}</Question>
+			</svelte:fragment>
+		</Question>
+		<Question bind:value={near2Dist} input={true} rule="7.b." checklistItem={5}
+			>{rules.dist}</Question
+		>
+		<Question bind:checkbox={nearBucket} rule="5.x." checklistItem={4}>
+			{rules.bucket}
+
+			<svelte:fragment slot="summary">Bucket shot parameters:</svelte:fragment>
+			<svelte:fragment slot="children">
+				<Question parent={nearBucketHit} rule="7.e.">{rules['7.e.1']}</Question>
+				<Question parent={nearBucketInside} rule="7.e.">{rules['7.e.2']}</Question>
+			</svelte:fragment>
+		</Question>
+	</Section>
+	<Section title="Far Target: Launch 1">
+		<Question bind:checkbox={meetsFar1Rules} rule="5.x." checklistItem={4}>
+			<strong>Were all competition parameters met for this launch?</strong>
+
+			<svelte:fragment slot="children">
+				<Question parent={meetsFar1Rules} rule="5.b.">{rules['5.b.']}</Question>
+				<Question parent={meetsFar1Rules} rule="5.c.">{rules['5.c.']}</Question>
+			</svelte:fragment>
+		</Question>
+		<Question bind:value={far1Dist} input={true} rule="7.b." checklistItem={5}
+			>{rules.dist}</Question
+		>
+	</Section>
+	<Section title="Far Target: Launch 2">
+		<Question bind:checkbox={meetsFar2Rules} rule="5.x." checklistItem={4}>
+			<strong>Were all competition parameters met for this launch?</strong>
+
+			<svelte:fragment slot="children">
+				<Question parent={meetsFar2Rules} rule="5.b.">{rules['5.b.']}</Question>
+				<Question parent={meetsFar2Rules} rule="5.c.">{rules['5.c.']}</Question>
+			</svelte:fragment>
+		</Question>
+		<Question bind:value={far2Dist} input={true} rule="7.b." checklistItem={5}
+			>{rules.dist}</Question
+		>
+		<Question bind:checkbox={farBucket} rule="5.x." checklistItem={4}>
+			{rules.bucket}
+
+			<svelte:fragment slot="summary">Bucket shot parameters:</svelte:fragment>
+			<svelte:fragment slot="children">
+				<Question parent={farBucketHit} rule="7.e.">{rules['7.e.1']}</Question>
+				<Question parent={farBucketInside} rule="7.e.">{rules['7.e.2']}</Question>
+			</svelte:fragment>
+		</Question>
 	</Section>
 
 	<Section title="Log Score">
-		<ParameterTable>
-			<Parameter bind:value={logBasePoints} input={true} checklistItem={18} rule="7.d.i."
-				>Properly formatted Design Log containing all the required elements is submitted (up to 30
-				points)</Parameter
-			>
-			<Parameter bind:value={logDataSpansVar} input={true} checklistItem={19} rule="7.d.ii."
-				>Of one graphs/tables selected by the Event Sup, it includes data spanning ≥ 1 variable
-				range in 4.a.iii. (up to 60 points)</Parameter
-			>
-			<Parameter bind:value={logDataPts} input={true} checklistItem={20} rule="7.d.iii."
-				>Of one graphs/tables selected by the Event Sup, it includes at least 10 data points in each
-				data series (up to 55 points)</Parameter
-			>
-			<Parameter bind:value={logLabeled} input={true} checklistItem={21} rule="7.d.iv."
-				>Of one graphs/tables selected by the Event Sup, it is properly labeled (e.g. title, units)
-				(up to 40 points)</Parameter
-			>
-			<Parameter bind:value={logDistinctTables} input={true} checklistItem={22} rule="7.d.v."
-				>Points for each distinct graph/table turned in (30 points for each, up to 120 points total)</Parameter
-			>
-			<Parameter bind:value={logDiagram} input={true} checklistItem={23} rule="7.d.vi."
-				>Includes a labeled device picture or diagram (up to 45 points)</Parameter
-			>
-			<Parameter bind:value={logExCalcs} input={true} checklistItem={24} rule="7.d.vii."
-				>Includes at least 2 example calculations (up to 50 points)</Parameter
-			>
-		</ParameterTable>
+		<Question bind:value={logBasePoints} input={true} checklistItem={18} rule="7.d.i."
+			>Properly formatted Design Log containing all the required elements is submitted (up to 30
+			points)</Question
+		>
+		<Question bind:value={logDataSpansVar} input={true} checklistItem={19} rule="7.d.ii."
+			>Of one graphs/tables selected by the Event Sup, it includes data spanning ≥ 1 variable range
+			in 4.a.iii. (up to 60 points)</Question
+		>
+		<Question bind:value={logDataPts} input={true} checklistItem={20} rule="7.d.iii."
+			>Of one graphs/tables selected by the Event Sup, it includes at least 10 data points in each
+			data series (up to 55 points)</Question
+		>
+		<Question bind:value={logLabeled} input={true} checklistItem={21} rule="7.d.iv."
+			>Of one graphs/tables selected by the Event Sup, it is properly labeled (e.g. title, units)
+			(up to 40 points)</Question
+		>
+		<Question bind:value={logDistinctTables} input={true} checklistItem={22} rule="7.d.v."
+			>Points for each distinct graph/table turned in (30 points for each, up to 120 points total)</Question
+		>
+		<Question bind:value={logDiagram} input={true} checklistItem={23} rule="7.d.vi."
+			>Includes a labeled device picture or diagram (up to 45 points)</Question
+		>
+		<Question bind:value={logExCalcs} input={true} checklistItem={24} rule="7.d.vii."
+			>Includes at least 2 example calculations (up to 50 points)</Question
+		>
 	</Section>
 
 	<Disqualified checklistItem={25} {status} />

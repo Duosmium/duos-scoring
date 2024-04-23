@@ -39,6 +39,7 @@
 		background-color: transparent;
 		line-height: 1;
 		height: 2.25rem;
+		max-width: 100%;
 		@apply border-0 border-b-2 border-slate-900;
 	}
 	:global(.dark) * :global(input[type='text']) {
@@ -53,18 +54,5 @@
 	}
 	* :global(h3) {
 		margin-top: 32px;
-	}
-	* :global(table) {
-		border-collapse: collapse;
-		width: 100%;
-	}
-	* :global(table td) {
-		padding: 2px 8px;
-	}
-	* :global(table tr:nth-child(odd)) {
-		@apply bg-slate-200;
-	}
-	:global(.dark) * :global(table tr:nth-child(odd)) {
-		@apply bg-slate-700;
 	}
 </style>
