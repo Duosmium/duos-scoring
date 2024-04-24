@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { type CheckboxValue } from '../components/Checkbox.svelte';
+	import { Status, type CheckboxValue } from '../components/Checkbox.svelte';
 	import Checklist from '../components/Checklist.svelte';
 	import Disqualified from '../components/Disqualified.svelte';
 	import Question from '../components/Question.svelte';
@@ -14,34 +14,34 @@
 	let impounded: CheckboxValue;
 
 	let meetsNear1Rules: CheckboxValue;
-	let near1Dist: string;
+	let near1Dist: number | null;
 
 	let meetsNear2Rules: CheckboxValue;
-	let near2Dist: string;
+	let near2Dist: number | null;
 	let nearBucket: CheckboxValue;
 	let nearBucketHit: CheckboxValue;
 	let nearBucketInside: CheckboxValue;
 
 	let meetsFar1Rules: CheckboxValue;
-	let far1Dist: string;
+	let far1Dist: number | null;
 
 	let meetsFar2Rules: CheckboxValue;
-	let far2Dist: string;
+	let far2Dist: number | null;
 	let farBucket: CheckboxValue;
 	let farBucketHit: CheckboxValue;
 	let farBucketInside: CheckboxValue;
 
-	let logBasePoints: string;
-	let logDataSpansVar: string;
-	let logDataPts: string;
-	let logLabeled: string;
-	let logDistinctTables: string;
-	let logDiagram: string;
-	let logExCalcs: string;
+	let logBasePoints: number | null;
+	let logDataSpansVar: number | null;
+	let logDataPts: number | null;
+	let logLabeled: number | null;
+	let logDistinctTables: number | null;
+	let logDiagram: number | null;
+	let logExCalcs: number | null;
 
 	let dqed: boolean;
 
-	const bucketColor = (input: boolean, value: string) => {
+	const bucketColor = (input: boolean, value: number | Status | null) => {
 		if (value === 'True') {
 			return 'green';
 		}
@@ -50,31 +50,33 @@
 		}
 		return 'gray';
 	};
+	const l = (num: number | null, min: number, max: number, def: number = 0) =>
+		Math.max(min, Math.min(max, num ?? def));
 
 	$: bestNTS =
 		Math.max(
 			0,
-			(2000 - parseInt(near1Dist) || 0) * ($meetsNear1Rules === 'False' ? 0.9 : 1),
+			(2000 - (near1Dist ?? 2000)) * ($meetsNear1Rules === 'False' ? 0.9 : 1),
 			$nearBucket === 'True'
 				? 0
-				: (2000 - parseInt(near2Dist) || 0) * ($meetsNear2Rules === 'False' ? 0.9 : 1)
+				: (2000 - (near2Dist ?? 2000)) * ($meetsNear2Rules === 'False' ? 0.9 : 1)
 		) * ($impounded === 'False' ? 0.7 : 1);
 	$: bestFTS =
 		Math.max(
 			0,
-			(4000 - parseInt(far1Dist) || 0) * ($meetsFar1Rules === 'False' ? 0.9 : 1),
+			(4000 - (far1Dist ?? 4000)) * ($meetsFar1Rules === 'False' ? 0.9 : 1),
 			$farBucket === 'True'
 				? 0
-				: (4000 - parseInt(far2Dist) || 0) * ($meetsFar2Rules === 'False' ? 0.9 : 1)
+				: (4000 - (far2Dist ?? 4000)) * ($meetsFar2Rules === 'False' ? 0.9 : 1)
 		) * ($impounded === 'False' ? 0.7 : 1);
 	$: logScore = [
-		parseInt(logBasePoints) || 0,
-		parseInt(logDataSpansVar) || 0,
-		parseInt(logDataPts) || 0,
-		parseInt(logLabeled) || 0,
-		parseInt(logDistinctTables) || 0,
-		parseInt(logDiagram) || 0,
-		parseInt(logExCalcs) || 0
+		l(logBasePoints, 0, 30),
+		l(logDataSpansVar, 0, 60),
+		l(logDataPts, 0, 55),
+		l(logLabeled, 0, 40),
+		l(logDistinctTables, 0, 120),
+		l(logDiagram, 0, 45),
+		l(logExCalcs, 0, 50)
 	].reduce((a, b) => a + b, 0);
 	$: bucketScore = [
 		$nearBucket === 'True' && $nearBucketHit === 'True' ? 200 : 0,
@@ -189,7 +191,7 @@
 				<Question parent={meetsNear1Rules} rule="5.c.">{rules['5.c.']}</Question>
 			</svelte:fragment>
 		</Question>
-		<Question bind:value={near1Dist} input={true} rule="7.b." checklistItem={5}
+		<Question bind:value={near1Dist} input={true} rule="7.b." checklistItem={5} min={0} max={2000}
 			>{rules.dist}</Question
 		>
 	</Section>
@@ -202,7 +204,7 @@
 				<Question parent={meetsNear2Rules} rule="5.c.">{rules['5.c.']}</Question>
 			</svelte:fragment>
 		</Question>
-		<Question bind:value={near2Dist} input={true} rule="7.b." checklistItem={5}
+		<Question bind:value={near2Dist} input={true} rule="7.b." checklistItem={5} min={0} max={2000}
 			>{rules.dist}</Question
 		>
 		<Question
@@ -229,7 +231,7 @@
 				<Question parent={meetsFar1Rules} rule="5.c.">{rules['5.c.']}</Question>
 			</svelte:fragment>
 		</Question>
-		<Question bind:value={far1Dist} input={true} rule="7.b." checklistItem={5}
+		<Question bind:value={far1Dist} input={true} rule="7.b." checklistItem={5} min={0} max={4000}
 			>{rules.dist}</Question
 		>
 	</Section>
@@ -242,7 +244,7 @@
 				<Question parent={meetsFar2Rules} rule="5.c.">{rules['5.c.']}</Question>
 			</svelte:fragment>
 		</Question>
-		<Question bind:value={far2Dist} input={true} rule="7.b." checklistItem={5}
+		<Question bind:value={far2Dist} input={true} rule="7.b." checklistItem={5} min={0} max={4000}
 			>{rules.dist}</Question
 		>
 		<Question bind:checkbox={farBucket} highlightFunction={bucketColor} rule="5." checklistItem={4}>
@@ -257,30 +259,70 @@
 	</Section>
 
 	<Section title="Log Score">
-		<Question bind:value={logBasePoints} input={true} checklistItem={18} rule="7.d.i."
+		<Question
+			bind:value={logBasePoints}
+			input={true}
+			checklistItem={18}
+			rule="7.d.i."
+			min={0}
+			max={30}
 			>Properly formatted Design Log containing all the required elements is submitted (up to 30
 			points)</Question
 		>
-		<Question bind:value={logDataSpansVar} input={true} checklistItem={19} rule="7.d.ii."
+		<Question
+			bind:value={logDataSpansVar}
+			input={true}
+			checklistItem={19}
+			rule="7.d.ii."
+			min={0}
+			max={60}
 			>Of one graphs/tables selected by the Event Sup, it includes data spanning ≥ 1 variable range
 			in 4.a.iii. (up to 60 points)</Question
 		>
-		<Question bind:value={logDataPts} input={true} checklistItem={20} rule="7.d.iii."
+		<Question
+			bind:value={logDataPts}
+			input={true}
+			checklistItem={20}
+			rule="7.d.iii."
+			min={0}
+			max={55}
 			>Of one graphs/tables selected by the Event Sup, it includes at least 10 data points in each
 			data series (up to 55 points)</Question
 		>
-		<Question bind:value={logLabeled} input={true} checklistItem={21} rule="7.d.iv."
+		<Question
+			bind:value={logLabeled}
+			input={true}
+			checklistItem={21}
+			rule="7.d.iv."
+			min={0}
+			max={40}
 			>Of one graphs/tables selected by the Event Sup, it is properly labeled (e.g. title, units)
 			(up to 40 points)</Question
 		>
-		<Question bind:value={logDistinctTables} input={true} checklistItem={22} rule="7.d.v."
+		<Question
+			bind:value={logDistinctTables}
+			input={true}
+			checklistItem={22}
+			rule="7.d.v."
+			min={0}
+			max={120}
 			>Points for each distinct graph/table turned in (30 points for each, up to 120 points total)</Question
 		>
-		<Question bind:value={logDiagram} input={true} checklistItem={23} rule="7.d.vi."
-			>Includes a labeled device picture or diagram (up to 45 points)</Question
+		<Question
+			bind:value={logDiagram}
+			input={true}
+			checklistItem={23}
+			rule="7.d.vi."
+			min={0}
+			max={45}>Includes a labeled device picture or diagram (up to 45 points)</Question
 		>
-		<Question bind:value={logExCalcs} input={true} checklistItem={24} rule="7.d.vii."
-			>Includes at least 2 example calculations (up to 50 points)</Question
+		<Question
+			bind:value={logExCalcs}
+			input={true}
+			checklistItem={24}
+			rule="7.d.vii."
+			min={0}
+			max={50}>Includes at least 2 example calculations (up to 50 points)</Question
 		>
 	</Section>
 

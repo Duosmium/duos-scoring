@@ -11,7 +11,7 @@
 
 	$: checked = $checkbox && $checkbox === Status.True;
 
-	const highlightFunction = (input: boolean, value: string) => {
+	const highlightFunction = (input: boolean, value: number | Status | null) => {
 		if (value === 'True') {
 			return 'red';
 		}

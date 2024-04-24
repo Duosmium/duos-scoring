@@ -1,27 +1,38 @@
 <script lang="ts">
 	import { nanoid } from 'nanoid';
-	import Checkbox, { type Status, type CheckboxValue } from './Checkbox.svelte';
+	import Checkbox, { Status, type CheckboxValue } from './Checkbox.svelte';
 
 	export let rule: string | undefined = undefined;
 	export let checklistItem: number | undefined = undefined;
 	export let input: boolean = false;
 	export let parent: CheckboxValue | undefined = undefined;
-	export let value: string | Status = '';
+	export let value: number | Status | null = null;
+	export let enableFixed: boolean | undefined = undefined;
+	export let min: number | undefined = undefined;
+	export let max: number | undefined = undefined;
 
 	export let checkbox: CheckboxValue | undefined = undefined;
-	$: value = input ? value : $checkbox ?? 'Blank';
+	let textValue: number;
+	$: value = input ? textValue : $checkbox ?? Status.Blank;
 
 	const id = nanoid(5);
 
-	export let highlightFunction = (input: boolean, value: string): keyof typeof COLORS => {
-		if ((input && value) || (!input && value === 'True')) {
-			return 'green';
-		}
-		if (!input && value === 'False') {
+	export let highlightFunction = (
+		input: boolean,
+		value: number | Status | null
+	): keyof typeof COLORS => {
+		if (
+			(!input && value === 'False') ||
+			(input && value != null && min != null && (value as number) < min) ||
+			(input && value != null && max != null && (value as number) > max)
+		) {
 			return 'red';
 		}
 		if (!input && value === 'Fixed') {
 			return 'yellow';
+		}
+		if ((input && value != null) || (!input && value === 'True')) {
+			return 'green';
 		}
 		return 'gray';
 	};
@@ -53,9 +64,9 @@
 			</span>
 			<span class="mb-1 mr-1">
 				{#if !input}
-					<Checkbox {parent} bind:value={checkbox} />
+					<Checkbox {enableFixed} {parent} bind:value={checkbox} />
 				{:else}
-					<input {id} class="mx-2" type="number" bind:value />
+					<input {id} class="mx-2" type="number" {min} {max} bind:value={textValue} />
 				{/if}
 			</span>
 		</div>
