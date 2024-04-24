@@ -41,6 +41,16 @@
 
 	let dqed: boolean;
 
+	const bucketColor = (input: boolean, value: string) => {
+		if (value === 'True') {
+			return 'green';
+		}
+		if (value === 'False') {
+			return 'yellow';
+		}
+		return 'gray';
+	};
+
 	$: bestNTS =
 		Math.max(
 			0,
@@ -195,7 +205,12 @@
 		<Question bind:value={near2Dist} input={true} rule="7.b." checklistItem={5}
 			>{rules.dist}</Question
 		>
-		<Question bind:checkbox={nearBucket} rule="5." checklistItem={4}>
+		<Question
+			bind:checkbox={nearBucket}
+			highlightFunction={bucketColor}
+			rule="5."
+			checklistItem={4}
+		>
 			{rules.bucket}
 
 			<svelte:fragment slot="summary">Bucket shot parameters:</svelte:fragment>
@@ -230,7 +245,7 @@
 		<Question bind:value={far2Dist} input={true} rule="7.b." checklistItem={5}
 			>{rules.dist}</Question
 		>
-		<Question bind:checkbox={farBucket} rule="5." checklistItem={4}>
+		<Question bind:checkbox={farBucket} highlightFunction={bucketColor} rule="5." checklistItem={4}>
 			{rules.bucket}
 
 			<svelte:fragment slot="summary">Bucket shot parameters:</svelte:fragment>

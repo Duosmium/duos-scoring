@@ -13,12 +13,12 @@
 
 	const highlightFunction = (input: boolean, value: string) => {
 		if (value === 'True') {
-			return 'bg-red-100 dark:bg-red-800 ring-red-500';
+			return 'red';
 		}
 		if (value === 'False') {
-			return 'bg-green-100 dark:bg-green-800 ring-green-500';
+			return 'green';
 		}
-		return 'ring-gray-500';
+		return 'gray';
 	};
 </script>
 

@@ -13,20 +13,27 @@
 
 	const id = nanoid(5);
 
-	export let highlightFunction = (input: boolean, value: string): string => {
+	export let highlightFunction = (input: boolean, value: string): keyof typeof COLORS => {
 		if ((input && value) || (!input && value === 'True')) {
-			return 'bg-green-100 dark:bg-green-800 ring-green-500';
+			return 'green';
 		}
 		if (!input && value === 'False') {
-			return 'bg-red-100 dark:bg-red-800 ring-red-500';
+			return 'red';
 		}
 		if (!input && value === 'Fixed') {
-			return 'bg-yellow-100 dark:bg-yellow-800 ring-yellow-500';
+			return 'yellow';
 		}
-		return 'ring-gray-500';
+		return 'gray';
 	};
 
-	$: highlight = highlightFunction(input, value);
+	const COLORS = {
+		green: 'bg-green-100 dark:bg-green-800 ring-green-500',
+		red: 'bg-red-100 dark:bg-red-800 ring-red-500',
+		yellow: 'bg-yellow-100 dark:bg-yellow-800 ring-yellow-500',
+		gray: 'ring-gray-500'
+	};
+
+	$: highlight = COLORS[highlightFunction(input, value)];
 </script>
 
 <div class={'p-2 ring-1 ' + highlight}>
