@@ -8,6 +8,7 @@
 
 	export interface CheckboxValue {
 		subscribe: (subscription: (value: Status) => void) => () => void;
+		set: (value: Status) => void;
 		addChild: (childStatus: Writable<Status>) => void;
 		getFixed: () => boolean;
 	}
@@ -36,6 +37,8 @@
 			$status = Status.False;
 		} else if (values.some((v) => v === Status.Fixed)) {
 			$status = Status.Fixed;
+		} else if (values.some((v) => v === Status.Blank)) {
+			$status = Status.Blank;
 		}
 	};
 	status.subscribe((value: Status) => {
@@ -48,6 +51,7 @@
 
 	export const value: CheckboxValue = {
 		subscribe: status.subscribe,
+		set: status.set,
 		addChild: (childStatus: Writable<Status>) => {
 			children.push(childStatus);
 			childStatus.subscribe(onChildUpdate);
@@ -59,21 +63,33 @@
 <span class="flex flex-row items-center justify-center space-x-2">
 	<button
 		on:click={() => {
-			$status = Status.True;
+			if ($status === Status.True) {
+				$status = Status.Blank;
+			} else {
+				$status = Status.True;
+			}
 		}}
 		class:circled={$status === Status.True}>T</button
 	>
 	{#if enableFixed}
 		<button
 			on:click={() => {
-				$status = Status.Fixed;
+				if ($status === Status.Fixed) {
+					$status = Status.Blank;
+				} else {
+					$status = Status.Fixed;
+				}
 			}}
 			class:circled={$status === Status.Fixed}>X</button
 		>
 	{/if}
 	<button
 		on:click={() => {
-			$status = Status.False;
+			if ($status === Status.False) {
+				$status = Status.Blank;
+			} else {
+				$status = Status.False;
+			}
 		}}
 		class:circled={$status === Status.False}>F</button
 	>

@@ -3,7 +3,7 @@
 	export let year: number;
 </script>
 
-<div class="max-w-screen-lg mx-auto px-8">
+<div class="max-w-screen-lg mx-auto">
 	<h1>{event}</h1>
 	<h2>Team Checklist - {year}</h2>
 
@@ -31,7 +31,8 @@
 	label {
 		display: block;
 	}
-	* :global(input[type='text']) {
+	* :global(input[type='text']),
+	* :global(input[type='number']) {
 		font-size: 16px;
 		font-size: max(16px, 1em);
 		font-family: inherit;
@@ -42,15 +43,28 @@
 		max-width: 100%;
 		@apply border-0 border-b-2 border-slate-900;
 	}
-	:global(.dark) * :global(input[type='text']) {
+	:global(.dark) * :global(input[type='text']),
+	:global(.dark) * :global(input[type='number']) {
 		@apply border-slate-200;
 	}
 	* :global(input[disabled]) {
 		background-color: #eee;
 		cursor: not-allowed;
 	}
-	* :global(input[inputmode='numeric']) {
+	* :global(input[inputmode='numeric']),
+	* :global(input[type='number']) {
 		width: 80px;
+	}
+	* :global(input[type='number']::-webkit-inner-spin-button),
+	* :global(input[type='number']::-webkit-outer-spin-button) {
+		-webkit-appearance: none;
+		-moz-appearance: none;
+		appearance: none;
+		margin: 0;
+	}
+	* :global(input[type='number']) {
+		appearance: none;
+		-moz-appearance: textfield;
 	}
 	* :global(h3) {
 		margin-top: 32px;

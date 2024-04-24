@@ -13,7 +13,7 @@
 
 	const id = nanoid(5);
 
-	$: highlight = ((input, value) => {
+	export let highlightFunction = (input: boolean, value: string): string => {
 		if ((input && value) || (!input && value === 'True')) {
 			return 'bg-green-100 dark:bg-green-800 ring-green-500';
 		}
@@ -24,29 +24,35 @@
 			return 'bg-yellow-100 dark:bg-yellow-800 ring-yellow-500';
 		}
 		return 'ring-gray-500';
-	})(input, value);
+	};
+
+	$: highlight = highlightFunction(input, value);
 </script>
 
-<div class={'mb-8 rounded-md p-4 ring-2 ' + highlight}>
-	<span class="flex flex-col sm:flex-row items-start">
-		<div class="flex flex-row sm:flex-col items-center mr-6">
-			<strong class="mb-2 mr-2">
+<div class={'p-2 ring-1 ' + highlight}>
+	<span class="flex flex-col sm:flex-row items-start sm:items-baseline">
+		<div class="flex flex-row items-center mr-2">
+			<span class="mb-1 mr-1">
 				{#if checklistItem}
-					{checklistItem}.
+					<strong class="mr-0.5">
+						{checklistItem}.
+					</strong>
 				{/if}
 				{#if rule}
-					Rule {rule}
+					<strong class="font-medium">
+						Rule {rule}
+					</strong>
 				{/if}
-			</strong>
-			<span class="mb-2">
+			</span>
+			<span class="mb-1 mr-1">
 				{#if !input}
 					<Checkbox {parent} bind:value={checkbox} />
 				{:else}
-					<input {id} type="text" inputmode="numeric" bind:value />
+					<input {id} class="mx-2" type="number" bind:value />
 				{/if}
 			</span>
 		</div>
-		<span class="flex-1 self-center">
+		<span class="flex-1">
 			{#if !input}
 				<slot />
 			{:else}
@@ -58,12 +64,12 @@
 	</span>
 
 	{#if $$slots.children}
-		<details class="mt-4 -mb-6">
-			<summary class="mb-6">
+		<details class="mt-2" open>
+			<summary class="mb-2 cursor-pointer">
 				{#if $$slots.summary}
 					<slot name="summary" />
 				{:else}
-					I don't know, check individual parameters:
+					Check individual parameters:
 				{/if}
 			</summary>
 

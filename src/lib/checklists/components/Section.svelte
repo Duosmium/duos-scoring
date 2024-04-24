@@ -2,8 +2,8 @@
 	export let title: string;
 </script>
 
-<div>
-	<h3 class="mb-6">{title}</h3>
+<details open>
+	<summary class="mt-8 mb-6 cursor-pointer"><h3 class="m-0 inline">{title}</h3></summary>
 
 	<slot />
-</div>
+</details>
