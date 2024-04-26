@@ -109,44 +109,44 @@
 	</Section>
 
 	<Section title="Construction Parameters">
-		<Question bind:checkbox={meetsParams} rule="3." checklistItem={2}>
+		<Question linkChildren={true} bind:checkbox={meetsParams} rule="3." checklistItem={2}>
 			<strong>Were all construction parameters met?</strong>
 			(If any construction violations are not corrected during the competition period, circle F. teams
 			may still be permitted to compete but will be ranked behind every team.)
 
 			<svelte:fragment slot="children">
-				<Question parent={meetsParams} rule="3.a."
+				<Question rule="3.a."
 					>When ready-to-launch, the launch device, projectiles, stabilizing weights, and all other
 					device components fit in a 75.0 cm (Div C) or 85.0 cm (Div B) per side cube, in any
 					orientation chosen by the team.</Question
 				>
-				<Question parent={meetsParams} rule="3.b."
+				<Question rule="3.b."
 					>Launch force is entirely supplied by gravitational potential energy from a falling mass ≤
 					3.500 kg (Div C) or 5.000 kg (Div B).</Question
 				>
-				<Question parent={meetsParams} rule="3.d."
+				<Question rule="3.d."
 					>The gravitational potential energy is converted to air pressure or air movement, which is
 					then used to launch the projectile.</Question
 				>
-				<Question parent={meetsParams} rule="3.e."
+				<Question rule="3.e."
 					>All device air chambers start each launch at ambient air pressure and automatically
 					return to ambient air pressure.</Question
 				>
-				<Question parent={meetsParams} rule="3.f."
+				<Question rule="3.f."
 					>Activating the triggering device does not contribute significant energy to the launch. It
 					extends out of the launch area, allow for competitors to remain at least 75 cm away from
 					the launch area. The triggering device does not pose a danger due to flying parts or
 					excessive movement outside of the launch area.</Question
 				>
-				<Question parent={meetsParams} rule="3.g."
+				<Question rule="3.g."
 					>Team provides unmodified, standard tennis, racquet, and/or Ping Pong balls to be used as
 					projectiles.</Question
 				>
-				<Question parent={meetsParams} rule="3.h."
+				<Question rule="3.h."
 					>The launch device is designed and operated in such a way to not damage or alter the
 					floor.</Question
 				>
-				<Question parent={meetsParams} rule="3.i."
+				<Question rule="3.i."
 					>Electrical components are not part of the device or triggering device.</Question
 				>
 			</svelte:fragment>
@@ -183,12 +183,12 @@
 		'7.e.2': 'The projectile contacts with the inside bottom surface of the bucket.'
 	}}
 	<Section title="Near Target: Launch 1">
-		<Question bind:checkbox={meetsNear1Rules} rule="5." checklistItem={4}>
+		<Question linkChildren={true} bind:checkbox={meetsNear1Rules} rule="5." checklistItem={4}>
 			<strong>Were all competition parameters met for this launch?</strong>
 
 			<svelte:fragment slot="children">
-				<Question parent={meetsNear1Rules} rule="5.b.">{rules['5.b.']}</Question>
-				<Question parent={meetsNear1Rules} rule="5.c.">{rules['5.c.']}</Question>
+				<Question rule="5.b.">{rules['5.b.']}</Question>
+				<Question rule="5.c.">{rules['5.c.']}</Question>
 			</svelte:fragment>
 		</Question>
 		<Question bind:value={near1Dist} input={true} rule="7.b." checklistItem={5} min={0} max={2000}
@@ -196,12 +196,12 @@
 		>
 	</Section>
 	<Section title="Near Target: Launch 2">
-		<Question bind:checkbox={meetsNear2Rules} rule="5." checklistItem={4}>
+		<Question linkChildren={true} bind:checkbox={meetsNear2Rules} rule="5." checklistItem={4}>
 			<strong>Were all competition parameters met for this launch?</strong>
 
 			<svelte:fragment slot="children">
-				<Question parent={meetsNear2Rules} rule="5.b.">{rules['5.b.']}</Question>
-				<Question parent={meetsNear2Rules} rule="5.c.">{rules['5.c.']}</Question>
+				<Question rule="5.b.">{rules['5.b.']}</Question>
+				<Question rule="5.c.">{rules['5.c.']}</Question>
 			</svelte:fragment>
 		</Question>
 		<Question bind:value={near2Dist} input={true} rule="7.b." checklistItem={5} min={0} max={2000}
@@ -223,12 +223,12 @@
 		</Question>
 	</Section>
 	<Section title="Far Target: Launch 1">
-		<Question bind:checkbox={meetsFar1Rules} rule="5." checklistItem={4}>
+		<Question linkChildren={true} bind:checkbox={meetsFar1Rules} rule="5." checklistItem={4}>
 			<strong>Were all competition parameters met for this launch?</strong>
 
 			<svelte:fragment slot="children">
-				<Question parent={meetsFar1Rules} rule="5.b.">{rules['5.b.']}</Question>
-				<Question parent={meetsFar1Rules} rule="5.c.">{rules['5.c.']}</Question>
+				<Question rule="5.b.">{rules['5.b.']}</Question>
+				<Question rule="5.c.">{rules['5.c.']}</Question>
 			</svelte:fragment>
 		</Question>
 		<Question bind:value={far1Dist} input={true} rule="7.b." checklistItem={5} min={0} max={4000}
@@ -236,12 +236,12 @@
 		>
 	</Section>
 	<Section title="Far Target: Launch 2">
-		<Question bind:checkbox={meetsFar2Rules} rule="5." checklistItem={4}>
+		<Question linkChildren={true} bind:checkbox={meetsFar2Rules} rule="5." checklistItem={4}>
 			<strong>Were all competition parameters met for this launch?</strong>
 
 			<svelte:fragment slot="children">
-				<Question parent={meetsFar2Rules} rule="5.b.">{rules['5.b.']}</Question>
-				<Question parent={meetsFar2Rules} rule="5.c.">{rules['5.c.']}</Question>
+				<Question rule="5.b.">{rules['5.b.']}</Question>
+				<Question rule="5.c.">{rules['5.c.']}</Question>
 			</svelte:fragment>
 		</Question>
 		<Question bind:value={far2Dist} input={true} rule="7.b." checklistItem={5} min={0} max={4000}

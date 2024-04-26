@@ -1,21 +1,33 @@
 <script lang="ts">
 	import { nanoid } from 'nanoid';
 	import Checkbox, { Status, type CheckboxValue } from './Checkbox.svelte';
+	import { getContext, setContext } from 'svelte';
+	import { writable, type Writable } from 'svelte/store';
 
 	export let rule: string | undefined = undefined;
 	export let checklistItem: number | undefined = undefined;
 	export let input: boolean = false;
-	export let parent: CheckboxValue | undefined = undefined;
 	export let value: number | Status | null = null;
 	export let enableFixed: boolean | undefined = undefined;
 	export let min: number | undefined = undefined;
 	export let max: number | undefined = undefined;
+	export let linkChildren: boolean = false;
 
 	export let checkbox: CheckboxValue | undefined = undefined;
 	let textValue: number;
 	$: value = input ? textValue : $checkbox ?? Status.Blank;
 
 	const id = nanoid(5);
+
+	let parent: Writable<CheckboxValue | undefined> | undefined;
+	parent = getContext('parent');
+
+	let self: Writable<CheckboxValue | undefined> = writable(checkbox);
+	if (linkChildren) {
+		setContext('parent', self);
+	}
+
+	$: $self = checkbox;
 
 	export let highlightFunction = (
 		input: boolean,
@@ -64,7 +76,7 @@
 			</span>
 			<span class="mb-1 mr-1">
 				{#if !input}
-					<Checkbox {enableFixed} {parent} bind:value={checkbox} />
+					<Checkbox {enableFixed} parent={$parent} bind:value={checkbox} />
 				{:else}
 					<input {id} class="mx-2" type="number" {min} {max} bind:value={textValue} />
 				{/if}
