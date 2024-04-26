@@ -41,11 +41,11 @@
 
 	let dqed: boolean;
 
-	const bucketColor = (input: boolean, value: number | Status | null) => {
-		if (value === 'True') {
+	const bucketColor = (_: number | null, status: Status | undefined) => {
+		if (status === 'True') {
 			return 'green';
 		}
-		if (value === 'False') {
+		if (status === 'False') {
 			return 'yellow';
 		}
 		return 'gray';

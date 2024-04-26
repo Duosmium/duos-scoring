@@ -3,6 +3,7 @@
 	import Checkbox, { Status, type CheckboxValue } from './Checkbox.svelte';
 	import { getContext, setContext } from 'svelte';
 	import { writable, type Writable } from 'svelte/store';
+	import type { SectionStatus } from './Section.svelte';
 
 	export let rule: string | undefined = undefined;
 	export let checklistItem: number | undefined = undefined;
@@ -13,50 +14,57 @@
 	export let max: number | undefined = undefined;
 	export let linkChildren: boolean = false;
 
+	const l = (v: number | null) =>
+		v != null ? Math.max(min ?? -Infinity, Math.min(max ?? Infinity, v)) : v;
 	export let checkbox: CheckboxValue | undefined = undefined;
-	let textValue: number;
-	$: value = input ? textValue : $checkbox ?? Status.Blank;
+	let inputValue: number | null;
+	$: value = input ? (l(inputValue) === inputValue ? inputValue : null) : $checkbox ?? Status.Blank;
 
 	const id = nanoid(5);
 
 	let parent: Writable<CheckboxValue | undefined> | undefined;
-	parent = getContext('parent');
-
+	parent = getContext('checkboxParent');
 	let self: Writable<CheckboxValue | undefined> = writable(checkbox);
+	$: $self = checkbox;
 	if (linkChildren) {
-		setContext('parent', self);
+		setContext('checkboxParent', self);
 	}
 
-	$: $self = checkbox;
+	const wrappedValue = writable(value);
+	const sectionStatus: SectionStatus = getContext('sectionParent');
+	if (sectionStatus && !parent) {
+		sectionStatus.addChild(wrappedValue);
+	}
+	$: $wrappedValue = value;
 
 	export let highlightFunction = (
-		input: boolean,
-		value: number | Status | null
+		inputValue: number | null,
+		checkboxValue: Status | undefined
 	): keyof typeof COLORS => {
 		if (
-			(!input && value === 'False') ||
-			(input && value != null && min != null && (value as number) < min) ||
-			(input && value != null && max != null && (value as number) > max)
+			checkboxValue === 'False' ||
+			(inputValue != null && min != null && inputValue < min) ||
+			(inputValue != null && max != null && inputValue > max)
 		) {
 			return 'red';
 		}
-		if (!input && value === 'Fixed') {
+		if (checkboxValue === 'Fixed') {
 			return 'yellow';
 		}
-		if ((input && value != null) || (!input && value === 'True')) {
+		if (inputValue != null || checkboxValue === 'True') {
 			return 'green';
 		}
 		return 'gray';
 	};
 
 	const COLORS = {
-		green: 'bg-green-100 dark:bg-green-800 ring-green-500',
-		red: 'bg-red-100 dark:bg-red-800 ring-red-500',
-		yellow: 'bg-yellow-100 dark:bg-yellow-800 ring-yellow-500',
-		gray: 'ring-gray-500'
+		green: 'bg-green-100 dark:bg-green-900 ring-green-500',
+		red: 'bg-red-100 dark:bg-red-900 ring-red-500',
+		yellow: 'bg-yellow-100 dark:bg-yellow-900 ring-yellow-500',
+		gray: 'bg-slate-100 dark:bg-slate-800 ring-gray-500'
 	};
 
-	$: highlight = COLORS[highlightFunction(input, value)];
+	$: highlight = COLORS[highlightFunction(inputValue, $checkbox)];
 </script>
 
 <div class={'p-2 ring-1 ' + highlight}>
@@ -78,7 +86,7 @@
 				{#if !input}
 					<Checkbox {enableFixed} parent={$parent} bind:value={checkbox} />
 				{:else}
-					<input {id} class="mx-2" type="number" {min} {max} bind:value={textValue} />
+					<input {id} class="mx-2" type="number" {min} {max} bind:value={inputValue} />
 				{/if}
 			</span>
 		</div>

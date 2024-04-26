@@ -11,11 +11,11 @@
 
 	$: checked = $checkbox && $checkbox === Status.True;
 
-	const highlightFunction = (input: boolean, value: number | Status | null) => {
-		if (value === 'True') {
+	const highlightFunction = (_: number | null, status: Status | undefined) => {
+		if (status === 'True') {
 			return 'red';
 		}
-		if (value === 'False') {
+		if (status === 'False') {
 			return 'green';
 		}
 		return 'gray';

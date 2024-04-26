@@ -66,7 +66,4 @@
 		appearance: none;
 		-moz-appearance: textfield;
 	}
-	* :global(h3) {
-		margin-top: 32px;
-	}
 </style>
