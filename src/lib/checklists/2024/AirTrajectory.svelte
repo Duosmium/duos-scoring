@@ -201,7 +201,7 @@
 		>
 	</Section>
 	<Section title="Near Target: Launch 2">
-		<Question linkChildren={true} bind:checkbox={meetsNear2Rules} rule="5." checklistItem={4}>
+		<Question linkChildren={true} bind:checkbox={meetsNear2Rules} rule="5." checklistItem={6}>
 			<strong>Were all competition parameters met for this launch?</strong>
 
 			<svelte:fragment slot="children">
@@ -213,7 +213,7 @@
 			bind:inputValue={near2Dist}
 			input={true}
 			rule="7.b."
-			checklistItem={5}
+			checklistItem={7}
 			min={0}
 			max={2000}>{rules.dist}</Question
 		>
@@ -221,19 +221,23 @@
 			bind:checkbox={nearBucket}
 			highlightFunction={bucketColor}
 			rule="5."
-			checklistItem={4}
+			checklistItem={8}
 		>
 			{rules.bucket}
 
 			<svelte:fragment slot="summary">Bucket shot parameters:</svelte:fragment>
 			<svelte:fragment slot="children">
-				<Question bind:checkbox={nearBucketHit} rule="7.e.">{rules['7.e.1']}</Question>
-				<Question bind:checkbox={nearBucketInside} rule="7.e.">{rules['7.e.2']}</Question>
+				<Question bind:checkbox={nearBucketHit} rule="7.e." checklistItem={9}
+					>{rules['7.e.1']}</Question
+				>
+				<Question bind:checkbox={nearBucketInside} rule="7.e." checklistItem={10}
+					>{rules['7.e.2']}</Question
+				>
 			</svelte:fragment>
 		</Question>
 	</Section>
 	<Section title="Far Target: Launch 1">
-		<Question linkChildren={true} bind:checkbox={meetsFar1Rules} rule="5." checklistItem={4}>
+		<Question linkChildren={true} bind:checkbox={meetsFar1Rules} rule="5." checklistItem={11}>
 			<strong>Were all competition parameters met for this launch?</strong>
 
 			<svelte:fragment slot="children">
@@ -245,13 +249,13 @@
 			bind:inputValue={far1Dist}
 			input={true}
 			rule="7.b."
-			checklistItem={5}
+			checklistItem={12}
 			min={0}
 			max={4000}>{rules.dist}</Question
 		>
 	</Section>
 	<Section title="Far Target: Launch 2">
-		<Question linkChildren={true} bind:checkbox={meetsFar2Rules} rule="5." checklistItem={4}>
+		<Question linkChildren={true} bind:checkbox={meetsFar2Rules} rule="5." checklistItem={13}>
 			<strong>Were all competition parameters met for this launch?</strong>
 
 			<svelte:fragment slot="children">
@@ -263,17 +267,26 @@
 			bind:inputValue={far2Dist}
 			input={true}
 			rule="7.b."
-			checklistItem={5}
+			checklistItem={14}
 			min={0}
 			max={4000}>{rules.dist}</Question
 		>
-		<Question bind:checkbox={farBucket} highlightFunction={bucketColor} rule="5." checklistItem={4}>
+		<Question
+			bind:checkbox={farBucket}
+			highlightFunction={bucketColor}
+			rule="5."
+			checklistItem={15}
+		>
 			{rules.bucket}
 
 			<svelte:fragment slot="summary">Bucket shot parameters:</svelte:fragment>
 			<svelte:fragment slot="children">
-				<Question bind:checkbox={farBucketHit} rule="7.e.">{rules['7.e.1']}</Question>
-				<Question bind:checkbox={farBucketInside} rule="7.e.">{rules['7.e.2']}</Question>
+				<Question bind:checkbox={farBucketHit} rule="7.e." checklistItem={16}
+					>{rules['7.e.1']}</Question
+				>
+				<Question bind:checkbox={farBucketInside} rule="7.e." checklistItem={17}
+					>{rules['7.e.2']}</Question
+				>
 			</svelte:fragment>
 		</Question>
 	</Section>
