@@ -30,7 +30,7 @@
 	};
 </script>
 
-<details>
+<details class="section">
 	<summary class="mt-8 mb-6 cursor-pointer flex flex-row items-center">
 		<h3 class="m-0 mr-3 inline">{title}</h3>
 		{#if done}

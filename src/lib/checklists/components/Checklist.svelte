@@ -1,9 +1,54 @@
-<script lang="ts">
-	export let event: string;
-	export let year: number;
+<script context="module" lang="ts">
+	export interface ChecklistState {
+		state: Map<string, Writable<Status | number | null>>;
+		addState: (key: string, item: Writable<Status | number | null>) => void;
+	}
 </script>
 
-<div class="max-w-screen-lg mx-auto">
+<script lang="ts">
+	import { setContext } from 'svelte';
+	import type { Status } from './Checkbox.svelte';
+	import { get, writable, type Writable } from 'svelte/store';
+	import { browser } from '$app/environment';
+
+	export let event: string;
+	export let year: number;
+
+	{
+		let state: ChecklistState['state'] = new Map();
+
+		const saveState = () => {
+			localStorage.setItem(
+				'checklist',
+				JSON.stringify(Object.fromEntries([...state.entries()].map(([k, v]) => [k, get(v)])))
+			);
+		};
+
+		if (browser) {
+			// TODO: changeme
+			Object.entries(
+				JSON.parse(localStorage.getItem('checklist') || '{}') as Record<
+					string,
+					Status | number | null
+				>
+			).forEach(([key, value]) => {
+				let store = writable(value);
+				state.set(key, store);
+				store.subscribe(saveState);
+			});
+
+			setContext('checklistState', {
+				state,
+				addState: (key, item) => {
+					state.set(key, item);
+					item.subscribe(saveState);
+				}
+			} as ChecklistState);
+		}
+	}
+</script>
+
+<div class="checklist max-w-screen-lg mx-auto">
 	<h1>{event}</h1>
 	<h2>Team Checklist - {year}</h2>
 

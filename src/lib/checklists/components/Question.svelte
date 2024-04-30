@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { nanoid } from 'nanoid';
 	import Checkbox, { Status, type CheckboxValue } from './Checkbox.svelte';
-	import { getContext, setContext } from 'svelte';
+	import { getContext, onMount, setContext } from 'svelte';
 	import { writable, type Writable } from 'svelte/store';
 	import type { SectionStatus } from './Section.svelte';
+	import type { ChecklistState } from './Checklist.svelte';
+	import { browser } from '$app/environment';
 
 	export let rule: string | undefined = undefined;
 	export let checklistItem: number | undefined = undefined;
@@ -69,9 +71,33 @@
 	};
 
 	$: highlight = COLORS[highlightFunction(inputValue, $checkbox)];
+
+	let el: HTMLDivElement;
+
+	const checklistState: ChecklistState = getContext('checklistState');
+	let saveState: Writable<Status | number | null> | undefined;
+	onMount(() => {
+		let questionKey = [...document.body.querySelectorAll('.question').entries()]
+			.findIndex(([_, q]) => q === el)
+			.toString();
+
+		if (checklistState.state.has(questionKey)) {
+			saveState = checklistState.state.get(questionKey);
+			if (input) {
+				inputValue = $saveState as number | null;
+			} else {
+				$checkbox = $saveState as Status;
+			}
+		} else {
+			saveState = writable(null);
+			checklistState.addState(questionKey, saveState);
+		}
+	});
+
+	$: saveState && ($saveState = input ? inputValue : $checkbox ?? null);
 </script>
 
-<div class={'p-2 ring-1 ' + highlight}>
+<div class={'question p-2 ring-1 ' + highlight} bind:this={el}>
 	<span class="flex flex-col sm:flex-row items-start sm:items-baseline">
 		<div class="flex flex-row items-center mr-2">
 			<span class="mb-1 mr-1">
