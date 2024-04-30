@@ -191,8 +191,13 @@
 				<Question rule="5.c.">{rules['5.c.']}</Question>
 			</svelte:fragment>
 		</Question>
-		<Question bind:value={near1Dist} input={true} rule="7.b." checklistItem={5} min={0} max={2000}
-			>{rules.dist}</Question
+		<Question
+			bind:inputValue={near1Dist}
+			input={true}
+			rule="7.b."
+			checklistItem={5}
+			min={0}
+			max={2000}>{rules.dist}</Question
 		>
 	</Section>
 	<Section title="Near Target: Launch 2">
@@ -204,8 +209,13 @@
 				<Question rule="5.c.">{rules['5.c.']}</Question>
 			</svelte:fragment>
 		</Question>
-		<Question bind:value={near2Dist} input={true} rule="7.b." checklistItem={5} min={0} max={2000}
-			>{rules.dist}</Question
+		<Question
+			bind:inputValue={near2Dist}
+			input={true}
+			rule="7.b."
+			checklistItem={5}
+			min={0}
+			max={2000}>{rules.dist}</Question
 		>
 		<Question
 			bind:checkbox={nearBucket}
@@ -231,8 +241,13 @@
 				<Question rule="5.c.">{rules['5.c.']}</Question>
 			</svelte:fragment>
 		</Question>
-		<Question bind:value={far1Dist} input={true} rule="7.b." checklistItem={5} min={0} max={4000}
-			>{rules.dist}</Question
+		<Question
+			bind:inputValue={far1Dist}
+			input={true}
+			rule="7.b."
+			checklistItem={5}
+			min={0}
+			max={4000}>{rules.dist}</Question
 		>
 	</Section>
 	<Section title="Far Target: Launch 2">
@@ -244,8 +259,13 @@
 				<Question rule="5.c.">{rules['5.c.']}</Question>
 			</svelte:fragment>
 		</Question>
-		<Question bind:value={far2Dist} input={true} rule="7.b." checklistItem={5} min={0} max={4000}
-			>{rules.dist}</Question
+		<Question
+			bind:inputValue={far2Dist}
+			input={true}
+			rule="7.b."
+			checklistItem={5}
+			min={0}
+			max={4000}>{rules.dist}</Question
 		>
 		<Question bind:checkbox={farBucket} highlightFunction={bucketColor} rule="5." checklistItem={4}>
 			{rules.bucket}
@@ -260,7 +280,7 @@
 
 	<Section title="Log Score">
 		<Question
-			bind:value={logBasePoints}
+			bind:inputValue={logBasePoints}
 			input={true}
 			checklistItem={18}
 			rule="7.d.i."
@@ -270,7 +290,7 @@
 			points)</Question
 		>
 		<Question
-			bind:value={logDataSpansVar}
+			bind:inputValue={logDataSpansVar}
 			input={true}
 			checklistItem={19}
 			rule="7.d.ii."
@@ -280,7 +300,7 @@
 			in 4.a.iii. (up to 60 points)</Question
 		>
 		<Question
-			bind:value={logDataPts}
+			bind:inputValue={logDataPts}
 			input={true}
 			checklistItem={20}
 			rule="7.d.iii."
@@ -290,7 +310,7 @@
 			data series (up to 55 points)</Question
 		>
 		<Question
-			bind:value={logLabeled}
+			bind:inputValue={logLabeled}
 			input={true}
 			checklistItem={21}
 			rule="7.d.iv."
@@ -300,7 +320,7 @@
 			(up to 40 points)</Question
 		>
 		<Question
-			bind:value={logDistinctTables}
+			bind:inputValue={logDistinctTables}
 			input={true}
 			checklistItem={22}
 			rule="7.d.v."
@@ -309,7 +329,7 @@
 			>Points for each distinct graph/table turned in (30 points for each, up to 120 points total)</Question
 		>
 		<Question
-			bind:value={logDiagram}
+			bind:inputValue={logDiagram}
 			input={true}
 			checklistItem={23}
 			rule="7.d.vi."
@@ -317,7 +337,7 @@
 			max={45}>Includes a labeled device picture or diagram (up to 45 points)</Question
 		>
 		<Question
-			bind:value={logExCalcs}
+			bind:inputValue={logExCalcs}
 			input={true}
 			checklistItem={24}
 			rule="7.d.vii."

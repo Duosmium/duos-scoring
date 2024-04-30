@@ -9,7 +9,7 @@
 	let checkbox: CheckboxValue;
 	export let checked: boolean = status === 'DISQUALIFICATION';
 
-	$: checked = $checkbox && $checkbox === Status.True;
+	$: checked = $checkbox === Status.True;
 
 	const highlightFunction = (_: number | null, status: Status | undefined) => {
 		if (status === 'True') {

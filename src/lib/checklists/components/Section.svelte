@@ -1,20 +1,19 @@
 <script context="module" lang="ts">
 	export interface SectionStatus {
-		addChild: (childStatus: Writable<number | Status | null>) => void;
+		addChild: (childStatus: Writable<boolean>) => void;
 	}
 </script>
 
 <script lang="ts">
 	import { get, type Writable } from 'svelte/store';
-	import { Status } from './Checkbox.svelte';
 	import { setContext } from 'svelte';
 	import { CheckCircleOutline, ExclamationCircleOutline } from 'flowbite-svelte-icons';
 
 	export let title: string;
 
-	const children: Writable<number | Status | null>[] = [];
+	const children: Writable<boolean>[] = [];
 	const sectionStatus = {
-		addChild: (childStatus: Writable<number | Status | null>) => {
+		addChild: (childStatus: Writable<boolean>) => {
 			children.push(childStatus);
 			childStatus.subscribe(() => {
 				computeChildState();
@@ -26,9 +25,7 @@
 	let done = false;
 	const computeChildState = () => {
 		done = children.every((s) => {
-			const v = get(s);
-			console.log(v);
-			return v != null && v !== Status.Blank;
+			return get(s);
 		});
 	};
 </script>

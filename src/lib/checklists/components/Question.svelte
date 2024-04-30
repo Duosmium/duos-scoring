@@ -8,17 +8,14 @@
 	export let rule: string | undefined = undefined;
 	export let checklistItem: number | undefined = undefined;
 	export let input: boolean = false;
-	export let value: number | Status | null = null;
+
+	export let checkbox: CheckboxValue | undefined = undefined;
 	export let enableFixed: boolean | undefined = undefined;
-	export let min: number | undefined = undefined;
-	export let max: number | undefined = undefined;
 	export let linkChildren: boolean = false;
 
-	const l = (v: number | null) =>
-		v != null ? Math.max(min ?? -Infinity, Math.min(max ?? Infinity, v)) : v;
-	export let checkbox: CheckboxValue | undefined = undefined;
-	let inputValue: number | null;
-	$: value = input ? (l(inputValue) === inputValue ? inputValue : null) : $checkbox ?? Status.Blank;
+	export let inputValue: number | null = null;
+	export let min: number | undefined = undefined;
+	export let max: number | undefined = undefined;
 
 	const id = nanoid(5);
 
@@ -30,12 +27,19 @@
 		setContext('checkboxParent', self);
 	}
 
-	const wrappedValue = writable(value);
+	const notBlank: Writable<boolean> = writable(false);
+	const l = (v: number | null) =>
+		v != null ? Math.max(min ?? -Infinity, Math.min(max ?? Infinity, v)) : v;
+	$: $notBlank = input
+		? l(inputValue) !== inputValue
+			? false
+			: inputValue !== null
+		: $checkbox !== Status.Blank;
+
 	const sectionStatus: SectionStatus = getContext('sectionParent');
 	if (sectionStatus && !parent) {
-		sectionStatus.addChild(wrappedValue);
+		sectionStatus.addChild(notBlank);
 	}
-	$: $wrappedValue = value;
 
 	export let highlightFunction = (
 		inputValue: number | null,
@@ -104,11 +108,7 @@
 	{#if $$slots.children}
 		<details class="mt-2" open>
 			<summary class="mb-2 cursor-pointer">
-				{#if $$slots.summary}
-					<slot name="summary" />
-				{:else}
-					Check individual parameters:
-				{/if}
+				<slot name="summary">Check individual parameters:</slot>
 			</summary>
 
 			<slot name="children" />
