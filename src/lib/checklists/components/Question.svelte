@@ -72,15 +72,10 @@
 
 	$: highlight = COLORS[highlightFunction(inputValue, $checkbox)];
 
-	let el: HTMLDivElement;
-
+	const questionKey = (getContext('questionCounter') as () => number)().toString();
 	const checklistState: ChecklistState = getContext('checklistState');
 	let saveState: Writable<Status | number | null> | undefined;
 	onMount(() => {
-		let questionKey = [...document.body.querySelectorAll('.question').entries()]
-			.findIndex(([_, q]) => q === el)
-			.toString();
-
 		if (checklistState.state.has(questionKey)) {
 			saveState = checklistState.state.get(questionKey);
 			if (input) {
@@ -97,7 +92,7 @@
 	$: saveState && ($saveState = input ? inputValue : $checkbox ?? null);
 </script>
 
-<div class={'question p-2 ring-1 ' + highlight} bind:this={el}>
+<div class={'p-2 ring-1 ' + highlight}>
 	<span class="flex flex-col sm:flex-row items-start sm:items-baseline">
 		<div class="flex flex-row items-center mr-2">
 			<span class="mb-1 mr-1">

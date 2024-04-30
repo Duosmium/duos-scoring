@@ -46,9 +46,14 @@
 			} as ChecklistState);
 		}
 	}
+
+	let counter = 0;
+	setContext('questionCounter', () => {
+		return counter++;
+	});
 </script>
 
-<div class="checklist max-w-screen-lg mx-auto">
+<div class="max-w-screen-lg mx-auto">
 	<h1>{event}</h1>
 	<h2>Team Checklist - {year}</h2>
 
