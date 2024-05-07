@@ -4,6 +4,8 @@
 	import sciolyff from './test';
 	import FullscreenPdf from '$lib/components/FullscreenPdf.svelte';
 
+	let viewer: FullscreenPdf;
+
 	let slidesURL = '';
 	onMount(async () => {
 		slidesURL = await generatePdf(sciolyff, undefined, {
@@ -32,10 +34,12 @@
 			tournamentUrl: ''
 		});
 	});
+
+	$: viewer?.appendPdf(slidesURL);
 </script>
 
 {#if slidesURL === ''}
 	<p>Loading...</p>
 {:else}
-	<FullscreenPdf src={slidesURL}></FullscreenPdf>
+	<FullscreenPdf bind:this={viewer} src={slidesURL}></FullscreenPdf>
 {/if}

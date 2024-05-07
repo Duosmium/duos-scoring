@@ -7,7 +7,9 @@
 
 	let container: HTMLDivElement;
 
-	let pdfObj: pdfjsLib.PDFDocumentProxy;
+	let pdfObjs: pdfjsLib.PDFDocumentProxy[] = [];
+	let pages: number[] = [];
+
 	let currentPage = 1;
 
 	let fullscreen = false;
@@ -18,18 +20,35 @@
 		const loadingPdf = pdfjsLib.getDocument(src);
 		loadingPdf.promise.then((pdf) => {
 			container.querySelector('p')?.remove();
-			pdfObj = pdf;
+			pdfObjs.push(pdf);
+			pages.push(pdf.numPages);
 			renderPage();
 		});
 	});
+
+	export const appendPdf = (src: string | ArrayBuffer) => {
+		const loadingPdf = pdfjsLib.getDocument(src);
+		loadingPdf.promise.then((pdf) => {
+			pdfObjs.push(pdf);
+			pages.push(pages.slice(-1)[0] + pdf.numPages);
+		});
+	};
+
+	const getPdfIndex = (page: number) => {
+		const index = pages.findIndex((p) => p >= page);
+		const offset = page - (index === 0 ? 0 : pages[index - 1]);
+		return { index, offset };
+	};
 
 	let rendering = false;
 	const renderPage = () => {
 		if (rendering) return;
 		rendering = true;
 
-		currentPage = Math.max(1, Math.min(currentPage, pdfObj.numPages));
-		pdfObj.getPage(currentPage).then((page) => {
+		currentPage = Math.max(1, Math.min(currentPage, pages.slice(-1)[0]));
+		const { index, offset } = getPdfIndex(currentPage);
+
+		pdfObjs[index].getPage(offset).then((page) => {
 			const docSize = page.getViewport({ scale: 1 });
 			const xScale = window.screen.width / docSize.width;
 			const yScale = window.screen.height / docSize.height;
