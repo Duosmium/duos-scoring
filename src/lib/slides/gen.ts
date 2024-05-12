@@ -76,31 +76,7 @@ export async function getImage(filename: string) {
 export async function generatePdf(
 	sciolyff1: string | SciOlyFF,
 	sciolyff2: string | SciOlyFF,
-	options: {
-		tournamentLogo: string;
-		tournamentLogoDimensions: [number, number];
-		logoTextHeight: number;
-		logoAwardsHeight: number;
-		sidebarLineHeight: number;
-		dividerOffset: number;
-		titleFontSize: number;
-		headerFontSize: number;
-		sidebarFontSize: number;
-		teamFontSize: number;
-		teamLineHeight: number;
-		themeBgColor: string;
-		themeTextColor: string;
-		bgColor: string;
-		textColor: string;
-		headerTextColor: string;
-		randomOrder: boolean;
-		combineTracks: boolean;
-		separateTracks: boolean;
-		overallSchools: boolean;
-		overallPoints: boolean;
-		eventsOnly: boolean;
-		tournamentUrl: string;
-	}
+	options: PrismaJson.SlidesSettings
 ) {
 	if (!sciolyff1 && !sciolyff2) {
 		return 'about:blank';
@@ -171,6 +147,7 @@ export async function generatePdf(
 	const eventsOnly = options.eventsOnly;
 
 	const tournamentUrl = options.tournamentUrl;
+	const qrCode = options.qrCode ?? true;
 
 	function addTextSlide(title: string, subtitle: string) {
 		doc.addPage();
@@ -225,7 +202,7 @@ export async function generatePdf(
 	}
 
 	async function addClosingSlide(tournamentName: string, url: string) {
-		if (!url) {
+		if (!url || !qrCode) {
 			addTextSlide(
 				'Thank you for attending the ' + tournamentName + '!',
 				'Results will be available shortly.'
@@ -281,7 +258,7 @@ export async function generatePdf(
 
 		// add QR code
 		const qr = await getPNG(url, {
-			logo: await (await fetch(logos['bg'])).blob(),
+			logo: await (await (await fetch(logos['bg'])).blob()).arrayBuffer(),
 			ec_level: 'L',
 			size: 10
 		});

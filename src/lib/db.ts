@@ -624,3 +624,99 @@ export async function deleteScores(scores: bigint[]) {
 	}
 	return true;
 }
+
+export async function getSlides(tournamentId: bigint) {
+	const slides = await prisma.slides.findUnique({
+		where: {
+			tournamentId
+		}
+	});
+
+	if (slides == undefined) {
+		return false;
+	}
+
+	return slides;
+}
+
+export async function updateSlidesSettings(
+	tournamentId: bigint,
+	settings: PrismaJson.SlidesSettings
+) {
+	try {
+		await prisma.slides.update({
+			where: {
+				tournamentId
+			},
+			data: {
+				settings
+			}
+		});
+	} catch (e) {
+		return false;
+	}
+	return true;
+}
+
+export async function addSlidesBatch(tournamentId: bigint, batch: bigint[]) {
+	try {
+		const batches =
+			(
+				await prisma.slides.findUnique({
+					where: {
+						tournamentId
+					},
+					select: {
+						batches: true
+					}
+				})
+			)?.batches ?? [];
+
+		batches.push(batch);
+
+		await prisma.slides.update({
+			where: {
+				tournamentId
+			},
+			data: {
+				batches
+			}
+		});
+	} catch (e) {
+		return false;
+	}
+	return true;
+}
+
+export async function setSlidesChannel(tournamentId: bigint, channelId: string) {
+	try {
+		await prisma.slides.update({
+			where: {
+				tournamentId
+			},
+			data: {
+				channelId
+			}
+		});
+	} catch (e) {
+		return false;
+	}
+	return true;
+}
+
+export async function clearSlides(tournamentId: bigint) {
+	try {
+		await prisma.slides.update({
+			where: {
+				tournamentId
+			},
+			data: {
+				batches: [],
+				channelId: null
+			}
+		});
+	} catch (e) {
+		return false;
+	}
+	return true;
+}

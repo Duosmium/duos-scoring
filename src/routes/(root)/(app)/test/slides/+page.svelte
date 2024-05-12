@@ -31,7 +31,8 @@
 			overallSchools: true,
 			overallPoints: true,
 			eventsOnly: false,
-			tournamentUrl: ''
+			tournamentUrl: '',
+			qrCode: true
 		});
 	});
 

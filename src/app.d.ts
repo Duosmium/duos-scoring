@@ -22,6 +22,37 @@ declare global {
 		}
 		// interface Platform {}
 	}
+
+	namespace PrismaJson {
+		interface SlidesSettings {
+			tournamentLogo: string;
+			tournamentLogoDimensions: [number, number];
+			logoTextHeight: number;
+			logoAwardsHeight: number;
+			sidebarLineHeight: number;
+			dividerOffset: number;
+			titleFontSize: number;
+			headerFontSize: number;
+			sidebarFontSize: number;
+			teamFontSize: number;
+			teamLineHeight: number;
+			themeBgColor: string;
+			themeTextColor: string;
+			bgColor: string;
+			textColor: string;
+			headerTextColor: string;
+			randomOrder: boolean;
+			combineTracks: boolean;
+			separateTracks: boolean;
+			overallSchools: boolean;
+			overallPoints: boolean;
+			eventsOnly: boolean;
+			tournamentUrl: string;
+			qrCode: boolean;
+		}
+
+		type SlidesBatches = bigint[][];
+	}
 }
 
 export {};
