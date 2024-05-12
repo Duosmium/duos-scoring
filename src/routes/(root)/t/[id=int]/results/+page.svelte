@@ -276,7 +276,9 @@
 		const content = await generatePreview();
 		printPreview.contentDocument?.write(content);
 		printPreview.contentDocument?.close();
+		printPreview.hidden = false;
 		printPreview.contentWindow?.print();
+		printPreview.hidden = true;
 		printPreview.contentDocument?.write('');
 		printPreview.contentDocument?.close();
 	}
@@ -830,12 +832,15 @@
 {#await generatePreview()}
 	<!-- nothing here -->
 {:then previewContent}
-	<iframe
-		title="Results Preview"
-		class="w-full h-[calc(100vh-200px)] invisible"
-		bind:this={printPreview}
-		srcdoc={previewContent}
-	/>
+	<div class="sr-only" aria-hidden="true">
+		<iframe
+			title="Results Preview"
+			class="w-full h-[calc(100vh-200px)] invisible"
+			hidden={true}
+			bind:this={printPreview}
+			srcdoc={previewContent}
+		/>
+	</div>
 {/await}
 
 <style>
