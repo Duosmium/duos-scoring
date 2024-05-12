@@ -96,7 +96,14 @@
 	};
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<svelte:window
+	on:keydown={handleKeydown}
+	on:click={() => {
+		if (!fullscreen) return;
+		currentPage++;
+		renderPage();
+	}}
+/>
 
 <Button color="blue" on:click={enterFullScreen}>Present</Button>
 
@@ -119,13 +126,14 @@
 	div.container {
 		position: relative;
 		display: grid;
-		place-content: center;
+		place-items: center;
 	}
 	div.container.hidden {
 		display: none;
 	}
 	div.container :global(canvas) {
-		max-width: 100%;
+		max-width: 100vw;
+		max-height: 100vh;
 	}
 	div.container p {
 		font-size: 2rem;
