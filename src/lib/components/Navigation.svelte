@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Session } from '@supabase/supabase-js';
 	import {
 		Avatar,
 		Dropdown,
@@ -11,8 +12,8 @@
 		NavHamburger
 	} from 'flowbite-svelte';
 
-	export let user: any;
-	export let session: any;
+	export let user: App.Locals['user'] | null;
+	export let session: Session | null;
 </script>
 
 <Navbar let:hidden let:toggle class="py-4 mb-4 sticky top-3 z-30 px-0 sm:px-0" fluid={true}>

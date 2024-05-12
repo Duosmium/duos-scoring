@@ -6,8 +6,8 @@ export const actions = {
 	default: async ({ request, locals }) => {
 		const formData = await request.formData();
 
-		const name = formData.get('name').trim() as string;
-		const email = formData.get('email').trim() as string;
+		const name = (formData.get('name') as string).trim();
+		const email = (formData.get('email') as string).trim();
 
 		if (name && name !== locals.user.name) {
 			await createOrUpdateUser(locals.user.id, name);

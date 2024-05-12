@@ -25,7 +25,6 @@
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
-	import { stringify } from 'postcss';
 
 	export let data: PageData;
 

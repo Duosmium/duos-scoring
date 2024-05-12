@@ -30,25 +30,44 @@ export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
 		cookies: {
 			get: (key) => event.cookies.get(key),
+			/**
+			 * Note: You have to add the `path` variable to the
+			 * set and remove method due to sveltekit's cookie API
+			 * requiring this to be set, setting the path to an empty string
+			 * will replicate previous/standard behaviour (https://kit.svelte.dev/docs/types#public-types-cookies)
+			 */
 			set: (key, value, options) => {
-				event.cookies.set(key, value, options);
+				event.cookies.set(key, value, { ...options, path: '/' });
 			},
 			remove: (key, options) => {
-				event.cookies.delete(key, options);
+				event.cookies.delete(key, { ...options, path: '/' });
 			}
 		}
 	});
 
 	/**
-	 * a little helper that is written for convenience so that instead
-	 * of calling `const { data: { session } } = await supabase.auth.getSession()`
-	 * you just call this `await getSession()`
+	 * Unlike `supabase.auth.getSession()`, which returns the session _without_
+	 * validating the JWT, this function also calls `getUser()` to validate the
+	 * JWT before returning the session.
 	 */
-	event.locals.getSession = async () => {
+	event.locals.safeGetSession = async () => {
 		const {
 			data: { session }
 		} = await event.locals.supabase.auth.getSession();
-		return session;
+		if (!session) {
+			return { session: null, user: null };
+		}
+
+		const {
+			data: { user },
+			error
+		} = await event.locals.supabase.auth.getUser();
+		if (error) {
+			// JWT validation has failed
+			return { session: null, user: null };
+		}
+
+		return { session, user };
 	};
 
 	// don't do any redirects when handling supabase auth stuff
@@ -57,7 +76,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	// get the current session or try logging in with a passed supabase code
-	let session = await event.locals.getSession();
+	const returned = await event.locals.safeGetSession();
+	const supabaseUser = returned.user;
+	let session = returned.session;
 	if (!session && event.url.searchParams.get('code') !== null) {
 		session = (
 			await event.locals.supabase.auth.exchangeCodeForSession(event.url.searchParams.get('code')!)
@@ -89,13 +110,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 		return new Response(undefined, { status: 303, headers: { location: '/dashboard' } });
 	}
 
-	event.locals.userId = session.user.id;
+	event.locals.userId = supabaseUser!.id;
 
 	// get the current user from the database
 	let user = await getUserInfo(event.locals.userId);
-	const {
-		data: { user: supabaseUser }
-	} = await event.locals.supabase.auth.getUser();
 	if (user === false && supabaseUser) {
 		await createOrUpdateUser(event.locals.userId, supabaseUser?.user_metadata.name.trim() || '');
 		user = await getUserInfo(event.locals.userId);
@@ -120,13 +138,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	return resolve(event, {
-		/**
-		 * There´s an issue with `filterSerializedResponseHeaders` not working when using `sequence`
-		 *
-		 * https://github.com/sveltejs/kit/issues/8061
-		 */
 		filterSerializedResponseHeaders(name) {
-			return name === 'content-range';
+			/**
+			 * Supabase libraries use the `content-range` and `x-supabase-api-version`
+			 * headers, so we need to tell SvelteKit to pass it through.
+			 */
+			return name === 'content-range' || name === 'x-supabase-api-version';
 		}
 	});
 };

@@ -7,7 +7,8 @@
 <script lang="ts">
 	import { get, type Writable } from 'svelte/store';
 	import { setContext } from 'svelte';
-	import { CheckCircleOutline, ExclamationCircleOutline } from 'flowbite-svelte-icons';
+	import CheckCircleOutline from 'flowbite-svelte-icons/CheckCircleOutline.svelte';
+	import ExclamationCircleOutline from 'flowbite-svelte-icons/ExclamationCircleOutline.svelte';
 
 	export let title: string;
 

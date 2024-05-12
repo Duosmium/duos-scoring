@@ -1,7 +1,6 @@
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
-import { SupabaseClient, Session } from '@supabase/supabase-js';
-import { Database } from './DatabaseDefinitions';
+import type { SupabaseClient, Session, User } from '@supabase/supabase-js';
 import type { getTournamentInfo, getUserInfo } from '$lib/db';
 
 declare global {
@@ -10,8 +9,8 @@ declare global {
 			message: string;
 		}
 		interface Locals {
-			supabase: SupabaseClient<Database>;
-			getSession(): Promise<Session | null>;
+			supabase: SupabaseClient;
+			safeGetSession(): Promise<{ session: Session | null; user: User | null }>;
 			userId: string;
 			user: Exclude<Awaited<ReturnType<typeof getUserInfo>>, false>;
 			tournament?: Exclude<Awaited<ReturnType<typeof getTournamentInfo>>, false>;

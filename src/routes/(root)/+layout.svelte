@@ -2,7 +2,7 @@
 	import '../../app.postcss';
 	// import './app.css';
 
-	import { invalidate } from '$app/navigation';
+	import { goto, invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import type { LayoutData } from './$types';
 	import { DarkMode } from 'flowbite-svelte';
@@ -12,15 +12,22 @@
 	$: ({ supabase, session } = data);
 
 	onMount(() => {
-		const {
-			data: { subscription }
-		} = supabase.auth.onAuthStateChange((event, _session) => {
-			if (_session?.expires_at !== session?.expires_at) {
+		const { data } = supabase.auth.onAuthStateChange((_, newSession) => {
+			if (!newSession) {
+				/**
+				 * Queue this as a task so the navigation won't prevent the
+				 * triggering function from completing
+				 */
+				setTimeout(() => {
+					goto('/', { invalidateAll: true });
+				});
+			}
+			if (newSession?.expires_at !== session?.expires_at) {
 				invalidate('supabase:auth');
 			}
 		});
 
-		return () => subscription.unsubscribe();
+		return () => data.subscription.unsubscribe();
 	});
 </script>
 

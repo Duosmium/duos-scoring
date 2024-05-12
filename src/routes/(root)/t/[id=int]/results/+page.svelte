@@ -19,7 +19,7 @@
 		TableHeadCell,
 		Tooltip
 	} from 'flowbite-svelte';
-	import { ChevronDownSolid } from 'flowbite-svelte-icons';
+	import ChevronDownOutline from 'flowbite-svelte-icons/ChevronDownOutline.svelte';
 	import { page } from '$app/stores';
 	import yaml from 'js-yaml';
 	import * as zip from '@zip.js/zip.js';
@@ -429,7 +429,7 @@
 		<Button
 			color="blue"
 			class="py-1.5 border border-blue-700 hover:border-blue-800 dark:border-blue-600 dark:hover:border-blue-700"
-			>Other <ChevronDownSolid class="w-6 h-6 fill-transparent" /></Button
+			>Other <ChevronDownOutline class="w-6 h-6 fill-transparent" /></Button
 		>
 		<Dropdown class="dark:bg-gray-800">
 			<DropdownItem disabled={selected.length === 0} on:click={downloadRaws}
