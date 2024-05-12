@@ -24,11 +24,13 @@
 	import yaml from 'js-yaml';
 	import * as zip from '@zip.js/zip.js';
 	import type { Tournament } from '@prisma/client';
-	import { generatePdf, getColor, getImage } from '$lib/slides/gen';
-	import printable from '$lib/slides/printable';
+
 	import { invalidateAll } from '$app/navigation';
+	import Slides from './Slides.svelte';
 
 	export let data: PageData;
+
+	let slides: Slides;
 
 	const trialStatusDisplay = {
 		SCORING: 'Scoring',
@@ -283,116 +285,6 @@
 		printPreview.contentDocument?.close();
 	}
 
-	let tournamentLogo = '';
-	let tournamentLogoDimensions = [0, 0] as [number, number];
-	let logoTextHeight = 1;
-	let logoAwardsHeight = 1;
-	let sidebarLineHeight = 0.5;
-	let dividerOffset = 10;
-	let titleFontSize = 48;
-	let headerFontSize = 32;
-	let sidebarFontSize = 16;
-	let teamFontSize = 36;
-	let teamLineHeight = 1.25;
-	let themeBgColor = '#1f1b35';
-	let themeTextColor = '#f5f5f5';
-	let bgColor = '#fafafa';
-	let textColor = '#212121';
-	let headerTextColor = '#353535';
-	let randomOrder = false;
-	let combineTracks = false;
-	let separateTracks = false;
-	let overallSchools = true;
-	let overallPoints = true;
-	let eventsOnly = false;
-	let defaultImage: [string, [number, number]] | undefined = undefined;
-	let tournamentUrl =
-		'https://www.duosmium.org/results/' + generateFilename(data.tournament).trim() + '/';
-	let showSlides = false;
-	let slidesURL = '';
-	let qrCode = true;
-	async function initializeSlides() {
-		const sciolyff = generateSciolyFF();
-		const filename = generateFilename(data.tournament).trim();
-
-		themeBgColor = getColor(filename) || '#1f1b35';
-		defaultImage = await getImage(filename);
-
-		slidesURL = await generatePdf(sciolyff, undefined, {
-			tournamentLogo: tournamentLogo || defaultImage?.[0] || '',
-			tournamentLogoDimensions:
-				!tournamentLogo && defaultImage ? defaultImage[1] : tournamentLogoDimensions,
-			logoTextHeight,
-			logoAwardsHeight,
-			sidebarLineHeight,
-			dividerOffset,
-			titleFontSize,
-			headerFontSize,
-			sidebarFontSize,
-			teamFontSize,
-			teamLineHeight,
-			themeBgColor,
-			themeTextColor,
-			bgColor,
-			textColor,
-			headerTextColor,
-			randomOrder,
-			combineTracks,
-			separateTracks,
-			overallSchools,
-			overallPoints,
-			eventsOnly,
-			tournamentUrl: qrCode ? tournamentUrl : ''
-		});
-	}
-	$: {
-		if (showSlides) {
-			generatePdf(generateSciolyFF(), undefined, {
-				tournamentLogo: tournamentLogo || defaultImage?.[0] || '',
-				tournamentLogoDimensions:
-					!tournamentLogo && defaultImage ? defaultImage[1] : tournamentLogoDimensions,
-				logoTextHeight,
-				logoAwardsHeight,
-				sidebarLineHeight,
-				dividerOffset,
-				titleFontSize,
-				headerFontSize,
-				sidebarFontSize,
-				teamFontSize,
-				teamLineHeight,
-				themeBgColor,
-				themeTextColor,
-				bgColor,
-				textColor,
-				headerTextColor,
-				randomOrder,
-				combineTracks,
-				separateTracks,
-				overallSchools,
-				overallPoints,
-				eventsOnly,
-				tournamentUrl: qrCode ? tournamentUrl : ''
-			}).then((url) => {
-				slidesURL = url;
-			});
-		}
-	}
-
-	let showPrintable = false;
-	let reversePrintable = true;
-	let printableHtml = '';
-	$: {
-		if (showPrintable) {
-			printableHtml = printable(generateSciolyFF(), '', {
-				combineTracks,
-				separateTracks,
-				overallSchools,
-				reverse: reversePrintable,
-				contentOnly: false
-			});
-		}
-	}
-
 	function downloadRaws() {
 		const header = ['Team #', 'Team'].concat(...data.events.map((e) => e.name));
 		const body = data.teams.map((t) => [
@@ -522,7 +414,7 @@
 			color="yellow"
 			disabled={selected.length === 0}
 			on:click={() => {
-				showSlides = true;
+				slides.setPreview(true);
 			}}>Slides</Button
 		>
 		<Button
@@ -530,7 +422,7 @@
 			color="purple"
 			disabled={selected.length === 0}
 			on:click={() => {
-				showPrintable = true;
+				slides.setPrintable(true);
 			}}>Printable Medals List</Button
 		>
 
@@ -617,6 +509,8 @@
 	{/each}
 {/key}
 
+<Slides {generateFilename} {generateSciolyFF} tournament={data.tournament} bind:this={slides} />
+
 <Modal
 	title={events.find((e) => e.id === histoEvent)?.name}
 	bind:open={showHisto}
@@ -652,157 +546,6 @@
 	<svelte:fragment slot="footer">
 		<Button color="alternative">Done</Button>
 	</svelte:fragment>
-</Modal>
-
-<Modal title="Slides Preview" bind:open={showSlides} autoclose outsideclose size="xl">
-	{#await initializeSlides()}
-		<div class="grid place-items-center h-60">
-			<span class="flex items-center">
-				<svg
-					class="animate-spin mr-2 fill-black dark:fill-white"
-					width="24"
-					height="24"
-					viewBox="0 0 24 24"
-					xmlns="http://www.w3.org/2000/svg"
-					><path
-						d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z"
-						opacity=".25"
-					/><path
-						d="M10.14,1.16a11,11,0,0,0-9,8.92A1.59,1.59,0,0,0,2.46,12,1.52,1.52,0,0,0,4.11,10.7a8,8,0,0,1,6.66-6.61A1.42,1.42,0,0,0,12,2.69h0A1.57,1.57,0,0,0,10.14,1.16Z"
-					/></svg
-				><span>Loading...</span>
-			</span>
-		</div>
-	{:then _}
-		<details>
-			<summary>Settings</summary>
-			<label>
-				Theme Background Color:
-				<input type="color" bind:value={themeBgColor} />
-			</label>
-			<label>
-				Theme Text Color:
-				<input type="color" bind:value={themeTextColor} />
-			</label>
-			<label>
-				Tournament Logo:
-				<input type="file" id="tournamentLogo" accept="image/png,image/jpeg" />
-			</label>
-			<label>
-				Clear Logo:
-				<button id="clearLogo">Clear</button>
-			</label>
-			<label>
-				Enable QR code for full results:
-				<input type="checkbox" id="qrCode" bind:checked={qrCode} />
-			</label>
-
-			<details>
-				<summary>Advanced</summary>
-				<label>
-					Include Event Slides Only:
-					<input type="checkbox" bind:checked={eventsOnly} />
-				</label>
-				<label>
-					Shuffle Event Order:
-					<input type="checkbox" bind:checked={randomOrder} />
-				</label>
-				<label>
-					Score Tracks Together:
-					<input type="checkbox" bind:checked={combineTracks} />
-				</label>
-				<label>
-					Group Events By Track:
-					<input type="checkbox" bind:checked={separateTracks} />
-				</label>
-				<label>
-					Rank Overall by Schools:
-					<input type="checkbox" bind:checked={overallSchools} />
-				</label>
-				<label>
-					Display Overall Point Totals:
-					<input type="checkbox" bind:checked={overallPoints} />
-				</label>
-
-				<label>
-					Header Text Color:
-					<input type="color" bind:value={headerTextColor} />
-				</label>
-				<label>
-					Text Color:
-					<input type="color" bind:value={textColor} />
-				</label>
-				<label>
-					Background Color:
-					<input type="color" bind:value={bgColor} />
-				</label>
-				<label>
-					Logo Height (Text Slides):
-					<input type="number" bind:value={logoTextHeight} />
-				</label>
-				<label>
-					Logo Height (Placement Slides):
-					<input type="number" bind:value={logoAwardsHeight} />
-				</label>
-				<label>
-					Title Font Size:
-					<input type="number" bind:value={titleFontSize} />
-				</label>
-				<label>
-					Header Font Size:
-					<input type="number" bind:value={headerFontSize} />
-				</label>
-				<label>
-					Sidebar Font Size:
-					<input type="number" bind:value={sidebarFontSize} />
-				</label>
-				<label>
-					Sidebar Line Height:
-					<input type="number" bind:value={sidebarLineHeight} />
-				</label>
-				<label>
-					Team Font Size:
-					<input type="number" bind:value={teamFontSize} />
-				</label>
-				<label>
-					Team Line Height:
-					<input type="number" bind:value={teamLineHeight} />
-				</label>
-				<label>
-					Divider Offset:
-					<input type="number" bind:value={dividerOffset} />
-				</label>
-			</details>
-		</details>
-		<iframe title="Slides Preview" class="w-full h-[calc(100vh-200px)]" src={slidesURL} />
-	{/await}
-</Modal>
-
-<Modal title="Printable Medals List" bind:open={showPrintable} autoclose outsideclose size="xl">
-	<details>
-		<summary>Settings</summary>
-		<label
-			>Rank Overall By Schools:
-			<input type="checkbox" bind:checked={overallSchools} />
-		</label>
-		<label
-			>Score Tracks Together:
-			<input type="checkbox" bind:checked={combineTracks} />
-		</label>
-		<label
-			>Group Events By Track:
-			<input type="checkbox" bind:checked={separateTracks} />
-		</label>
-		<label
-			>Reverse Medal Order:
-			<input type="checkbox" bind:checked={reversePrintable} />
-		</label>
-	</details>
-	<iframe
-		title="Printable Medals List"
-		class="w-full h-[calc(100vh-200px)]"
-		srcdoc={printableHtml}
-	/>
 </Modal>
 
 <Modal title="Results Preview" bind:open={showPreview} autoclose outsideclose size="xl">
@@ -842,12 +585,3 @@
 		/>
 	</div>
 {/await}
-
-<style>
-	label {
-		display: block;
-	}
-	summary {
-		cursor: pointer;
-	}
-</style>
