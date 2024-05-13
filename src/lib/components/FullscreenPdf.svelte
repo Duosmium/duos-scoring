@@ -3,7 +3,6 @@
 	import * as pdfjsLib from 'pdfjs-dist';
 	import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 	import { onMount } from 'svelte';
-	export let src: string;
 
 	let container: HTMLDivElement;
 
@@ -16,14 +15,6 @@
 
 	onMount(() => {
 		pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
-
-		const loadingPdf = pdfjsLib.getDocument(src);
-		loadingPdf.promise.then((pdf) => {
-			container.querySelector('p')?.remove();
-			pdfObjs.push(pdf);
-			pages.push(pdf.numPages);
-			renderPage();
-		});
 	});
 
 	export const appendPdf = (src: string | ArrayBuffer) => {
@@ -31,6 +22,11 @@
 		loadingPdf.promise.then((pdf) => {
 			pdfObjs.push(pdf);
 			pages.push(pages.slice(-1)[0] + pdf.numPages);
+
+			if (pdfObjs.length === 1) {
+				container.querySelector('p')?.remove();
+				renderPage();
+			}
 		});
 	};
 
@@ -79,7 +75,7 @@
 		});
 	};
 
-	const enterFullScreen = () => {
+	export const enterFullScreen = () => {
 		if (!document.fullscreenElement) {
 			container.requestFullscreen();
 		}
@@ -104,8 +100,6 @@
 		renderPage();
 	}}
 />
-
-<Button color="blue" on:click={enterFullScreen}>Present</Button>
 
 <div
 	class="container"

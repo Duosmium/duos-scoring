@@ -5,10 +5,8 @@
 	import FullscreenPdf from '$lib/components/FullscreenPdf.svelte';
 
 	let viewer: FullscreenPdf;
-
-	let slidesURL = '';
-	onMount(async () => {
-		slidesURL = await generatePdf(sciolyff, undefined, {
+	
+	const settings = {
 			tournamentLogo: '',
 			tournamentLogoDimensions: [0, 0] as [number, number],
 			logoTextHeight: 1,
@@ -33,14 +31,25 @@
 			eventsOnly: false,
 			tournamentUrl: '',
 			qrCode: true
-		});
-	});
+		}
 
-	$: viewer?.appendPdf(slidesURL);
+	let slidesURL = '';
+	onMount(async () => {
+		slidesURL = await generatePdf(sciolyff, undefined, settings);
+		viewer.appendPdf(slidesUrl)
+		slidesURL = await generatePdf(sciolyff, undefined, {
+			...settings,
+			themeBgColor: '#730c05'
+		});
+		viewer.appendPdf(slidesUrl)
+	});
 </script>
+
+
+<Button color="blue" on:click={viewer.enterFullScreen}>Present</Button>
+
+<FullscreenPdf bind:this={viewer}></FullscreenPdf>
 
 {#if slidesURL === ''}
 	<p>Loading...</p>
-{:else}
-	<FullscreenPdf bind:this={viewer} src={slidesURL}></FullscreenPdf>
 {/if}
