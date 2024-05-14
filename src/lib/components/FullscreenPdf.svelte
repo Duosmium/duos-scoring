@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Button } from 'flowbite-svelte';
 	import * as pdfjsLib from 'pdfjs-dist';
 	import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 	import { onMount } from 'svelte';
@@ -17,62 +16,63 @@
 		pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 	});
 
-	export const appendPdf = (src: string | ArrayBuffer) => {
+	export const appendPdf = async (src: string | ArrayBuffer) => {
 		const loadingPdf = pdfjsLib.getDocument(src);
-		loadingPdf.promise.then((pdf) => {
-			pdfObjs.push(pdf);
-			pages.push(pages.slice(-1)[0] + pdf.numPages);
+		const pdf = await loadingPdf.promise;
 
-			if (pdfObjs.length === 1) {
-				container.querySelector('p')?.remove();
-				renderPage();
-			}
-		});
+		pdfObjs.push(pdf);
+		pages.push((pages.slice(-1)[0] || 0) + pdf.numPages);
+
+		if (pdfObjs.length === 1) {
+			container.querySelector('p')?.remove();
+			await renderPage();
+		}
 	};
 
 	const getPdfIndex = (page: number) => {
 		const index = pages.findIndex((p) => p >= page);
 		const offset = page - (index === 0 ? 0 : pages[index - 1]);
+
 		return { index, offset };
 	};
 
 	let rendering = false;
-	const renderPage = () => {
-		if (rendering) return;
+	const renderPage = async () => {
+		if (rendering || pdfObjs.length === 0) return;
 		rendering = true;
 
 		currentPage = Math.max(1, Math.min(currentPage, pages.slice(-1)[0]));
 		const { index, offset } = getPdfIndex(currentPage);
 
-		pdfObjs[index].getPage(offset).then((page) => {
-			const docSize = page.getViewport({ scale: 1 });
-			const xScale = window.screen.width / docSize.width;
-			const yScale = window.screen.height / docSize.height;
-			const scale = Math.min(xScale, yScale);
+		const page = await pdfObjs[index].getPage(offset);
 
-			const viewport = page.getViewport({ scale });
+		const docSize = page.getViewport({ scale: 1 });
+		const xScale = window.screen.width / docSize.width;
+		const yScale = window.screen.height / docSize.height;
+		const scale = Math.min(xScale, yScale);
 
-			const canvas = document.createElement('canvas');
-			const context = canvas.getContext('2d') as CanvasRenderingContext2D;
-			canvas.height = viewport.height;
-			canvas.width = viewport.width;
+		const viewport = page.getViewport({ scale });
 
-			const renderContext = {
-				canvasContext: context,
-				viewport: viewport
-			};
-			canvas.hidden = true;
-			container.append(canvas);
-			page.render(renderContext).promise.then(() => {
-				for (const child of container.children) {
-					if (child != canvas) {
-						container.removeChild(child);
-					}
-				}
-				canvas.hidden = false;
-				rendering = false;
-			});
-		});
+		const canvas = document.createElement('canvas');
+		const context = canvas.getContext('2d') as CanvasRenderingContext2D;
+		canvas.height = viewport.height;
+		canvas.width = viewport.width;
+
+		const renderContext = {
+			canvasContext: context,
+			viewport: viewport
+		};
+		canvas.hidden = true;
+		container.append(canvas);
+
+		await page.render(renderContext).promise;
+		for (const child of container.children) {
+			if (child != canvas) {
+				container.removeChild(child);
+			}
+		}
+		canvas.hidden = false;
+		rendering = false;
 	};
 
 	export const enterFullScreen = () => {
