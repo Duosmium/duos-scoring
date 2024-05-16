@@ -5,11 +5,13 @@
 	import { page } from '$app/stores';
 	import { generatePdf, getColor, getImage } from '$lib/slides/gen';
 	import printable from '$lib/slides/printable';
-	import type { Tournament } from '@prisma/client';
+	import type { Slides, Tournament } from '@prisma/client';
+	import FullscreenPdf from '$lib/components/FullscreenPdf.svelte';
+	import type { RealtimeChannel } from '@supabase/supabase-js';
 
 	export let tournament: Tournament;
 	export let generateFilename: (tournament: Tournament) => string;
-	export let generateSciolyFF: () => string;
+	export let generateSciolyFF: (events?: bigint[]) => string;
 
 	let tournamentLogo = '';
 	let tournamentLogoDimensions = [0, 0] as [number, number];
@@ -39,6 +41,33 @@
 	let qrCode = true;
 	let showSlidesPreview = false;
 	let slidesURL = '';
+	const currentSettings = () => ({
+		tournamentLogo: tournamentLogo || defaultImage?.[0] || '',
+		tournamentLogoDimensions:
+			!tournamentLogo && defaultImage ? defaultImage[1] : tournamentLogoDimensions,
+		logoTextHeight,
+		logoAwardsHeight,
+		sidebarLineHeight,
+		dividerOffset,
+		titleFontSize,
+		headerFontSize,
+		sidebarFontSize,
+		teamFontSize,
+		teamLineHeight,
+		themeBgColor,
+		themeTextColor,
+		bgColor,
+		textColor,
+		headerTextColor,
+		randomOrder,
+		combineTracks,
+		separateTracks,
+		overallSchools,
+		overallPoints,
+		eventsOnly,
+		tournamentUrl,
+		qrCode
+	});
 	async function initializeSlidesPreview() {
 		const sciolyff = generateSciolyFF();
 		const filename = generateFilename(tournament).trim();
@@ -46,98 +75,20 @@
 		themeBgColor = getColor(filename) || '#1f1b35';
 		defaultImage = await getImage(filename);
 
-		slidesURL = await generatePdf(sciolyff, undefined, {
-			tournamentLogo: tournamentLogo || defaultImage?.[0] || '',
-			tournamentLogoDimensions:
-				!tournamentLogo && defaultImage ? defaultImage[1] : tournamentLogoDimensions,
-			logoTextHeight,
-			logoAwardsHeight,
-			sidebarLineHeight,
-			dividerOffset,
-			titleFontSize,
-			headerFontSize,
-			sidebarFontSize,
-			teamFontSize,
-			teamLineHeight,
-			themeBgColor,
-			themeTextColor,
-			bgColor,
-			textColor,
-			headerTextColor,
-			randomOrder,
-			combineTracks,
-			separateTracks,
-			overallSchools,
-			overallPoints,
-			eventsOnly,
-			tournamentUrl,
-			qrCode
-		});
+		slidesURL = await generatePdf(sciolyff, undefined, currentSettings());
 	}
 	$: {
 		if (showSlidesPreview) {
-			generatePdf(generateSciolyFF(), undefined, {
-				tournamentLogo: tournamentLogo || defaultImage?.[0] || '',
-				tournamentLogoDimensions:
-					!tournamentLogo && defaultImage ? defaultImage[1] : tournamentLogoDimensions,
-				logoTextHeight,
-				logoAwardsHeight,
-				sidebarLineHeight,
-				dividerOffset,
-				titleFontSize,
-				headerFontSize,
-				sidebarFontSize,
-				teamFontSize,
-				teamLineHeight,
-				themeBgColor,
-				themeTextColor,
-				bgColor,
-				textColor,
-				headerTextColor,
-				randomOrder,
-				combineTracks,
-				separateTracks,
-				overallSchools,
-				overallPoints,
-				eventsOnly,
-				tournamentUrl,
-				qrCode
-			}).then((url) => {
+			generatePdf(generateSciolyFF(), undefined, currentSettings()).then((url) => {
 				slidesURL = url;
 			});
 		}
 	}
 
 	function saveSlidesSettings() {
-		const settings: PrismaJson.SlidesSettings = {
-			tournamentLogo,
-			tournamentLogoDimensions,
-			logoTextHeight,
-			logoAwardsHeight,
-			sidebarLineHeight,
-			dividerOffset,
-			titleFontSize,
-			headerFontSize,
-			sidebarFontSize,
-			teamFontSize,
-			teamLineHeight,
-			themeBgColor,
-			themeTextColor,
-			bgColor,
-			textColor,
-			headerTextColor,
-			randomOrder,
-			combineTracks,
-			separateTracks,
-			overallSchools,
-			overallPoints,
-			eventsOnly,
-			tournamentUrl,
-			qrCode
-		};
 		fetch(`/t/${$page.params.id}/results/slides`, {
 			method: 'PATCH',
-			body: JSON.stringify(settings)
+			body: JSON.stringify(currentSettings())
 		}).then((res) => {
 			if (res.status === 200) {
 				addToastMessage('Settings saved!', 'success');
@@ -165,6 +116,88 @@
 	};
 	export const setPreview = (value: boolean) => {
 		showSlidesPreview = value;
+	};
+
+	let broadcastChannel: RealtimeChannel | undefined;
+	let viewer: FullscreenPdf;
+	let batchIndex = 0;
+	const fetchLatestBatches = async () => {
+		const resp = await fetch(`/t/${$page.params.id}/results/slides`);
+		const data: Slides = await resp.json();
+
+		if (!data.batches || data.batches?.length <= batchIndex) return;
+
+		const events = data.batches
+			.filter((_, i, s) => i >= batchIndex && (data.done ? i < s.length - 1 : true))
+			.flat();
+
+		if (events) {
+			const sciolyff = generateSciolyFF(events);
+			const slides = await generatePdf(sciolyff, undefined, currentSettings(), ['events']);
+			viewer.appendPdf(slides);
+		}
+		if (data.done) {
+			const sciolyff = generateSciolyFF(data.batches.slice(-1)[0]);
+			const slides = await generatePdf(sciolyff, undefined, currentSettings(), [
+				'overall',
+				'closing'
+			]);
+			viewer.appendPdf(slides);
+		}
+
+		batchIndex = data.batches.length;
+	};
+
+	export const startPresentation = async (events: bigint[]) => {
+		const sciolyff = generateSciolyFF(events);
+		const slides = await generatePdf(sciolyff, undefined, currentSettings(), ['intro', 'events']);
+		viewer.appendPdf(slides);
+		viewer.enterFullScreen();
+
+		const resp = await fetch(`/t/${$page.params.id}/results/slides`, {
+			method: 'PUT',
+			body: JSON.stringify({ events: events.map((e) => e.toString()) })
+		});
+		const channelId = await resp.text();
+
+		broadcastChannel = $page.data.supabase.channel(channelId);
+		broadcastChannel
+			.on('broadcast', { event: 'update' }, () => {
+				console.log('Received update event');
+				fetchLatestBatches();
+			})
+			.subscribe();
+	};
+
+	export const resumePresentation = async () => {
+		viewer.enterFullScreen();
+	};
+
+	export const addBatch = async (events: bigint[], done?: boolean) => {
+		const resp = await fetch(`/t/${$page.params.id}/results/slides`, {
+			method: 'PUT',
+			body: JSON.stringify({ events: events.map((e) => e.toString()), done })
+		});
+		if (resp.status == 200) {
+			addToastMessage('Events pushed!', 'success');
+		} else {
+			addToastMessage('Failed to push events!', 'error');
+		}
+	};
+
+	export const stopPresentation = async () => {
+		if (broadcastChannel) {
+			broadcastChannel.unsubscribe();
+			broadcastChannel = undefined;
+		}
+		const resp = await fetch(`/t/${$page.params.id}/results/slides`, {
+			method: 'DELETE'
+		});
+		if (resp.status == 200) {
+			addToastMessage('Presentation stopped!', 'success');
+		} else {
+			addToastMessage('Failed to stop presentation!', 'error');
+		}
 	};
 </script>
 
@@ -318,6 +351,8 @@
 		srcdoc={printableHtml}
 	/>
 </Modal>
+
+<FullscreenPdf bind:this={viewer}></FullscreenPdf>
 
 <style>
 	label {

@@ -76,7 +76,8 @@ export async function getImage(filename: string) {
 export async function generatePdf(
 	sciolyff1: string | SciOlyFF,
 	sciolyff2: string | SciOlyFF,
-	options: PrismaJson.SlidesSettings
+	options: PrismaJson.SlidesSettings,
+	sections?: ('intro' | 'events' | 'overall' | 'closing')[]
 ) {
 	if (!sciolyff1 && !sciolyff2) {
 		return 'about:blank';
@@ -484,7 +485,7 @@ export async function generatePdf(
 		);
 	}
 
-	if (!eventsOnly) {
+	if (sections ? sections.includes('intro') : !eventsOnly) {
 		// generate title slide
 		doc.outline.add(null, 'Welcome', { pageNumber: 1 });
 		addTextSlide(
@@ -552,8 +553,10 @@ export async function generatePdf(
 				const outline = doc.outline.add(null, 'Placements - ' + t.name, {
 					pageNumber: doc.getNumberOfPages()
 				});
-				addEventSlides(sortEvents(events1.filter(([_, track]) => track === t)), outline);
-				if (!eventsOnly) {
+				if (sections && sections.includes('events')) {
+					addEventSlides(sortEvents(events1.filter(([_, track]) => track === t)), outline);
+				}
+				if (sections ? sections.includes('overall') : !eventsOnly) {
 					addOverallSlides(interpreter1, t);
 				}
 			});
@@ -563,8 +566,10 @@ export async function generatePdf(
 				const outline = doc.outline.add(null, 'Placements - ' + t.name, {
 					pageNumber: doc.getNumberOfPages()
 				});
-				addEventSlides(sortEvents(events2.filter(([_, track]) => track === t)), outline);
-				if (!eventsOnly) {
+				if (sections && sections.includes('events')) {
+					addEventSlides(sortEvents(events2.filter(([_, track]) => track === t)), outline);
+				}
+				if (sections ? sections.includes('overall') : !eventsOnly) {
 					addOverallSlides(interpreter2, t);
 				}
 			});
@@ -574,8 +579,10 @@ export async function generatePdf(
 		});
 		const events = events1.concat(...events2);
 		shuffleArray(events);
-		addEventSlides(events, outline);
-		if (!eventsOnly) {
+		if (sections && sections.includes('events')) {
+			addEventSlides(events, outline);
+		}
+		if (sections ? sections.includes('overall') : !eventsOnly) {
 			genOverall(interpreter1);
 			if (interpreter2) genOverall(interpreter2);
 		}
@@ -596,14 +603,16 @@ export async function generatePdf(
 				},
 				[] as [Event, Track][]
 			);
-		addEventSlides(events, outline);
-		if (!eventsOnly) {
+		if (sections && sections.includes('events')) {
+			addEventSlides(events, outline);
+		}
+		if (sections ? sections.includes('overall') : !eventsOnly) {
 			genOverall(interpreter1);
 			if (interpreter2) genOverall(interpreter2);
 		}
 	}
 
-	if (!eventsOnly) {
+	if (sections ? sections.includes('closing') : !eventsOnly) {
 		// generate thank you slide
 		await addClosingSlide(tournamentName, tournamentUrl);
 		// addTextSlide("Thank You!", tournamentName);

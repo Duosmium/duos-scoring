@@ -712,6 +712,30 @@ export async function addSlidesBatch(tournamentId: bigint | string, batch: bigin
 	return true;
 }
 
+export async function markSlidesDone(tournamentId: bigint | string, done: boolean) {
+	if (typeof tournamentId === 'string') {
+		tournamentId = BigInt(tournamentId);
+	}
+
+	try {
+		await prisma.slides.upsert({
+			where: {
+				tournamentId
+			},
+			update: {
+				done
+			},
+			create: {
+				tournamentId,
+				done
+			}
+		});
+	} catch (e) {
+		return false;
+	}
+	return true;
+}
+
 export async function setSlidesChannel(tournamentId: bigint | string, channelId: string) {
 	if (typeof tournamentId === 'string') {
 		tournamentId = BigInt(tournamentId);
@@ -748,7 +772,8 @@ export async function clearSlides(tournamentId: bigint | string) {
 			},
 			update: {
 				batches: [],
-				channelId: null
+				channelId: null,
+				done: false
 			},
 			create: {
 				tournamentId

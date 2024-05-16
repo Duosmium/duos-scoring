@@ -2,6 +2,7 @@ import {
 	addSlidesBatch,
 	clearSlides,
 	getSlides,
+	markSlidesDone,
 	setSlidesChannel,
 	updateSlidesSettings
 } from '$lib/db';
@@ -24,29 +25,44 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 
 	const payload: {
 		events?: string[];
+		done?: boolean;
 	} = await request.json();
+	if (payload.events == undefined && payload.done == undefined)
+		return new Response('missing events or done', { status: 400 });
 	if (
-		!payload.events ||
-		!Array.isArray(payload.events) ||
-		payload.events.some((event) => typeof event !== 'string')
+		payload.events &&
+		(!Array.isArray(payload.events) || payload.events.some((event) => typeof event !== 'string'))
 	)
-		return new Response('missing events', { status: 400 });
+		return new Response('invalid events', { status: 400 });
+
+	if (payload.done != undefined && typeof payload.done !== 'boolean')
+		return new Response('invalid done', { status: 400 });
 
 	const slides = await getSlides(params.id);
+	let channelId = slides.channelId;
 	if (!slides.channelId) {
-		const channel = nanoid(22);
-		const channelStatus = await setSlidesChannel(params.id, channel);
+		channelId = nanoid(22);
+		const channelStatus = await setSlidesChannel(params.id, channelId);
 		if (!channelStatus) {
 			return new Response('error creating presentation', { status: 500 });
 		}
 	}
 
-	const batchStatus = await addSlidesBatch(
-		params.id,
-		payload.events.map((e) => BigInt(e))
-	);
-	if (!batchStatus) {
-		return new Response('error adding events', { status: 500 });
+	if (payload.events) {
+		const batchStatus = await addSlidesBatch(
+			params.id,
+			payload.events.map((e) => BigInt(e))
+		);
+		if (!batchStatus) {
+			return new Response('error adding events', { status: 500 });
+		}
+	}
+
+	if (payload.done != undefined) {
+		const doneStatus = await markSlidesDone(params.id, payload.done);
+		if (!doneStatus) {
+			return new Response('error marking presentation done', { status: 500 });
+		}
 	}
 
 	if (slides.channelId) {
@@ -64,7 +80,7 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 		});
 	}
 
-	return new Response('ok');
+	return new Response(channelId);
 };
 
 export const PATCH: RequestHandler = async ({ request, params, locals }) => {

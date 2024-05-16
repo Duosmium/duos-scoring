@@ -88,8 +88,8 @@
 			}
 		});
 	}
-	function generateSciolyFF() {
-		touchEventsExportedAt();
+	function generateSciolyFF(events?: bigint[]) {
+		if (!events) touchEventsExportedAt();
 
 		const levelLookup = {
 			INVITATIONAL: 'Invitational',
@@ -97,7 +97,7 @@
 			STATE: 'States',
 			NATIONAL: 'Nationals'
 		} as const;
-		const selectedEvents = new Set(selected.flatMap((e) => e.id));
+		const selectedEvents = new Set(events ?? selected.flatMap((e) => e.id));
 		const sciolyffRep = {
 			Tournament: {
 				name: data.tournament.name,
