@@ -553,7 +553,7 @@ export async function generatePdf(
 				const outline = doc.outline.add(null, 'Placements - ' + t.name, {
 					pageNumber: doc.getNumberOfPages()
 				});
-				if (sections && sections.includes('events')) {
+				if (sections ? sections.includes('events') : true) {
 					addEventSlides(sortEvents(events1.filter(([_, track]) => track === t)), outline);
 				}
 				if (sections ? sections.includes('overall') : !eventsOnly) {
@@ -566,7 +566,7 @@ export async function generatePdf(
 				const outline = doc.outline.add(null, 'Placements - ' + t.name, {
 					pageNumber: doc.getNumberOfPages()
 				});
-				if (sections && sections.includes('events')) {
+				if (sections ? sections.includes('events') : true) {
 					addEventSlides(sortEvents(events2.filter(([_, track]) => track === t)), outline);
 				}
 				if (sections ? sections.includes('overall') : !eventsOnly) {
@@ -579,7 +579,7 @@ export async function generatePdf(
 		});
 		const events = events1.concat(...events2);
 		shuffleArray(events);
-		if (sections && sections.includes('events')) {
+		if (sections ? sections.includes('events') : true) {
 			addEventSlides(events, outline);
 		}
 		if (sections ? sections.includes('overall') : !eventsOnly) {
@@ -603,7 +603,7 @@ export async function generatePdf(
 				},
 				[] as [Event, Track][]
 			);
-		if (sections && sections.includes('events')) {
+		if (sections ? sections.includes('events') : true) {
 			addEventSlides(events, outline);
 		}
 		if (sections ? sections.includes('overall') : !eventsOnly) {
