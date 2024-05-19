@@ -129,20 +129,21 @@
 
 		const events = data.batches
 			.filter((_, i, s) => i >= batchIndex && (data.done ? i < s.length - 1 : true))
-			.flat();
+			.flat()
+			.map((e) => BigInt(e));
 
 		if (events) {
 			const sciolyff = generateSciolyFF(events);
 			const slides = await generatePdf(sciolyff, undefined, currentSettings(), ['events']);
-			viewer.appendPdf(slides);
+			await viewer.appendPdf(slides);
 		}
 		if (data.done) {
-			const sciolyff = generateSciolyFF(data.batches.slice(-1)[0]);
+			const sciolyff = generateSciolyFF(data.batches.slice(-1)[0].map((e) => BigInt(e)));
 			const slides = await generatePdf(sciolyff, undefined, currentSettings(), [
 				'overall',
 				'closing'
 			]);
-			viewer.appendPdf(slides);
+			await viewer.appendPdf(slides);
 		}
 
 		batchIndex = data.batches.length;
@@ -151,7 +152,7 @@
 	export const startPresentation = async (events: bigint[]) => {
 		const sciolyff = generateSciolyFF(events);
 		const slides = await generatePdf(sciolyff, undefined, currentSettings(), ['intro', 'events']);
-		viewer.appendPdf(slides);
+		await viewer.appendPdf(slides);
 		viewer.enterFullScreen();
 
 		const resp = await fetch(`/t/${$page.params.id}/results/slides`, {
@@ -159,11 +160,11 @@
 			body: JSON.stringify({ events: events.map((e) => e.toString()) })
 		});
 		const channelId = await resp.text();
+		batchIndex = 1;
 
 		broadcastChannel = $page.data.supabase.channel(channelId);
 		broadcastChannel
 			.on('broadcast', { event: 'update' }, () => {
-				console.log('Received update event');
 				fetchLatestBatches();
 			})
 			.subscribe();
@@ -193,6 +194,7 @@
 		const resp = await fetch(`/t/${$page.params.id}/results/slides`, {
 			method: 'DELETE'
 		});
+		batchIndex = 0;
 		if (resp.status == 200) {
 			addToastMessage('Presentation stopped!', 'success');
 		} else {

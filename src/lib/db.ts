@@ -692,7 +692,7 @@ export async function addSlidesBatch(tournamentId: bigint | string, batch: bigin
 				})
 			)?.batches ?? [];
 
-		batches.push(batch);
+		batches.push(batch.map((e) => e.toString()));
 
 		await prisma.slides.upsert({
 			where: {

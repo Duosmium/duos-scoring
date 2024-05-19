@@ -51,7 +51,7 @@ declare global {
 			qrCode: boolean;
 		}
 
-		type SlidesBatches = bigint[][];
+		type SlidesBatches = string[][];
 	}
 }
 

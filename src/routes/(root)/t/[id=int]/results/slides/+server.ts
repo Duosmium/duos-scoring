@@ -7,7 +7,6 @@ import {
 	updateSlidesSettings
 } from '$lib/db';
 import { checkScoremasterPerms } from '$lib/utils';
-import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { nanoid } from 'nanoid';
 import { supabase } from '$lib/supabaseAdmin';
@@ -17,7 +16,14 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 
 	const slides = await getSlides(params.id);
 
-	return json(slides);
+	return new Response(
+		JSON.stringify(slides, (_, v) => (typeof v === 'bigint' ? v.toString() : v)),
+		{
+			headers: {
+				'content-type': 'application/json'
+			}
+		}
+	);
 };
 
 export const PUT: RequestHandler = async ({ params, request, locals }) => {
