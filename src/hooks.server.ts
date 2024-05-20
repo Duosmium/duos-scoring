@@ -1,32 +1,24 @@
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
-import { SENTRY_DSN } from '$env/static/private';
+import {
+	PUBLIC_SUPABASE_URL,
+	PUBLIC_SUPABASE_ANON_KEY,
+	PUBLIC_SENTRY_DSN
+} from '$env/static/public';
 import { createServerClient } from '@supabase/ssr';
 
-import type { Handle, HandleServerError } from '@sveltejs/kit';
+import type { Handle } from '@sveltejs/kit';
 
-import * as SentryNode from '@sentry/node';
-import '@sentry/tracing';
+import * as Sentry from '@sentry/sveltekit';
 import { createOrUpdateUser, getTournamentInfo, getUserInfo } from '$lib/db';
+import { sequence } from '@sveltejs/kit/hooks';
 
-SentryNode.init({
-	dsn: SENTRY_DSN,
-	tracesSampleRate: 1.0,
-	// Add the Http integration for tracing
-	integrations: [new SentryNode.Integrations.Http()]
+Sentry.init({
+	dsn: PUBLIC_SENTRY_DSN,
+	tracesSampleRate: 1.0
 });
 
-SentryNode.setTag('svelteKit', 'server');
+export const handleError = Sentry.handleErrorWithSentry();
 
-// use handleError to report errors during server-side data loading
-export const handleError = (({ error, event }) => {
-	SentryNode.captureException(error, { contexts: { sveltekit: { ...event } } });
-
-	return {
-		message: (error as { message: string }).message
-	};
-}) satisfies HandleServerError;
-
-export const handle: Handle = async ({ event, resolve }) => {
+const handler: Handle = async ({ event, resolve }) => {
 	event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
 		cookies: {
 			get: (key) => event.cookies.get(key),
@@ -147,3 +139,5 @@ export const handle: Handle = async ({ event, resolve }) => {
 		}
 	});
 };
+
+export const handle = sequence(Sentry.sentryHandle(), handler);

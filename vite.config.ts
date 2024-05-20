@@ -1,8 +1,19 @@
 import { sveltekit } from '@sveltejs/kit/vite';
+import { sentrySvelteKit } from '@sentry/sveltekit';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-	plugins: [sveltekit()],
+	plugins: [
+		sentrySvelteKit({
+			sourceMapsUploadOptions: {
+				org: 'sciolyid',
+				project: 'duos-scoring',
+				authToken: process.env.PRIVATE_SENTRY_AUTH_TOKEN,
+				telemetry: false
+			}
+		}),
+		sveltekit()
+	],
 	build: {
 		target: 'es2022'
 	},
