@@ -162,7 +162,7 @@
 		const channelId = await resp.text();
 		batchIndex = 1;
 
-		broadcastChannel = $page.data.supabase.channel(channelId);
+		broadcastChannel = $page.data.supabase!.channel(channelId);
 		broadcastChannel
 			.on('broadcast', { event: 'update' }, () => {
 				fetchLatestBatches();
