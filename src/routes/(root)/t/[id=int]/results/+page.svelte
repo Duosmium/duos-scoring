@@ -77,6 +77,7 @@
 	}
 
 	let showPreview = false;
+	$: presentationActive = data.slides.channelId != null;
 
 	function touchEventsExportedAt() {
 		fetch(`/t/${$page.params.id}/results/touch`, {
@@ -89,7 +90,7 @@
 		});
 	}
 	function generateSciolyFF(events?: bigint[]) {
-		if (!events) touchEventsExportedAt();
+		if (!events && selected.length !== 0) touchEventsExportedAt();
 
 		const levelLookup = {
 			INVITATIONAL: 'Invitational',
@@ -409,14 +410,63 @@
 				}}>PDF</Button
 			>
 		</ButtonGroup>
-		<Button
-			class="py-2 border border-yellow-400 hover:border-yellow-500"
-			color="yellow"
-			disabled={selected.length === 0}
-			on:click={() => {
-				slides.setPreview(true);
-			}}>Slides</Button
-		>
+		<ButtonGroup class="space-x-px">
+			<Button
+				class="py-2 border border-yellow-400 hover:border-yellow-500"
+				color="yellow"
+				disabled={selected.length === 0}
+				on:click={() => {
+					slides.setPreview(true);
+				}}>Preview Slides</Button
+			>
+			{#if !presentationActive}
+				<Button
+					class="py-2 border border-yellow-400 hover:border-yellow-500"
+					color="yellow"
+					disabled={selected.length === 0}
+					on:click={() => {
+						slides.startPresentation(selected.map((e) => e.id));
+						presentationActive = true;
+						invalidateAll();
+					}}>Present</Button
+				>
+			{:else}
+				<Button
+					class="py-2 border border-yellow-400 hover:border-yellow-500"
+					color="yellow"
+					disabled={selected.length === 0}
+					on:click={() => {
+						slides.addBatch(selected.map((e) => e.id));
+					}}>Append Events</Button
+				>
+				<Button
+					class="py-2 border border-yellow-400 hover:border-yellow-500"
+					color="yellow"
+					disabled={selected.length === 0}
+					on:click={() => {
+						slides.addBatch(
+							selected.map((e) => e.id),
+							true
+						);
+					}}>Append Overall</Button
+				>
+				<Button
+					class="py-2 border border-yellow-400 hover:border-yellow-500"
+					color="yellow"
+					on:click={() => {
+						slides.resumePresentation();
+					}}>Resume Presentation</Button
+				>
+				<Button
+					class="py-2 border border-yellow-400 hover:border-yellow-500"
+					color="yellow"
+					on:click={() => {
+						slides.stopPresentation();
+						invalidateAll();
+					}}>Stop Presenting</Button
+				>
+			{/if}
+		</ButtonGroup>
 		<Button
 			class="py-2 border border-purple-700 hover:border-purple-800 dark:border-purple-600 dark:hover:border-purple-700"
 			color="purple"

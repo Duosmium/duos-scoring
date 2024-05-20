@@ -2,7 +2,7 @@ import type { PageServerLoad } from './$types';
 
 import { checkScoremasterPerms } from '$lib/utils';
 import { computeEventRankings, generateHisto } from '$lib/scoreUtils';
-import { getEvents, getRoles, getTeams, getTracks } from '$lib/db';
+import { getEvents, getRoles, getSlides, getTeams, getTracks } from '$lib/db';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
 	await checkScoremasterPerms(locals.user, params.id);
@@ -11,6 +11,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 	const teams = (await getTeams(params.id)) || [];
 	const tracks = (await getTracks(params.id)) || [];
 	const roles = (await getRoles(params.id)) || [];
+	const slides = await getSlides(params.id);
 
 	const rankings = events.map((e) => computeEventRankings(e, teams, e.scores));
 	const rankingsByTeam = rankings.reduce((acc, cur) => {
@@ -35,6 +36,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		teams,
 		tracks,
 		rankings: [...rankingsByTeam.values()].flat(),
-		histos
+		histos,
+		slides
 	};
 };

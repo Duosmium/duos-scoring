@@ -146,6 +146,15 @@
 			await viewer.appendPdf(slides);
 		}
 
+		if (!broadcastChannel && data.channelId) {
+			broadcastChannel = $page.data.supabase!.channel(data.channelId);
+			broadcastChannel
+				.on('broadcast', { event: 'update' }, () => {
+					fetchLatestBatches();
+				})
+				.subscribe();
+		}
+
 		batchIndex = data.batches.length;
 	};
 
@@ -171,6 +180,14 @@
 	};
 
 	export const resumePresentation = async () => {
+		if (!broadcastChannel) {
+			const intro = await generatePdf(generateSciolyFF(), undefined, currentSettings(), [
+				'intro',
+				'events'
+			]);
+			await viewer.appendPdf(intro);
+			fetchLatestBatches();
+		}
 		viewer.enterFullScreen();
 	};
 
