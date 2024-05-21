@@ -10,8 +10,7 @@ export default defineConfig({
 				project: 'duos-scoring',
 				authToken: process.env.PRIVATE_SENTRY_AUTH_TOKEN,
 				telemetry: false
-			},
-			autoInstrument: false
+			}
 		}),
 		sveltekit()
 	],
