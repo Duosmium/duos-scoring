@@ -5,7 +5,6 @@
 	import { writable, type Writable } from 'svelte/store';
 	import type { SectionStatus } from './Section.svelte';
 	import type { ChecklistState } from './Checklist.svelte';
-	import { browser } from '$app/environment';
 
 	export let rule: string | undefined = undefined;
 	export let checklistItem: number | undefined = undefined;
@@ -74,7 +73,7 @@
 
 	const questionKey = (getContext('questionCounter') as () => number)().toString();
 	const checklistState: ChecklistState = getContext('checklistState');
-	let saveState: Writable<Status | number | null> | undefined;
+	let saveState: Writable<string | number | null> | undefined;
 	onMount(() => {
 		if (checklistState.state.has(questionKey)) {
 			saveState = checklistState.state.get(questionKey);

@@ -1,51 +1,74 @@
 <script context="module" lang="ts">
 	export interface ChecklistState {
-		state: Map<string, Writable<Status | number | null>>;
-		addState: (key: string, item: Writable<Status | number | null>) => void;
+		state: Map<string, Writable<string | number | null>>;
+		addState: (key: string, item: Writable<string | number | null>) => void;
 	}
 </script>
 
 <script lang="ts">
-	import { setContext } from 'svelte';
-	import type { Status } from './Checkbox.svelte';
-	import { get, writable, type Writable } from 'svelte/store';
 	import { browser } from '$app/environment';
+
+	import type { ScoreStatus } from '@prisma/client';
+
+	import { setContext } from 'svelte';
+	import { get, writable, type Writable } from 'svelte/store';
 
 	export let event: string;
 	export let year: number;
 
-	{
-		let state: ChecklistState['state'] = new Map();
+	export let teamNumber: number;
+	export let teamName: string;
+	export let checklistData: PrismaJson.ChecklistData;
 
-		const saveState = () => {
-			localStorage.setItem(
-				'checklist',
-				JSON.stringify(Object.fromEntries([...state.entries()].map(([k, v]) => [k, get(v)])))
-			);
-		};
+	export let score: number;
+	export let tier: number;
+	export let status: ScoreStatus;
 
-		if (browser) {
-			// TODO: changeme
-			Object.entries(
-				JSON.parse(localStorage.getItem('checklist') || '{}') as Record<
-					string,
-					Status | number | null
-				>
-			).forEach(([key, value]) => {
-				let store = writable(value);
-				state.set(key, store);
-				store.subscribe(saveState);
-			});
+	let studentNamesValue = '';
+	let studentNamesState: Writable<string> | undefined;
+	$: if (studentNamesState) $studentNamesState = studentNamesValue;
 
-			setContext('checklistState', {
-				state,
-				addState: (key, item) => {
-					state.set(key, item);
-					item.subscribe(saveState);
-				}
-			} as ChecklistState);
-		}
+	let state: ChecklistState['state'] = new Map();
+
+	const onChange = () => {
+		state = state;
+		if (!browser) return;
+		localStorage.setItem(
+			'checklist',
+			JSON.stringify(Object.fromEntries([...state.entries()].map(([k, v]) => [k, get(v)])))
+		);
+	};
+
+	// TODO: changeme
+	if (checklistData) {
+		Object.entries(checklistData).forEach(([key, value]) => {
+			let store = writable(value);
+			state.set(key, store);
+			store.subscribe(onChange);
+		});
 	}
+
+	setContext('checklistState', {
+		state,
+		addState: (key, item) => {
+			state.set(key, item);
+			item.subscribe(onChange);
+		}
+	} as ChecklistState);
+
+	if (state.has('studentNames')) {
+		studentNamesState = state.get('studentNames') as Writable<string>;
+	} else {
+		studentNamesState = writable('');
+		state.set('studentNames', studentNamesState);
+		studentNamesState.subscribe(onChange);
+	}
+	studentNamesState.subscribe((value) => {
+		studentNamesValue = value;
+	});
+	state = state;
+
+	$: checklistData = Object.fromEntries([...state.entries()].map(([k, v]) => [k, get(v)]));
 
 	let counter = 0;
 	setContext('questionCounter', () => {
@@ -53,24 +76,22 @@
 	});
 </script>
 
+<div
+	class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-slate-300 dark:bg-slate-700 z-40 rounded-lg p-4 flex items-center space-x-4"
+>
+	Score: {score} | Tier: {tier} | Status: {status}
+</div>
+
 <div class="max-w-screen-lg mx-auto">
 	<h1>{event}</h1>
 	<h2>Team Checklist - {year}</h2>
 
 	<div>
+		<p class="mb-2"><span class="font-semibold">Team Number:</span> {teamNumber}</p>
+		<p class="mb-2"><span class="font-semibold">School and Team Name:</span> {teamName}</p>
 		<label>
-			<span>Team Number:</span>
-			<input type="text" inputmode="numeric" />
-		</label>
-
-		<label>
-			<span>School and Team Name:</span>
-			<input type="text" />
-		</label>
-
-		<label>
-			<span>Student Names:</span>
-			<input type="text" />
+			<span class="font-semibold">Student Names:</span>
+			<input type="text" bind:value={studentNamesValue} />
 		</label>
 
 		<slot />
@@ -80,6 +101,9 @@
 <style lang="postcss">
 	label {
 		display: block;
+	}
+	:where(*) {
+		@apply text-gray-800 dark:text-gray-200;
 	}
 	* :global(input[type='text']),
 	* :global(input[type='number']) {

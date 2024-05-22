@@ -1,12 +1,17 @@
 <script lang="ts">
+	import type { ScoreStatus } from '@prisma/client';
 	import { Status, type CheckboxValue } from '../components/Checkbox.svelte';
 	import Checklist from '../components/Checklist.svelte';
 	import Disqualified from '../components/Disqualified.svelte';
 	import Question from '../components/Question.svelte';
 	import Section from '../components/Section.svelte';
 
-	import type { ScoreStatus } from '@prisma/client';
+	export let teamNumber: number;
+	export let teamName: string;
+	export let checklistData: PrismaJson.ChecklistData;
 
+	export let score: number;
+	export let tier: number;
 	export let status: ScoreStatus;
 
 	let hasDevice: CheckboxValue;
@@ -87,20 +92,21 @@
 
 	$: score = ($hasDevice === 'False' || dqed ? 0 : bestNTS + bestFTS + bucketScore) + logScore;
 	$: tier = $meetsParams === 'False' ? 2 : 1;
-	$: status = dqed
-		? 'DISQUALIFICATION'
-		: score > 0 || $hasDevice !== 'False'
-			? 'COMPETED'
-			: 'NOSHOW';
+	$: status = (
+		dqed ? 'DISQUALIFICATION' : score > 0 || $hasDevice !== 'False' ? 'COMPETED' : 'NOSHOW'
+	) as ScoreStatus;
 </script>
 
-<div
-	class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-slate-300 dark:bg-slate-700 z-40 rounded-lg p-4 flex items-center space-x-4"
+<Checklist
+	event="Air Trajectory B/C"
+	year={2024}
+	{score}
+	{tier}
+	{status}
+	{teamNumber}
+	{teamName}
+	bind:checklistData
 >
-	Score: {score} | Tier: {tier} | Status: {status}
-</div>
-
-<Checklist event="Air Trajectory B/C" year={2024}>
 	<Section title="Check In">
 		<Question bind:checkbox={hasDevice} rule="7.g." checklistItem={1}
 			>Team operates safely & has a device within spec before the end of the allotted competition

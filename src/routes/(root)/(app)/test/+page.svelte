@@ -1,5 +1,10 @@
 <script>
+	import { browser } from '$app/environment';
 	import AirTrajectory from '$lib/checklists/2024/AirTrajectory.svelte';
 </script>
 
-<AirTrajectory status="COMPETED" />
+<AirTrajectory
+	teamName="Anytown High School B"
+	teamNumber={33}
+	checklistData={browser ? JSON.parse(localStorage.getItem('checklist') || '{}') : {}}
+/>

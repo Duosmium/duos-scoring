@@ -11,4 +11,4 @@ export default {
 	// 'Scrambler',
 	// 'Tower',
 	// 'Wheeled Vehicle'
-} as const;
+};

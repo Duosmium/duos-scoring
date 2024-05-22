@@ -26,8 +26,11 @@
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
+	import checklists from '$lib/checklists/checklists';
 
 	export let data: PageData;
+
+	const ChecklistComponent = checklists[data.tournament.year]?.[data.event.name];
 
 	beforeNavigate(({ cancel }) => {
 		if (!clean) {
@@ -124,7 +127,8 @@
 							old: string | null;
 							new: string | null;
 							dirty: boolean;
-						}
+						},
+						checklist: undefined
 					};
 			return {
 				...t,
@@ -137,106 +141,6 @@
 	let sortBy = 'number';
 	let modifiedTeams = generateModifiedTeams(data);
 	let selected: typeof modifiedTeams = [];
-	$: {
-		// update rankings when things change
-		modifiedTeams = modifiedTeams
-			.map((t) => ({
-				...t,
-				ranking:
-					t.score.status.new === 'COMPETED'
-						? t.score.rawScore.new != null
-							? t.score.rawScore.new +
-								((t.score.tiebreak.new || 0) - 1000000 * (t.score.tier.new || 1)) *
-									(data.event.highScoring ? 1 : -1)
-							: 'PARTICIPATION'
-						: t.score.status.new
-			}))
-			.sort((a, b) =>
-				typeof a.ranking === 'number' && typeof b.ranking === 'number'
-					? (b.ranking - a.ranking) * (data.event.highScoring ? 1 : -1)
-					: typeof a.ranking === 'string' && typeof b.ranking === 'string'
-						? statusOrder[a.ranking] - statusOrder[b.ranking]
-						: typeof a.ranking === 'number'
-							? -1
-							: 1
-			)
-			.map((t, i, s) => {
-				// check ties
-				if (
-					typeof t.ranking === 'number' &&
-					(t.ranking === s[i - 1]?.ranking || t.ranking === s[i + 1]?.ranking)
-				) {
-					if (t.score.notes.new && t.score.notes.new !== 'TIE') {
-						t.score.notes.new = 'TIE; ' + t.score.notes.new.replace('TIE; ', '').replace('TIE', '');
-					} else {
-						t.score.notes.new = 'TIE';
-					}
-				} else {
-					t.score.notes.new = t.score.notes.new?.replace('TIE; ', '').replace('TIE', '') || null;
-				}
-				return t;
-			})
-			.map((t, i, s) => ({
-				...t,
-				ranking:
-					typeof t.ranking === 'string'
-						? statusLookup[t.ranking]
-						: (t.score.notes.new?.includes('TIE')
-								? s.findIndex((x) => x.ranking === t.ranking)
-								: i) + 1 // do index searching for ties
-			}));
-	}
-	$: {
-		// update sorting when things change
-		modifiedTeams = modifiedTeams.sort((a, b) => {
-			switch (sortBy) {
-				case 'number':
-					return a.number - b.number;
-				case 'school':
-					return a.school.localeCompare(b.school);
-				case 'score':
-					return (
-						((b.score?.rawScore.new ?? (data.event.highScoring ? 0 : Infinity)) -
-							(a.score?.rawScore.new ?? (data.event.highScoring ? 0 : Infinity))) *
-							(data.event.highScoring ? 1 : -1) ||
-						(a.score?.tier.new ?? Infinity) - (b.score?.tier.new ?? Infinity) ||
-						(b.score?.tiebreak.new ?? 0) - (a.score?.tiebreak.new ?? 0)
-					);
-				case 'tier':
-					return (a.score?.tier.new ?? Infinity) - (b.score?.tier.new ?? Infinity);
-				case 'status':
-					return (
-						statusOrder[a.score?.status.new ?? 'NA'] - statusOrder[b.score?.status.new ?? 'NA']
-					);
-				case 'ranking':
-					return typeof a.ranking === 'number' && typeof b.ranking === 'number'
-						? a.ranking - b.ranking
-						: typeof a.ranking === 'string' && typeof b.ranking === 'string'
-							? statusOrder[a.ranking] - statusOrder[b.ranking]
-							: typeof a.ranking === 'number'
-								? -1
-								: 1;
-				default:
-					return 0;
-			}
-		});
-	}
-	$: {
-		// update dirty marker when things change
-		modifiedTeams = modifiedTeams.map((t) => {
-			(['rawScore', 'tier', 'tiebreak', 'status', 'notes'] as const).forEach(
-				(a) => (t.score[a].dirty = t.score[a].new !== t.score[a].old)
-			);
-			return t;
-		});
-	}
-	$: clean = modifiedTeams.every((t) =>
-		(['rawScore', 'tier', 'tiebreak', 'status', 'notes'] as const).every((a) => !t.score[a].dirty)
-	);
-	$: teamLookup = modifiedTeams.reduce((acc, t) => {
-		acc.set(t.number, t);
-		return acc;
-	}, new Map<number, (typeof modifiedTeams)[0]>());
 
 	function updateData(
 		teamNumber: number,
@@ -555,6 +459,54 @@
 		});
 	}
 
+	let checklistTeam: (typeof modifiedTeams)[0];
+	let checklistData: PrismaJson.ChecklistData | undefined;
+	let showChecklist = false;
+	let checklistScore: number;
+	let checklistTier: number;
+	let checklistStatus: ScoreStatus;
+	$: {
+		if (checklistTeam) {
+			checklistTeam.score.rawScore.new = checklistScore;
+			checklistTeam.score.tier.new = checklistTier;
+			checklistTeam.score.status.new = checklistStatus;
+			modifiedTeams = modifiedTeams;
+		}
+	}
+	function openChecklist(team: (typeof modifiedTeams)[0]) {
+		if (!ChecklistComponent) return;
+		checklistTeam = team;
+		checklistData = team.score.checklist ?? undefined;
+		showChecklist = true;
+	}
+	function saveChecklist() {
+		fetch(`/t/${$page.params['id']}/events/${$page.params['event']}`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify([
+				{
+					id: checklistTeam.score.id?.toString(),
+					teamId: checklistTeam.id.toString(),
+					checklist: checklistData
+				}
+			])
+		}).then((res) => {
+			if (res.status === 200) {
+				addToastMessage('Checklist saved!', 'success');
+				invalidateAll().then(() => {
+					modifiedTeams = modifiedTeams.map((t) => ({
+						...t,
+						checklist: data.scores.find((s) => s.teamId === t.id)?.checklist
+					}));
+				});
+			} else {
+				addToastMessage('Failed to save checklist!', 'error');
+			}
+		});
+	}
+
 	function handleKeypress(e: KeyboardEvent) {
 		if (e.key === 'Enter') {
 			(e.target as HTMLInputElement).blur();
@@ -565,6 +517,108 @@
 			)?.focus();
 		}
 	}
+
+	// Reactive updates intentionally at the end to run last
+	$: {
+		// update rankings when things change
+		modifiedTeams = modifiedTeams
+			.map((t) => ({
+				...t,
+				ranking:
+					t.score.status.new === 'COMPETED'
+						? t.score.rawScore.new != null
+							? t.score.rawScore.new +
+								((t.score.tiebreak.new || 0) - 1000000 * (t.score.tier.new || 1)) *
+									(data.event.highScoring ? 1 : -1)
+							: 'PARTICIPATION'
+						: t.score.status.new
+			}))
+			.sort((a, b) =>
+				typeof a.ranking === 'number' && typeof b.ranking === 'number'
+					? (b.ranking - a.ranking) * (data.event.highScoring ? 1 : -1)
+					: typeof a.ranking === 'string' && typeof b.ranking === 'string'
+						? statusOrder[a.ranking] - statusOrder[b.ranking]
+						: typeof a.ranking === 'number'
+							? -1
+							: 1
+			)
+			.map((t, i, s) => {
+				// check ties
+				if (
+					typeof t.ranking === 'number' &&
+					(t.ranking === s[i - 1]?.ranking || t.ranking === s[i + 1]?.ranking)
+				) {
+					if (t.score.notes.new && t.score.notes.new !== 'TIE') {
+						t.score.notes.new = 'TIE; ' + t.score.notes.new.replace('TIE; ', '').replace('TIE', '');
+					} else {
+						t.score.notes.new = 'TIE';
+					}
+				} else {
+					t.score.notes.new = t.score.notes.new?.replace('TIE; ', '').replace('TIE', '') || null;
+				}
+				return t;
+			})
+			.map((t, i, s) => ({
+				...t,
+				ranking:
+					typeof t.ranking === 'string'
+						? statusLookup[t.ranking]
+						: (t.score.notes.new?.includes('TIE')
+								? s.findIndex((x) => x.ranking === t.ranking)
+								: i) + 1 // do index searching for ties
+			}));
+	}
+	$: {
+		// update sorting when things change
+		modifiedTeams = modifiedTeams.sort((a, b) => {
+			switch (sortBy) {
+				case 'number':
+					return a.number - b.number;
+				case 'school':
+					return a.school.localeCompare(b.school);
+				case 'score':
+					return (
+						((b.score?.rawScore.new ?? (data.event.highScoring ? 0 : Infinity)) -
+							(a.score?.rawScore.new ?? (data.event.highScoring ? 0 : Infinity))) *
+							(data.event.highScoring ? 1 : -1) ||
+						(a.score?.tier.new ?? Infinity) - (b.score?.tier.new ?? Infinity) ||
+						(b.score?.tiebreak.new ?? 0) - (a.score?.tiebreak.new ?? 0)
+					);
+				case 'tier':
+					return (a.score?.tier.new ?? Infinity) - (b.score?.tier.new ?? Infinity);
+				case 'status':
+					return (
+						statusOrder[a.score?.status.new ?? 'NA'] - statusOrder[b.score?.status.new ?? 'NA']
+					);
+				case 'ranking':
+					return typeof a.ranking === 'number' && typeof b.ranking === 'number'
+						? a.ranking - b.ranking
+						: typeof a.ranking === 'string' && typeof b.ranking === 'string'
+							? statusOrder[a.ranking] - statusOrder[b.ranking]
+							: typeof a.ranking === 'number'
+								? -1
+								: 1;
+				default:
+					return 0;
+			}
+		});
+	}
+	$: {
+		// update dirty marker when things change
+		modifiedTeams = modifiedTeams.map((t) => {
+			(['rawScore', 'tier', 'tiebreak', 'status', 'notes'] as const).forEach(
+				(a) => (t.score[a].dirty = t.score[a].new !== t.score[a].old)
+			);
+			return t;
+		});
+	}
+	$: clean = modifiedTeams.every((t) =>
+		(['rawScore', 'tier', 'tiebreak', 'status', 'notes'] as const).every((a) => !t.score[a].dirty)
+	);
+	$: teamLookup = modifiedTeams.reduce((acc, t) => {
+		acc.set(t.number, t);
+		return acc;
+	}, new Map<number, (typeof modifiedTeams)[0]>());
 </script>
 
 <Head
@@ -643,6 +697,9 @@
 		<TableHeadCell class="px-2">#</TableHeadCell>
 		<TableHeadCell class="px-2">School</TableHeadCell>
 		<TableHeadCell class="pl-2 pr-4">Suffix</TableHeadCell>
+		{#if ChecklistComponent}
+			<TableHeadCell class="pl-0 pr-4">Checklist</TableHeadCell>
+		{/if}
 		<TableHeadCell class="px-0">Raw Score</TableHeadCell>
 		<TableHeadCell class="px-0">Tier</TableHeadCell>
 		<TableHeadCell class="px-0">Tiebreak</TableHeadCell>
@@ -661,6 +718,20 @@
 		<TableBodyCell class="pl-2 pr-4">
 			{team.suffix ? team.suffix.slice(0, 20) + (team.suffix.length > 20 ? '…' : '') : ''}
 		</TableBodyCell>
+		{#if ChecklistComponent}
+			<TableBodyCell class="pl-0 pr-4">
+				<Button
+					disabled={locked || disableScores}
+					color="alternative"
+					class="border-none p-1 text-primary-600 hover:underline dark:text-primary-500"
+					on:click={() => {
+						openChecklist(team);
+					}}
+				>
+					Checklist
+				</Button>
+			</TableBodyCell>
+		{/if}
 		<TableBodyCell class="p-0">
 			<Input
 				disabled={locked || disableScores}
@@ -981,6 +1052,18 @@
 	<svelte:fragment slot="footer">
 		<Button color="green">Got it!</Button>
 	</svelte:fragment>
+</Modal>
+
+<Modal title="Checklists" size="xl" bind:open={showChecklist} on:close={saveChecklist} outsideclose>
+	<svelte:component
+		this={ChecklistComponent}
+		teamNumber={checklistTeam.number}
+		teamName={checklistTeam.school + (checklistTeam.suffix ? ' ' + checklistTeam.suffix : '')}
+		bind:checklistData
+		bind:score={checklistScore}
+		bind:tier={checklistTier}
+		bind:status={checklistStatus}
+	/>
 </Modal>
 
 <style lang="postcss">

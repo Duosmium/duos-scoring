@@ -5,7 +5,8 @@ import {
 	type Team,
 	type Track,
 	type Score,
-	UserRole
+	UserRole,
+	Prisma
 } from '@prisma/client';
 import { supabase } from './supabaseAdmin';
 const prisma = new PrismaClient();
@@ -591,7 +592,10 @@ export async function updateScores(scores: Partial<Score>[]) {
 						where: {
 							id: score.id
 						},
-						data: score
+						data: {
+							...score,
+							checklist: score.checklist ?? (score.checklist === null ? Prisma.DbNull : undefined)
+						}
 					})
 			)
 		);
@@ -604,7 +608,7 @@ export async function updateScores(scores: Partial<Score>[]) {
 export async function addScores(scores: Omit<Score, 'id'>[]) {
 	try {
 		await prisma.score.createMany({
-			data: scores
+			data: scores.map((score) => ({ ...score, checklist: score.checklist ?? Prisma.DbNull }))
 		});
 	} catch (e) {
 		return false;

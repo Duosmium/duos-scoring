@@ -50,8 +50,8 @@ declare global {
 			tournamentUrl: string;
 			qrCode: boolean;
 		}
-
 		type SlidesBatches = string[][];
+		type ChecklistData = Record<string, string | number | null>;
 	}
 }
 

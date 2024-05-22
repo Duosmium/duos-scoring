@@ -14,7 +14,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		error(404, 'Event not found');
 	}
 
-	const scores = await getEventScores(event.id);
+	const scores = (await getEventScores(event.id)) || [];
 	const teams = (await getTeams(params.id)) || [];
 	return { events, teams, event, scores };
 };

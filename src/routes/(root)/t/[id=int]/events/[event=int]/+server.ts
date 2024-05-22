@@ -92,6 +92,7 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 		tiebreak: number | null;
 		status: ScoreStatus;
 		notes: string | null;
+		checklist: PrismaJson.ChecklistData | null;
 	}[] = await request.json();
 
 	// TODO: more validation
