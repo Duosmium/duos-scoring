@@ -1,18 +1,21 @@
 <script lang="ts">
-	import * as pdfjsLib from 'pdfjs-dist';
+	import type pdfJs from 'pdfjs-dist/types/src/pdf.d.ts';
 	import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 	import { onMount } from 'svelte';
 
+	let pdfjsLib: typeof pdfJs;
+
 	let container: HTMLDivElement;
 
-	let pdfObjs: pdfjsLib.PDFDocumentProxy[] = [];
+	let pdfObjs: pdfJs.PDFDocumentProxy[] = [];
 	let pages: number[] = [];
 
 	let currentPage = 1;
 
 	let fullscreen = false;
 
-	onMount(() => {
+	onMount(async () => {
+		pdfjsLib = await import('pdfjs-dist');
 		pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 	});
 
