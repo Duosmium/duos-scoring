@@ -148,7 +148,7 @@
 				suffix: t.suffix ?? undefined,
 				city: t.city ?? undefined,
 				state: t.state,
-				track: t.tracks?.name ?? undefined,
+				track: t.track?.name ?? undefined,
 				exhibition: t.exhibition || undefined
 			})),
 			Placings: data.rankings.flatMap((s) =>

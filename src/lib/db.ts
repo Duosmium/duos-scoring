@@ -29,7 +29,7 @@ export async function createOrUpdateUser(userId: string, name: string) {
 }
 
 export async function createTournament(tournament: Omit<Tournament, 'id'>) {
-	return await db.insert(schema.Tournament).values(tournament).returning();
+	return (await db.insert(schema.Tournament).values(tournament).returning())[0];
 }
 
 export async function updateTournament(
@@ -624,15 +624,14 @@ export async function getSlides(tournamentId: bigint | string) {
 		tournamentId = BigInt(tournamentId);
 	}
 
-	let slides = await db.query.Slides.findMany({
+	let slides = await db.query.Slides.findFirst({
 		where: (i, { eq }) => eq(i.tournamentId, tournamentId)
 	});
 
 	if (slides == undefined) {
-		slides = await db
-			.insert(schema.Slides)
-			.values({ tournamentId })
-			.returning();
+		slides = (
+			await db.insert(schema.Slides).values({ tournamentId }).returning()
+		)[0];
 	}
 
 	return slides;

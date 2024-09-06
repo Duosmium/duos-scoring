@@ -87,14 +87,11 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 		payload.member &&
 		(!payload.member.role ||
 			typeof payload.member.role !== 'string' ||
-			!Object.values(UserRole).includes(payload.member.role))
+			!UserRole.includes(payload.member.role))
 	) {
 		return new Response('missing role', { status: 400 });
 	}
-	if (
-		payload.invite?.role &&
-		!Object.values(UserRole).includes(payload.invite.role)
-	) {
+	if (payload.invite?.role && !UserRole.includes(payload.invite.role)) {
 		return new Response('invalid role', { status: 400 });
 	}
 	if (payload.invite && !payload.invite.link) {
@@ -158,9 +155,7 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
 	) {
 		return new Response('invalid email', { status: 400 });
 	}
-	if (
-		payload.some((d) => d.role && !Object.values(UserRole).includes(d.role))
-	) {
+	if (payload.some((d) => d.role && !UserRole.includes(d.role))) {
 		return new Response('invalid role', { status: 400 });
 	}
 	if (

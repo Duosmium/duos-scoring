@@ -1,10 +1,17 @@
 import * as schema from './schema';
 
+export const Divisions = schema.Divisions.enumValues;
 export type Divisions = (typeof schema.Divisions.enumValues)[number];
+export const ScoreStatus = schema.ScoreStatus.enumValues;
 export type ScoreStatus = (typeof schema.ScoreStatus.enumValues)[number];
+export const States = schema.States.enumValues;
 export type States = (typeof schema.States.enumValues)[number];
-export type TournamentLevels = (typeof schema.TournamentLevels.enumValues)[number];
+export const TournamentLevels = schema.TournamentLevels.enumValues;
+export type TournamentLevels =
+	(typeof schema.TournamentLevels.enumValues)[number];
+export const TrialStaus = schema.TrialStatus.enumValues;
 export type TrialStatus = (typeof schema.TrialStatus.enumValues)[number];
+export const UserRole = schema.UserRole.enumValues;
 export type UserRole = (typeof schema.UserRole.enumValues)[number];
 
 export type Slides = typeof schema.Slides.$inferSelect;
