@@ -21,7 +21,7 @@
 	import papaparse from 'papaparse';
 	import { page } from '$app/stores';
 	import { invalidateAll } from '$app/navigation';
-	import type { Team } from '@prisma/client';
+	import type { Team } from '$drizzle/types';
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
@@ -164,14 +164,19 @@
 			state: editTeamData.state,
 			trackId: editTeamData.trackId || null,
 			exhibition: editTeamData.exhibition,
-			penalties: editTeamData.penalties ? parseInt(editTeamData.penalties as any) : null
+			penalties: editTeamData.penalties
+				? parseInt(editTeamData.penalties as any)
+				: null
 		};
 		fetch(`/t/${$page.params['id']}/teams`, {
 			method: 'PATCH',
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify({ id: editTeamData.id?.toString(), data: sendTeamData }) // TODO: validate
+			body: JSON.stringify({
+				id: editTeamData.id?.toString(),
+				data: sendTeamData
+			}) // TODO: validate
 		}).then((res) => {
 			if (res.status === 200) {
 				addToastMessage('Team updated!', 'success');
@@ -199,7 +204,8 @@
 	let parsedError = '';
 	$: {
 		parsedError = '';
-		parsedImportTeams = papaparse.parse(importTeamsData, { header: true }).data as any;
+		parsedImportTeams = papaparse.parse(importTeamsData, { header: true })
+			.data as any;
 		const missingFields: Set<string> = new Set();
 		const invalidStates: Set<string> = new Set();
 		// TODO: validate numbers, suffix, exhibition; canonicalization
@@ -213,7 +219,10 @@
 			if (!t.State) {
 				missingFields.add('State');
 			}
-			if (!stateLookup.has(t.State.toLowerCase()) && ![...stateLookup.values()].includes(t.State)) {
+			if (
+				!stateLookup.has(t.State.toLowerCase()) &&
+				![...stateLookup.values()].includes(t.State)
+			) {
 				invalidStates.add(t.State);
 			}
 		});
@@ -255,7 +264,7 @@
 					city: t.City || null,
 					state: t.State,
 					trackId: data.tournament.enableTracks
-						? tracks?.find((track) => track.name === t.Track)?.value ?? null
+						? (tracks?.find((track) => track.name === t.Track)?.value ?? null)
 						: null,
 					exhibition: !!t.Exhibition
 				}))
@@ -273,8 +282,8 @@
 </script>
 
 <Head
-	title="Teams | {data.tournament.year} {data.tournament.shortName} {data.tournament
-		.division} | Duosmium Scoring"
+	title="Teams | {data.tournament.year} {data.tournament.shortName} {data
+		.tournament.division} | Duosmium Scoring"
 />
 
 <div class="w-full flex justify-between flex-wrap mb-2">
@@ -312,17 +321,23 @@
 		<TableBodyCell class="py-0 px-2">{team.number}</TableBodyCell>
 		<TableBodyCell class="py-0 px-2"
 			>{team.abbreviation ??
-				team.school.slice(0, 45) + (team.school.length > 45 ? '…' : '')}{team.suffix
+				team.school.slice(0, 45) +
+					(team.school.length > 45 ? '…' : '')}{team.suffix
 				? ' ' + team.suffix.slice(0, 38) + (team.suffix.length > 38 ? '…' : '')
 				: ''}</TableBodyCell
 		>
-		<TableBodyCell class="py-0 px-2">{team.city ? team.city + ', ' : ''}{team.state}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2"
+			>{team.city ? team.city + ', ' : ''}{team.state}</TableBodyCell
+		>
 		{#if data.tournament.enableTracks}
 			<TableBodyCell class="py-0 px-2"
-				>{tracks.find((t) => t.value === team.trackId?.toString())?.name ?? 'None'}</TableBodyCell
+				>{tracks.find((t) => t.value === team.trackId?.toString())?.name ??
+					'None'}</TableBodyCell
 			>
 		{/if}
-		<TableBodyCell class="py-0 px-2">{team.exhibition ? 'Exhib. Team' : 'No'}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2"
+			>{team.exhibition ? 'Exhib. Team' : 'No'}</TableBodyCell
+		>
 		<TableBodyCell class="py-0 px-2">{team.penalties ?? 'None'}</TableBodyCell>
 		<TableBodyCell class="py-0 px-2">
 			<Button
@@ -344,8 +359,9 @@
 	bind:open={showConfirmDelete}
 	onConfirm={confirmDelete}
 >
-	Are you sure you want to delete {selected.length} team{selected.length > 1 ? 's' : ''}? This
-	action cannot be undone.
+	Are you sure you want to delete {selected.length} team{selected.length > 1
+		? 's'
+		: ''}? This action cannot be undone.
 </ConfirmModal>
 
 <Modal title="Add Team" bind:open={showAddTeam} autoclose outsideclose>
@@ -361,7 +377,9 @@
 	</Label>
 	<Label>
 		<div>School Abbreviation:</div>
-		<div class="text-sm">Optional, only if a school has a long name and common abbreviation.</div>
+		<div class="text-sm">
+			Optional, only if a school has a long name and common abbreviation.
+		</div>
 		<Input class="mt-2" type="text" bind:value={addTeamData.abbreviation} />
 	</Label>
 	<Label>
@@ -375,12 +393,22 @@
 	</Label>
 	<Label>
 		State: <span class="text-red-600">*</span>
-		<Select underline class="mt-2" items={states} bind:value={addTeamData.state} />
+		<Select
+			underline
+			class="mt-2"
+			items={states}
+			bind:value={addTeamData.state}
+		/>
 	</Label>
 	{#if data.tournament.enableTracks}
 		<Label>
 			Track:
-			<Select underline class="mt-2" items={tracks} bind:value={addTeamData.trackId} />
+			<Select
+				underline
+				class="mt-2"
+				items={tracks}
+				bind:value={addTeamData.trackId}
+			/>
 		</Label>
 	{/if}
 	<Checkbox bind:checked={addTeamData.exhibition}>Exhibition Team</Checkbox>
@@ -403,7 +431,9 @@
 	</Label>
 	<Label>
 		<div>School Abbreviation</div>
-		<div class="text-sm">Optional, only if a school has a long name and common abbreviation.</div>
+		<div class="text-sm">
+			Optional, only if a school has a long name and common abbreviation.
+		</div>
 		<Input class="mt-2" type="text" bind:value={editTeamData.abbreviation} />
 	</Label>
 	<Label>
@@ -417,18 +447,33 @@
 	</Label>
 	<Label>
 		State
-		<Select underline class="mt-2" items={states} bind:value={editTeamData.state} />
+		<Select
+			underline
+			class="mt-2"
+			items={states}
+			bind:value={editTeamData.state}
+		/>
 	</Label>
 	{#if data.tournament.enableTracks}
 		<Label>
 			Track
-			<Select underline class="mt-2" items={tracks} bind:value={editTeamData.trackId} />
+			<Select
+				underline
+				class="mt-2"
+				items={tracks}
+				bind:value={editTeamData.trackId}
+			/>
 		</Label>
 	{/if}
 	<Checkbox bind:checked={editTeamData.exhibition}>Exhibition Team</Checkbox>
 	<Label>
 		Penalties
-		<Input class="mt-2" type="number" required bind:value={editTeamData.penalties} />
+		<Input
+			class="mt-2"
+			type="number"
+			required
+			bind:value={editTeamData.penalties}
+		/>
 	</Label>
 
 	<svelte:fragment slot="footer">
@@ -440,7 +485,8 @@
 
 <Modal title="Import Teams" bind:open={showImportTeams} autoclose outsideclose>
 	<P>
-		To import teams, paste in a CSV or TSV of team data. Include the following headings:
+		To import teams, paste in a CSV or TSV of team data. Include the following
+		headings:
 		<List tag="ul" class="space-y-1 mt-2">
 			<Li
 				><code>Number</code>
@@ -452,7 +498,8 @@
 			>
 			<Li
 				><code class="dark:text-blue-300 text-blue-700">Abbreviation</code>
-				<i>(Optional)</i>: If a school name is long and has a common abbreviation</Li
+				<i>(Optional)</i>: If a school name is long and has a common
+				abbreviation</Li
 			>
 			<Li
 				><code class="dark:text-pink-300 text-pink-700">Suffix</code>
@@ -474,12 +521,14 @@
 			{/if}
 			<Li
 				><code class="dark:text-orange-300 text-orange-700">Exhibition</code>
-				<i>(Optional)</i>: Whether a team is an exhibition team, leave blank for non exhibition
-				teams</Li
+				<i>(Optional)</i>: Whether a team is an exhibition team, leave blank for
+				non exhibition teams</Li
 			>
 		</List>
 	</P>
-	<Checkbox required bind:checked={importGenerateNumbers}>Generate Team Numbers</Checkbox>
+	<Checkbox required bind:checked={importGenerateNumbers}
+		>Generate Team Numbers</Checkbox
+	>
 	<Label>
 		Teams
 		<Textarea class="mt-2" required bind:value={importTeamsData} />
@@ -495,9 +544,11 @@
 				<li>
 					<span class="tabular-nums">#{team.Number}:</span>
 					<span class="dark:text-red-300 text-red-700"
-						>{team.Track && data.tournament.enableTracks ? `[${team.Track}] ` : ''}</span
-					><span class="dark:text-green-300 text-green-700">{team.School}</span><span
-						class="dark:text-blue-300 text-blue-700"
+						>{team.Track && data.tournament.enableTracks
+							? `[${team.Track}] `
+							: ''}</span
+					><span class="dark:text-green-300 text-green-700">{team.School}</span
+					><span class="dark:text-blue-300 text-blue-700"
 						>{team.Abbreviation ? ` (${team.Abbreviation})` : ''}</span
 					><span class="dark:text-pink-300 text-pink-700"
 						>{team.Suffix ? ` ${team.Suffix}` : ''}</span
@@ -516,7 +567,11 @@
 
 	<svelte:fragment slot="footer">
 		<!-- TODO: validation -->
-		<Button color="green" disabled={parsedError.length !== 0} on:click={importTeams}>Save</Button>
+		<Button
+			color="green"
+			disabled={parsedError.length !== 0}
+			on:click={importTeams}>Save</Button
+		>
 		<Button color="alternative">Cancel</Button>
 	</svelte:fragment>
 </Modal>

@@ -19,7 +19,7 @@
 	} from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import { invalidateAll } from '$app/navigation';
-	import type { TrialStatus } from '@prisma/client';
+	import type { TrialStatus } from '$drizzle/types';
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
@@ -213,8 +213,8 @@
 </script>
 
 <Head
-	title="Events | {data.tournament.year} {data.tournament.shortName} {data.tournament
-		.division} | Duosmium Scoring"
+	title="Events | {data.tournament.year} {data.tournament.shortName} {data
+		.tournament.division} | Duosmium Scoring"
 />
 
 <div class="w-full flex justify-between flex-wrap mb-2">
@@ -273,9 +273,13 @@
 	</svelte:fragment>
 	<svelte:fragment slot="item" let:item={event}>
 		<TableBodyCell class="py-0 px-2">
-			<a href="/t/{data.tournament.id}/events/{event.id.toString()}/">{event.name}</a>
+			<a href="/t/{data.tournament.id}/events/{event.id.toString()}/"
+				>{event.name}</a
+			>
 		</TableBodyCell>
-		<TableBodyCell class="py-0 px-2">{event.medals ?? data.tournament.medals}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2"
+			>{event.medals ?? data.tournament.medals}</TableBodyCell
+		>
 		<TableBodyCell class="py-0 px-2">
 			<Label>
 				<span class="sr-only">Trial Status</span>
@@ -288,7 +292,9 @@
 				/>
 			</Label>
 		</TableBodyCell>
-		<TableBodyCell class="py-0 px-2">{event.locked ? 'Yes' : 'No'}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2"
+			>{event.locked ? 'Yes' : 'No'}</TableBodyCell
+		>
 		<TableBodyCell class="py-0 px-2">
 			{#if event.audited}
 				<Avatar class={`user_${event.audited.id} -ml-2`}
@@ -302,7 +308,9 @@
 				No
 			{/if}
 		</TableBodyCell>
-		<TableBodyCell class="py-0 px-2">{event.scores.length} / {data.teams.length}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2"
+			>{event.scores.length} / {data.teams.length}</TableBodyCell
+		>
 		<TableBodyCell class="py-0 px-2"
 			><span class={`flex ${event.supervisors.length !== 0 ? 'ml-4' : ''}`}>
 				{#each event.supervisors as { user }}
@@ -350,8 +358,9 @@
 	bind:open={showConfirmDelete}
 	onConfirm={confirmDelete}
 >
-	Are you sure you want to delete {selected.length} event{selected.length > 1 ? 's' : ''}? This
-	action cannot be undone.
+	Are you sure you want to delete {selected.length} event{selected.length > 1
+		? 's'
+		: ''}? This action cannot be undone.
 </ConfirmModal>
 
 <Modal title="Add Events" bind:open={showAddEvent} autoclose outsideclose>
@@ -369,11 +378,21 @@
 	</Label>
 	<Label>
 		Trial Status
-		<Select underline class="mt-2" items={trialStatus} bind:value={addEventTrialStatus} />
+		<Select
+			underline
+			class="mt-2"
+			items={trialStatus}
+			bind:value={addEventTrialStatus}
+		/>
 	</Label>
 	<Label>
 		High Scoring
-		<Select underline class="mt-2" items={highScoring} bind:value={addHighScoring} />
+		<Select
+			underline
+			class="mt-2"
+			items={highScoring}
+			bind:value={addHighScoring}
+		/>
 	</Label>
 	<Label>
 		Number of Medals (Optional, overrides tournament level setting)
@@ -381,7 +400,9 @@
 	</Label>
 
 	<svelte:fragment slot="footer">
-		<Button color="green" disabled={addEventName === ''} on:click={addEvent}>Add Event</Button>
+		<Button color="green" disabled={addEventName === ''} on:click={addEvent}
+			>Add Event</Button
+		>
 		<Button color="alternative">Cancel</Button>
 	</svelte:fragment>
 </Modal>
@@ -391,8 +412,8 @@
 		<P>Adding all events is not supported for Division A.</P>
 	{:else}
 		<P>
-			The following events for this season will be added to this tournament. You can edit the trial
-			status and medal counts later.
+			The following events for this season will be added to this tournament. You
+			can edit the trial status and medal counts later.
 		</P>
 		<List tag="ul">
 			{#each currentEvents[data.tournament.division] as [event, _]}
@@ -402,8 +423,10 @@
 	{/if}
 
 	<svelte:fragment slot="footer">
-		<Button color="green" disabled={data.tournament.division === 'A'} on:click={addAllEvents}
-			>Add All Events</Button
+		<Button
+			color="green"
+			disabled={data.tournament.division === 'A'}
+			on:click={addAllEvents}>Add All Events</Button
 		>
 		<Button color="alternative">Cancel</Button>
 	</svelte:fragment>
@@ -422,11 +445,21 @@
 	</Label>
 	<Label>
 		Trial Status
-		<Select underline class="mt-2" items={trialStatus} bind:value={editEventTrialStatus} />
+		<Select
+			underline
+			class="mt-2"
+			items={trialStatus}
+			bind:value={editEventTrialStatus}
+		/>
 	</Label>
 	<Label>
 		High Scoring
-		<Select underline class="mt-2" items={highScoring} bind:value={editHighScoring} />
+		<Select
+			underline
+			class="mt-2"
+			items={highScoring}
+			bind:value={editHighScoring}
+		/>
 	</Label>
 	<Label>
 		Medals (Optional)

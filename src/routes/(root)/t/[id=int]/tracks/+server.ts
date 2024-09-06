@@ -1,5 +1,5 @@
 import { addTracks, deleteTrack, updateTrack } from '$lib/db';
-import type { Track } from '@prisma/client';
+import type { Track } from '$drizzle/types';
 import type { RequestHandler } from './$types';
 import { checkScoremasterPerms } from '$lib/utils';
 
@@ -23,7 +23,9 @@ export const DELETE: RequestHandler = async ({ request, locals, params }) => {
 		return new Response('missing track', { status: 404 });
 	}
 
-	const status = (await Promise.all(tracks.map((trackId) => deleteTrack(trackId)))).every((b) => b);
+	const status = (
+		await Promise.all(tracks.map((trackId) => deleteTrack(trackId)))
+	).every((b) => b);
 
 	if (!status) {
 		return new Response('failed to delete', { status: 500 });

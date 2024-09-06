@@ -5,7 +5,7 @@
 	import { page } from '$app/stores';
 	import { generatePdf, getColor, getImage } from '$lib/slides/gen';
 	import printable from '$lib/slides/printable';
-	import type { Slides, Tournament } from '@prisma/client';
+	import type { Slides, Tournament } from '$drizzle/types';
 	import FullscreenPdf from '$lib/components/FullscreenPdf.svelte';
 	import type { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -37,14 +37,18 @@
 	let eventsOnly = false;
 	let defaultImage: [string, [number, number]] | undefined = undefined;
 	let tournamentUrl =
-		'https://www.duosmium.org/results/' + generateFilename(tournament).trim() + '/';
+		'https://www.duosmium.org/results/' +
+		generateFilename(tournament).trim() +
+		'/';
 	let qrCode = true;
 	let showSlidesPreview = false;
 	let slidesURL = '';
 	const currentSettings = () => ({
 		tournamentLogo: tournamentLogo || defaultImage?.[0] || '',
 		tournamentLogoDimensions:
-			!tournamentLogo && defaultImage ? defaultImage[1] : tournamentLogoDimensions,
+			!tournamentLogo && defaultImage
+				? defaultImage[1]
+				: tournamentLogoDimensions,
 		logoTextHeight,
 		logoAwardsHeight,
 		sidebarLineHeight,
@@ -79,9 +83,11 @@
 	}
 	$: {
 		if (showSlidesPreview) {
-			generatePdf(generateSciolyFF(), undefined, currentSettings()).then((url) => {
-				slidesURL = url;
-			});
+			generatePdf(generateSciolyFF(), undefined, currentSettings()).then(
+				(url) => {
+					slidesURL = url;
+				}
+			);
 		}
 	}
 
@@ -128,17 +134,23 @@
 		if (!data.batches || data.batches?.length <= batchIndex) return;
 
 		const events = data.batches
-			.filter((_, i, s) => i >= batchIndex && (data.done ? i < s.length - 1 : true))
+			.filter(
+				(_, i, s) => i >= batchIndex && (data.done ? i < s.length - 1 : true)
+			)
 			.flat()
 			.map((e) => BigInt(e));
 
 		if (events) {
 			const sciolyff = generateSciolyFF(events);
-			const slides = await generatePdf(sciolyff, undefined, currentSettings(), ['events']);
+			const slides = await generatePdf(sciolyff, undefined, currentSettings(), [
+				'events'
+			]);
 			await viewer.appendPdf(slides);
 		}
 		if (data.done) {
-			const sciolyff = generateSciolyFF(data.batches.slice(-1)[0].map((e) => BigInt(e)));
+			const sciolyff = generateSciolyFF(
+				data.batches.slice(-1)[0].map((e) => BigInt(e))
+			);
 			const slides = await generatePdf(sciolyff, undefined, currentSettings(), [
 				'overall',
 				'closing'
@@ -160,7 +172,10 @@
 
 	export const startPresentation = async (events: bigint[]) => {
 		const sciolyff = generateSciolyFF(events);
-		const slides = await generatePdf(sciolyff, undefined, currentSettings(), ['intro', 'events']);
+		const slides = await generatePdf(sciolyff, undefined, currentSettings(), [
+			'intro',
+			'events'
+		]);
 		await viewer.appendPdf(slides);
 		viewer.enterFullScreen();
 
@@ -181,10 +196,12 @@
 
 	export const resumePresentation = async () => {
 		if (!broadcastChannel) {
-			const intro = await generatePdf(generateSciolyFF(), undefined, currentSettings(), [
-				'intro',
-				'events'
-			]);
+			const intro = await generatePdf(
+				generateSciolyFF(),
+				undefined,
+				currentSettings(),
+				['intro', 'events']
+			);
 			await viewer.appendPdf(intro);
 			fetchLatestBatches();
 		}
@@ -220,7 +237,13 @@
 	};
 </script>
 
-<Modal title="Slides Preview" bind:open={showSlidesPreview} autoclose outsideclose size="xl">
+<Modal
+	title="Slides Preview"
+	bind:open={showSlidesPreview}
+	autoclose
+	outsideclose
+	size="xl"
+>
 	{#await initializeSlidesPreview()}
 		<div class="grid place-items-center h-60">
 			<span class="flex items-center">
@@ -340,11 +363,21 @@
 				</label>
 			</details>
 		</details>
-		<iframe title="Slides Preview" class="w-full h-[calc(100vh-200px)]" src={slidesURL} />
+		<iframe
+			title="Slides Preview"
+			class="w-full h-[calc(100vh-200px)]"
+			src={slidesURL}
+		/>
 	{/await}
 </Modal>
 
-<Modal title="Printable Medals List" bind:open={showPrintable} autoclose outsideclose size="xl">
+<Modal
+	title="Printable Medals List"
+	bind:open={showPrintable}
+	autoclose
+	outsideclose
+	size="xl"
+>
 	<details>
 		<summary>Settings</summary>
 		<label

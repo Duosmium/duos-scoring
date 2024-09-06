@@ -1,15 +1,4 @@
-// import {
-// 	PrismaClient,
-// 	type Tournament,
-// 	type TrialStatus,
-// 	type Team,
-// 	type Track,
-// 	type Score,
-// 	UserRole,
-// 	Prisma
-// } from '@prisma/client';
 import { supabase } from './supabaseAdmin';
-// const prisma = new PrismaClient();
 
 import {
 	type Tournament,
@@ -18,9 +7,9 @@ import {
 	type Track,
 	type Score,
 	type UserRole
-} from '../../drizzle/types';
-import * as schema from '../../drizzle/schema';
-import { db } from '../../drizzle/db';
+} from '$drizzle/types';
+import * as schema from '$drizzle/schema';
+import { db } from '$drizzle/db';
 import { and, eq, inArray } from 'drizzle-orm';
 // TODO: double check permissions in every function
 
@@ -120,7 +109,11 @@ export async function getInvite(link: string) {
 	}
 }
 
-export async function updateInvite(link: string, events: bigint[], role?: UserRole) {
+export async function updateInvite(
+	link: string,
+	events: bigint[],
+	role?: UserRole
+) {
 	try {
 		await db
 			.update(schema.Invite)
@@ -130,7 +123,9 @@ export async function updateInvite(link: string, events: bigint[], role?: UserRo
 			.where(eq(schema.Invite.link, link));
 		if (events && events.length !== 0) {
 			await db.transaction(async (tx) => {
-				await tx.delete(schema._InviteEvents).where(eq(schema._InviteEvents.B, link));
+				await tx
+					.delete(schema._InviteEvents)
+					.where(eq(schema._InviteEvents.B, link));
 				await tx.insert(schema._InviteEvents).values(
 					events.map((e) => ({
 						A: e,
@@ -180,7 +175,9 @@ export async function updateMember(
 				.returning()
 		)[0];
 		await db.transaction(async (tx) => {
-			await tx.delete(schema._ESEventRoles).where(eq(schema._ESEventRoles.B, role.id));
+			await tx
+				.delete(schema._ESEventRoles)
+				.where(eq(schema._ESEventRoles.B, role.id));
 			await tx.insert(schema._ESEventRoles).values(
 				data.events?.map((e) => ({
 					A: e,
@@ -194,14 +191,22 @@ export async function updateMember(
 	return true;
 }
 
-export async function deleteMembers(tournamentId: bigint | string, members: string[]) {
+export async function deleteMembers(
+	tournamentId: bigint | string,
+	members: string[]
+) {
 	if (typeof tournamentId === 'string') {
 		tournamentId = BigInt(tournamentId);
 	}
 	try {
 		await db
 			.delete(schema.Role)
-			.where(and(eq(schema.Role.tournamentId, tournamentId), inArray(schema.Role.userId, members)));
+			.where(
+				and(
+					eq(schema.Role.tournamentId, tournamentId),
+					inArray(schema.Role.userId, members)
+				)
+			);
 	} catch (e) {
 		return false;
 	}
@@ -237,7 +242,9 @@ export async function addEvents(
 	try {
 		await db
 			.insert(schema.Event)
-			.values(events.map((e) => ({ ...e, tournamentId: tournamentId as bigint })));
+			.values(
+				events.map((e) => ({ ...e, tournamentId: tournamentId as bigint }))
+			);
 	} catch (e) {
 		return false;
 	}
@@ -287,7 +294,10 @@ export async function updateEvent(
 				})
 				.where(eq(schema.Event.id, eventId));
 		} else {
-			await db.update(schema.Event).set(event).where(eq(schema.Event.id, eventId));
+			await db
+				.update(schema.Event)
+				.set(event)
+				.where(eq(schema.Event.id, eventId));
 		}
 	} catch (e) {
 		return false;
@@ -311,7 +321,9 @@ export async function addTeams(tournamentId: bigint | string, teams: Team[]) {
 	try {
 		await db
 			.insert(schema.Team)
-			.values(teams.map((t) => ({ ...t, tournamentId: tournamentId as bigint })));
+			.values(
+				teams.map((t) => ({ ...t, tournamentId: tournamentId as bigint }))
+			);
 	} catch (e) {
 		return false;
 	}
@@ -336,14 +348,19 @@ export async function deleteTeam(teamId: bigint) {
 	return true;
 }
 
-export async function addTracks(tournamentId: bigint | string, tracks: Track[]) {
+export async function addTracks(
+	tournamentId: bigint | string,
+	tracks: Track[]
+) {
 	if (typeof tournamentId === 'string') {
 		tournamentId = BigInt(tournamentId);
 	}
 	try {
 		await db
 			.insert(schema.Track)
-			.values(tracks.map((t) => ({ ...t, tournamentId: tournamentId as bigint })));
+			.values(
+				tracks.map((t) => ({ ...t, tournamentId: tournamentId as bigint }))
+			);
 	} catch (e) {
 		return false;
 	}
@@ -352,7 +369,10 @@ export async function addTracks(tournamentId: bigint | string, tracks: Track[]) 
 
 export async function updateTrack(trackId: bigint, track: Partial<Track>) {
 	try {
-		await db.update(schema.Track).set(track).where(eq(schema.Track.id, trackId));
+		await db
+			.update(schema.Track)
+			.set(track)
+			.where(eq(schema.Track.id, trackId));
 	} catch (e) {
 		return false;
 	}
@@ -567,7 +587,10 @@ export async function updateScores(scores: Partial<Score> & { id: bigint }[]) {
 		await Promise.all(
 			scores.map(
 				async (score) =>
-					await db.update(schema.Score).set(score).where(eq(schema.Score.id, score.id))
+					await db
+						.update(schema.Score)
+						.set(score)
+						.where(eq(schema.Score.id, score.id))
 			)
 		);
 	} catch (e) {
@@ -606,7 +629,10 @@ export async function getSlides(tournamentId: bigint | string) {
 	});
 
 	if (slides == undefined) {
-		slides = await db.insert(schema.Slides).values({ tournamentId }).returning();
+		slides = await db
+			.insert(schema.Slides)
+			.values({ tournamentId })
+			.returning();
 	}
 
 	return slides;
@@ -621,17 +647,23 @@ export async function updateSlidesSettings(
 	}
 
 	try {
-		await db.insert(schema.Slides).values({ tournamentId, settings }).onConflictDoUpdate({
-			target: schema.Slides.tournamentId,
-			set: { settings }
-		});
+		await db
+			.insert(schema.Slides)
+			.values({ tournamentId, settings })
+			.onConflictDoUpdate({
+				target: schema.Slides.tournamentId,
+				set: { settings }
+			});
 	} catch (e) {
 		return false;
 	}
 	return true;
 }
 
-export async function addSlidesBatch(tournamentId: bigint | string, batch: bigint[]) {
+export async function addSlidesBatch(
+	tournamentId: bigint | string,
+	batch: bigint[]
+) {
 	if (typeof tournamentId === 'string') {
 		tournamentId = BigInt(tournamentId);
 	}
@@ -646,42 +678,57 @@ export async function addSlidesBatch(tournamentId: bigint | string, batch: bigin
 
 		batches.push(batch.map((e) => e.toString()));
 
-		await db.insert(schema.Slides).values({ tournamentId, batches }).onConflictDoUpdate({
-			target: schema.Slides.tournamentId,
-			set: { batches }
-		});
+		await db
+			.insert(schema.Slides)
+			.values({ tournamentId, batches })
+			.onConflictDoUpdate({
+				target: schema.Slides.tournamentId,
+				set: { batches }
+			});
 	} catch (e) {
 		return false;
 	}
 	return true;
 }
 
-export async function markSlidesDone(tournamentId: bigint | string, done: boolean) {
+export async function markSlidesDone(
+	tournamentId: bigint | string,
+	done: boolean
+) {
 	if (typeof tournamentId === 'string') {
 		tournamentId = BigInt(tournamentId);
 	}
 
 	try {
-		await db.insert(schema.Slides).values({ tournamentId, done }).onConflictDoUpdate({
-			target: schema.Slides.tournamentId,
-			set: { done }
-		});
+		await db
+			.insert(schema.Slides)
+			.values({ tournamentId, done })
+			.onConflictDoUpdate({
+				target: schema.Slides.tournamentId,
+				set: { done }
+			});
 	} catch (e) {
 		return false;
 	}
 	return true;
 }
 
-export async function setSlidesChannel(tournamentId: bigint | string, channelId: string) {
+export async function setSlidesChannel(
+	tournamentId: bigint | string,
+	channelId: string
+) {
 	if (typeof tournamentId === 'string') {
 		tournamentId = BigInt(tournamentId);
 	}
 
 	try {
-		await db.insert(schema.Slides).values({ tournamentId, channelId }).onConflictDoUpdate({
-			target: schema.Slides.tournamentId,
-			set: { channelId }
-		});
+		await db
+			.insert(schema.Slides)
+			.values({ tournamentId, channelId })
+			.onConflictDoUpdate({
+				target: schema.Slides.tournamentId,
+				set: { channelId }
+			});
 	} catch (e) {
 		return false;
 	}

@@ -43,7 +43,9 @@ export function getColor(filename: string) {
 	if (!filename) return;
 
 	const imagePath =
-		imageCache[filename] || findTournamentImage(filename, images) || '/images/logos/default.png';
+		imageCache[filename] ||
+		findTournamentImage(filename, images) ||
+		'/images/logos/default.png';
 
 	return colors[imagePath] || '#1f1b35';
 }
@@ -53,7 +55,9 @@ export async function getImage(filename: string) {
 
 	const imagePath =
 		'https://www.duosmium.org' +
-		(imageCache[filename] || findTournamentImage(filename, images) || '/images/logos/default.png');
+		(imageCache[filename] ||
+			findTournamentImage(filename, images) ||
+			'/images/logos/default.png');
 
 	const imgElement = new Image();
 	imgElement.src = imagePath;
@@ -67,16 +71,16 @@ export async function getImage(filename: string) {
 		reader.readAsDataURL(blob);
 	});
 
-	return [dataUri as string, [imgElement.naturalWidth, imgElement.naturalHeight]] as [
-		string,
-		[number, number]
-	];
+	return [
+		dataUri as string,
+		[imgElement.naturalWidth, imgElement.naturalHeight]
+	] as [string, [number, number]];
 }
 
 export async function generatePdf(
 	sciolyff1: string | SciOlyFF,
 	sciolyff2: string | SciOlyFF,
-	options: PrismaJson.SlidesSettings,
+	options: DbJson.SlidesSettings,
 	sections?: ('intro' | 'events' | 'overall' | 'closing')[]
 ) {
 	if (!sciolyff1 && !sciolyff2) {
@@ -97,7 +101,9 @@ export async function generatePdf(
 		.sort((a, b) =>
 			// put the interpreter with the first division first
 			a != null
-				? a.tournament.division.localeCompare(b?.tournament?.division ?? '\uffff')
+				? a.tournament.division.localeCompare(
+						b?.tournament?.division ?? '\uffff'
+					)
 				: b == null
 					? 0
 					: 1
@@ -107,7 +113,9 @@ export async function generatePdf(
 	}
 
 	const tournamentName =
-		interpreter1.tournament.year + ' ' + tournamentTitleShort(interpreter1.tournament);
+		interpreter1.tournament.year +
+		' ' +
+		tournamentTitleShort(interpreter1.tournament);
 
 	doc.setDocumentProperties({
 		title: tournamentName + ' Awards',
@@ -264,7 +272,14 @@ export async function generatePdf(
 			size: 10
 		});
 		const sideLength = 16 - dividerOffset - 1;
-		doc.addImage(qr, 'PNG', dividerOffset + 0.5, (9 - sideLength) / 2, sideLength, sideLength);
+		doc.addImage(
+			qr,
+			'PNG',
+			dividerOffset + 0.5,
+			(9 - sideLength) / 2,
+			sideLength,
+			sideLength
+		);
 	}
 
 	function addPlacingSlides(
@@ -327,7 +342,12 @@ export async function generatePdf(
 					dividerOffset - 1
 				);
 				const teamNameOffset =
-					5 - (teamLineHeight * teamFontSize * (teamNameText.length + (overall ? 2 : 1))) / 72 / 2; // 72 points per inch
+					5 -
+					(teamLineHeight *
+						teamFontSize *
+						(teamNameText.length + (overall ? 2 : 1))) /
+						72 /
+						2; // 72 points per inch
 				// add rank and team number
 				doc.setFontSize(teamFontSize * 0.875);
 				doc.setFont('Roboto-Light');
@@ -343,19 +363,28 @@ export async function generatePdf(
 				// add team name
 				doc.setFontSize(teamFontSize);
 				doc.setFont('Roboto-Bold');
-				doc.text(teamNameText, 0.5, teamNameOffset + (teamLineHeight * teamFontSize) / 72 + 0.1, {
-					baseline: 'middle',
-					lineHeightFactor: teamLineHeight
-				});
+				doc.text(
+					teamNameText,
+					0.5,
+					teamNameOffset + (teamLineHeight * teamFontSize) / 72 + 0.1,
+					{
+						baseline: 'middle',
+						lineHeightFactor: teamLineHeight
+					}
+				);
 				if (overall && overallPoints) {
 					doc.setFontSize(teamFontSize * 0.75);
 					doc.setFont('Roboto-Light');
 					doc.text(
 						`${
-							team.tournament.hasTracks && !combineTracks ? team.trackPoints : team.points
+							team.tournament.hasTracks && !combineTracks
+								? team.trackPoints
+								: team.points
 						} points`,
 						0.5,
-						teamNameOffset + (teamLineHeight * teamFontSize * (teamNameText.length + 1)) / 72 + 0.2,
+						teamNameOffset +
+							(teamLineHeight * teamFontSize * (teamNameText.length + 1)) / 72 +
+							0.2,
 						{
 							baseline: 'middle',
 							lineHeightFactor: teamLineHeight
@@ -420,12 +449,15 @@ export async function generatePdf(
 
 			// i apologize for all these ternary operators
 			const rankedTeams = event.placings
-				.filter((p) => (track ? p.team.track === track : true) && !p.team.exhibition) // use non-exhibition teams from the correct track
+				.filter(
+					(p) => (track ? p.team.track === track : true) && !p.team.exhibition
+				) // use non-exhibition teams from the correct track
 				.sort(
 					(a, b) =>
 						(track
 							? a.isolatedTrackPoints - b.isolatedTrackPoints
-							: a.isolatedPoints - b.isolatedPoints) * (event.tournament.reverseScoring ? -1 : 1)
+							: a.isolatedPoints - b.isolatedPoints) *
+						(event.tournament.reverseScoring ? -1 : 1)
 				) // sort by points
 				.filter((p, i) =>
 					event.tournament.reverseScoring
@@ -460,7 +492,9 @@ export async function generatePdf(
 				// filter by track and exhibition if necessary
 				.filter((t) => (track ? t.track === track : true) && !t.exhibition)
 				// sort by rank
-				.sort((a, b) => (track ? a.trackRank! - b.trackRank! : a.rank! - b.rank!))
+				.sort((a, b) =>
+					track ? a.trackRank! - b.trackRank! : a.rank! - b.rank!
+				)
 				// filter by school if necessary
 				.reduce(
 					(acc, t) => {
@@ -489,7 +523,9 @@ export async function generatePdf(
 		// generate title slide
 		doc.outline.add(null, 'Welcome', { pageNumber: 1 });
 		addTextSlide(
-			interpreter1.tournament.year + ' ' + tournamentTitle(interpreter1.tournament),
+			interpreter1.tournament.year +
+				' ' +
+				tournamentTitle(interpreter1.tournament),
 			'Awards Ceremony'
 		);
 	}
@@ -498,19 +534,27 @@ export async function generatePdf(
 	const events1: [Event, Track | null][] = [];
 	if (interpreter1.tournament.hasTracks && !combineTracks) {
 		interpreter1.tournament.tracks?.forEach((track) => {
-			events1.push(...interpreter1.events.map((e) => [e, track] as [Event, Track]));
+			events1.push(
+				...interpreter1.events.map((e) => [e, track] as [Event, Track])
+			);
 		});
 	} else {
-		events1.push(...interpreter1!.events.map((e) => [e, null] as [Event, null]));
+		events1.push(
+			...interpreter1!.events.map((e) => [e, null] as [Event, null])
+		);
 	}
 	const events2: [Event, Track | null][] = [];
 	if (interpreter2) {
 		if (interpreter2.tournament.hasTracks && !combineTracks) {
 			interpreter2.tournament.tracks?.forEach((track) => {
-				events2.push(...interpreter2.events.map((e) => [e, track] as [Event, Track]));
+				events2.push(
+					...interpreter2.events.map((e) => [e, track] as [Event, Track])
+				);
 			});
 		} else {
-			events2.push(...interpreter2.events.map((e) => [e, null] as [Event, null]));
+			events2.push(
+				...interpreter2.events.map((e) => [e, null] as [Event, null])
+			);
 		}
 	}
 
@@ -554,7 +598,10 @@ export async function generatePdf(
 					pageNumber: doc.getNumberOfPages()
 				});
 				if (sections ? sections.includes('events') : true) {
-					addEventSlides(sortEvents(events1.filter(([_, track]) => track === t)), outline);
+					addEventSlides(
+						sortEvents(events1.filter(([_, track]) => track === t)),
+						outline
+					);
 				}
 				if (sections ? sections.includes('overall') : !eventsOnly) {
 					addOverallSlides(interpreter1, t);
@@ -567,7 +614,10 @@ export async function generatePdf(
 					pageNumber: doc.getNumberOfPages()
 				});
 				if (sections ? sections.includes('events') : true) {
-					addEventSlides(sortEvents(events2.filter(([_, track]) => track === t)), outline);
+					addEventSlides(
+						sortEvents(events2.filter(([_, track]) => track === t)),
+						outline
+					);
 				}
 				if (sections ? sections.includes('overall') : !eventsOnly) {
 					addOverallSlides(interpreter2, t);

@@ -17,7 +17,7 @@
 		Select,
 		Toast
 	} from 'flowbite-svelte';
-	import type { Tournament } from '@prisma/client';
+	import type { Tournament } from '$drizzle/types';
 	import { page } from '$app/stores';
 	import { invalidateAll } from '$app/navigation';
 	import { slide } from 'svelte/transition';
@@ -113,14 +113,22 @@
 			level: editTournamentData.level || undefined,
 			division: editTournamentData.division || undefined,
 			year: parseInt(editTournamentData.year as any) || undefined,
-			startDate: editTournamentData.startDate ? new Date(editTournamentData.startDate) : undefined,
-			endDate: editTournamentData.endDate ? new Date(editTournamentData.endDate) : undefined,
+			startDate: editTournamentData.startDate
+				? new Date(editTournamentData.startDate)
+				: undefined,
+			endDate: editTournamentData.endDate
+				? new Date(editTournamentData.endDate)
+				: undefined,
 			awardsDate: editTournamentData.awardsDate
 				? new Date(editTournamentData.awardsDate)
 				: undefined,
 			enableTracks: editTournamentData.enableTracks || undefined,
-			medals: ((m) => (isNaN(m) ? undefined : m))(parseInt(editTournamentData.medals as any)),
-			trophies: ((t) => (isNaN(t) ? undefined : t))(parseInt(editTournamentData.trophies as any)),
+			medals: ((m) => (isNaN(m) ? undefined : m))(
+				parseInt(editTournamentData.medals as any)
+			),
+			trophies: ((t) => (isNaN(t) ? undefined : t))(
+				parseInt(editTournamentData.trophies as any)
+			),
 			bids: parseInt(editTournamentData.bids as any) || null,
 			drops: parseInt(editTournamentData.drops as any) || null,
 			nOffset: parseInt(editTournamentData.nOffset as any) || null
@@ -142,7 +150,10 @@
 	}
 
 	let messages: { text: string; type: 'success' | 'error' }[] = [];
-	function addToastMessage(message: string, type: 'success' | 'error' = 'success') {
+	function addToastMessage(
+		message: string,
+		type: 'success' | 'error' = 'success'
+	) {
 		messages = [...messages, { text: message, type }];
 		setTimeout(() => {
 			messages = messages.slice(1);
@@ -151,12 +162,14 @@
 </script>
 
 <Head
-	title="TD Dashboard | {data.tournament.year} {data.tournament.shortName} {data.tournament
-		.division} | Duosmium Scoring"
+	title="TD Dashboard | {data.tournament.year} {data.tournament.shortName} {data
+		.tournament.division} | Duosmium Scoring"
 />
 
 <Heading tag="h1" class="text-4xl"
-	>{data.tournament.year} {data.tournament.name} {data.tournament.division}</Heading
+	>{data.tournament.year}
+	{data.tournament.name}
+	{data.tournament.division}</Heading
 >
 
 <!-- TODO: make this pretty -->
@@ -165,10 +178,12 @@
 		<Card size="sm">
 			<P class="mb-2 text-2xl">{data.teams?.length} Teams</P>
 			<P class="mb-2 text-2xl"
-				>{data.events?.filter((e) => e.locked)?.length} / {data.events?.length} Events Done Grading</P
+				>{data.events?.filter((e) => e.locked)?.length} / {data.events?.length} Events
+				Done Grading</P
 			>
 			<P class="mb-2 text-2xl"
-				>{data.events?.filter((e) => e.audited != null)?.length} / {data.events?.length} Events Audited</P
+				>{data.events?.filter((e) => e.audited != null)?.length} / {data.events
+					?.length} Events Audited</P
 			>
 		</Card>
 		<Card size="xs">
@@ -201,7 +216,8 @@
 				</div>
 				<div class="flex flex-col pb-3">
 					<DescriptionList tag="dt">Short Name</DescriptionList>
-					<DescriptionList tag="dd">{data.tournament.shortName}</DescriptionList>
+					<DescriptionList tag="dd">{data.tournament.shortName}</DescriptionList
+					>
 				</div>
 				<div class="flex flex-col pb-3">
 					<DescriptionList tag="dt">Location</DescriptionList>
@@ -258,7 +274,9 @@
 				</div>
 				<div class="flex flex-col pb-3">
 					<DescriptionList tag="dt">Tracks Enabled?</DescriptionList>
-					<DescriptionList tag="dd">{data.tournament.enableTracks ? 'Yes' : 'No'}</DescriptionList>
+					<DescriptionList tag="dd"
+						>{data.tournament.enableTracks ? 'Yes' : 'No'}</DescriptionList
+					>
 				</div>
 				<div class="flex flex-col pb-3">
 					<DescriptionList tag="dt">Medals</DescriptionList>
@@ -270,23 +288,39 @@
 				</div>
 				<div class="flex flex-col pb-3">
 					<DescriptionList tag="dt">Bids</DescriptionList>
-					<DescriptionList tag="dd">{data.tournament.bids ?? 'None'}</DescriptionList>
+					<DescriptionList tag="dd"
+						>{data.tournament.bids ?? 'None'}</DescriptionList
+					>
 				</div>
 				<div class="flex flex-col pb-3">
 					<DescriptionList tag="dt">Drops</DescriptionList>
-					<DescriptionList tag="dd">{data.tournament.drops ?? 'None'}</DescriptionList>
+					<DescriptionList tag="dd"
+						>{data.tournament.drops ?? 'None'}</DescriptionList
+					>
 				</div>
 				<div class="flex flex-col pb-3">
 					<DescriptionList tag="dt">N Offset</DescriptionList>
-					<DescriptionList tag="dd">{data.tournament.nOffset ?? 'None'}</DescriptionList>
+					<DescriptionList tag="dd"
+						>{data.tournament.nOffset ?? 'None'}</DescriptionList
+					>
 				</div>
 			</List>
 		</Card>
 	</div>
 
-	<Modal title="Edit Tournament Info" bind:open={showEditTournament} autoclose outsideclose>
+	<Modal
+		title="Edit Tournament Info"
+		bind:open={showEditTournament}
+		autoclose
+		outsideclose
+	>
 		<Label>
-			Name: <Input type="text" name="name" bind:value={editTournamentData.name} required />
+			Name: <Input
+				type="text"
+				name="name"
+				bind:value={editTournamentData.name}
+				required
+			/>
 		</Label>
 		<Label>
 			Short Name: <Input
@@ -306,18 +340,38 @@
 		</Label>
 		<Label>
 			State:
-			<Select name="state" items={states} bind:value={editTournamentData.state} required />
+			<Select
+				name="state"
+				items={states}
+				bind:value={editTournamentData.state}
+				required
+			/>
 		</Label>
 		<Label>
 			Level:
-			<Select name="level" items={levels} bind:value={editTournamentData.level} required />
+			<Select
+				name="level"
+				items={levels}
+				bind:value={editTournamentData.level}
+				required
+			/>
 		</Label>
 		<Label>
 			Division:
-			<Select name="division" items={divisions} bind:value={editTournamentData.division} required />
+			<Select
+				name="division"
+				items={divisions}
+				bind:value={editTournamentData.division}
+				required
+			/>
 		</Label>
 		<Label>
-			Year: <Input type="number" name="year" bind:value={editTournamentData.year} required />
+			Year: <Input
+				type="number"
+				name="year"
+				bind:value={editTournamentData.year}
+				required
+			/>
 		</Label>
 		<Label>
 			Start Date: <Input
@@ -347,19 +401,39 @@
 			>Enable Tracks</Checkbox
 		>
 		<Label>
-			Medals: <Input type="number" name="medals" bind:value={editTournamentData.medals} />
+			Medals: <Input
+				type="number"
+				name="medals"
+				bind:value={editTournamentData.medals}
+			/>
 		</Label>
 		<Label>
-			Trophies: <Input type="number" name="trophies" bind:value={editTournamentData.trophies} />
+			Trophies: <Input
+				type="number"
+				name="trophies"
+				bind:value={editTournamentData.trophies}
+			/>
 		</Label>
 		<Label>
-			Bids: <Input type="number" name="bids" bind:value={editTournamentData.bids} />
+			Bids: <Input
+				type="number"
+				name="bids"
+				bind:value={editTournamentData.bids}
+			/>
 		</Label>
 		<Label>
-			N-Offset: <Input type="number" name="nOffset" bind:value={editTournamentData.nOffset} />
+			N-Offset: <Input
+				type="number"
+				name="nOffset"
+				bind:value={editTournamentData.nOffset}
+			/>
 		</Label>
 		<Label>
-			Drops: <Input type="number" name="drops" bind:value={editTournamentData.drops} />
+			Drops: <Input
+				type="number"
+				name="drops"
+				bind:value={editTournamentData.drops}
+			/>
 		</Label>
 
 		<svelte:fragment slot="footer">
@@ -375,21 +449,24 @@
 			<Li><A href="/t/{$page.params.id}/events/{event.id}">{event.name}</A></Li>
 		{:else}
 			<P>
-				You have not yet been assigned to any events! Contact the tournament director if you believe
-				this is an error.
+				You have not yet been assigned to any events! Contact the tournament
+				director if you believe this is an error.
 			</P>
 		{/each}
 	</List>
 {:else}
 	<P>
-		You have not yet been assigned to any events! Contact the tournament director if you believe
-		this is an error.
+		You have not yet been assigned to any events! Contact the tournament
+		director if you believe this is an error.
 	</P>
 {/if}
 
 <div class="fixed bottom-8 right-8 flex flex-col space-y-4">
 	{#each messages as message}
-		<Toast color={message.type === 'success' ? 'green' : 'red'} transition={slide}>
+		<Toast
+			color={message.type === 'success' ? 'green' : 'red'}
+			transition={slide}
+		>
 			<svelte:fragment slot="icon">
 				{#if message.type === 'success'}
 					<svg

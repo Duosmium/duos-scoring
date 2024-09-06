@@ -3,8 +3,8 @@
 	"version": "0.0.1",
 	"private": true,
 	"scripts": {
-		"dev": "svelte-kit sync && prisma generate && vite dev",
-		"build": "svelte-kit sync && prisma generate && vite build",
+		"dev": "svelte-kit sync && vite dev",
+		"build": "svelte-kit sync && vite build",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
@@ -13,7 +13,6 @@
 	},
 	"devDependencies": {
 		"@popperjs/core": "^2.11.8",
-		"@prisma/client": "^5.19.1",
 		"@sentry/sveltekit": "^8.28.0",
 		"@shortcm/qr-image": "^9.0.4",
 		"@sparticuz/chromium": "^127.0.0",
@@ -56,8 +55,6 @@
 		"postgres": "^3.4.4",
 		"prettier": "^3.3.3",
 		"prettier-plugin-svelte": "^3.2.6",
-		"prisma": "^5.19.1",
-		"prisma-json-types-generator": "^3.0.4",
 		"puppeteer-core": "^23.3.0",
 		"resend": "^4.0.0",
 		"sass": "^1.78.0",

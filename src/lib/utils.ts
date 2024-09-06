@@ -1,13 +1,10 @@
 import { error } from '@sveltejs/kit';
-import { Prisma } from '@prisma/client';
+import type { Event, Role, User } from '$drizzle/types';
 
-const userWithRoles = Prisma.validator<Prisma.UserArgs>()({
-	include: { roles: { include: { supEvents: true } } }
-});
-type User = Prisma.UserGetPayload<typeof userWithRoles>;
+type UserWithRoles = User & { roles: (Role & { supEvents: Event[] })[] };
 
 export async function checkIsDirector(
-	user: User | undefined,
+	user: UserWithRoles | undefined,
 	tournamentId: string,
 	throwError = true
 ) {
@@ -19,7 +16,8 @@ export async function checkIsDirector(
 		}
 	}
 	const userRole = user.roles.find(
-		(role) => role.role === 'TD' && role.tournamentId.toString() === tournamentId
+		(role) =>
+			role.role === 'TD' && role.tournamentId.toString() === tournamentId
 	);
 	if (userRole == undefined) {
 		if (throwError) {
@@ -33,7 +31,7 @@ export async function checkIsDirector(
 }
 
 export async function checkScoremasterPerms(
-	user: User | undefined,
+	user: UserWithRoles | undefined,
 	tournamentId: string,
 	throwError = true
 ) {
@@ -46,7 +44,8 @@ export async function checkScoremasterPerms(
 	}
 	const userRole = user.roles.find(
 		(role) =>
-			(role.role === 'TD' || role.role === 'SM') && role.tournamentId.toString() === tournamentId
+			(role.role === 'TD' || role.role === 'SM') &&
+			role.tournamentId.toString() === tournamentId
 	);
 	if (userRole == undefined) {
 		if (throwError) {
@@ -60,7 +59,7 @@ export async function checkScoremasterPerms(
 }
 
 export async function checkEventPerms(
-	user: User | undefined,
+	user: UserWithRoles | undefined,
 	tournamentId: string,
 	eventId: bigint,
 	throwError = true
@@ -72,7 +71,9 @@ export async function checkEventPerms(
 			return false;
 		}
 	}
-	const userRole = user.roles.find((role) => role.tournamentId.toString() === tournamentId);
+	const userRole = user.roles.find(
+		(role) => role.tournamentId.toString() === tournamentId
+	);
 	if (
 		userRole == undefined ||
 		(userRole.role === 'ES' &&
@@ -89,7 +90,7 @@ export async function checkEventPerms(
 }
 
 export async function checkTournamentAccess(
-	user: User | undefined,
+	user: UserWithRoles | undefined,
 	tournamentId: string,
 	throwError = true
 ) {
@@ -100,7 +101,10 @@ export async function checkTournamentAccess(
 			return false;
 		}
 	}
-	const userRole = user.roles.find((role) => role.tournamentId, toString() === tournamentId);
+	const userRole = user.roles.find(
+		(role) => role.tournamentId,
+		toString() === tournamentId
+	);
 	if (userRole == undefined) {
 		if (throwError) {
 			error(403, 'You do not have permission to view this page');

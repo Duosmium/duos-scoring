@@ -1,5 +1,5 @@
 import { addEvents, deleteEvent, updateEvent } from '$lib/db';
-import type { TrialStatus } from '@prisma/client';
+import type { TrialStatus } from '$drizzle/types';
 import type { RequestHandler } from './$types';
 import { checkScoremasterPerms } from '$lib/utils';
 
@@ -23,7 +23,9 @@ export const DELETE: RequestHandler = async ({ request, params, locals }) => {
 		return new Response('missing event', { status: 404 });
 	}
 
-	const status = (await Promise.all(events.map((eventId) => deleteEvent(eventId)))).every((b) => b);
+	const status = (
+		await Promise.all(events.map((eventId) => deleteEvent(eventId)))
+	).every((b) => b);
 
 	if (!status) {
 		return new Response('failed to delete', { status: 500 });
@@ -45,7 +47,10 @@ export const PATCH: RequestHandler = async ({ request, locals, params }) => {
 		return new Response('missing event', { status: 404 });
 	if (payload.name && typeof payload.name !== 'string')
 		return new Response('invalid name', { status: 400 });
-	if (payload.trialStatus && !['SCORING', 'TRIAL', 'TRIALED'].includes(payload.trialStatus))
+	if (
+		payload.trialStatus &&
+		!['SCORING', 'TRIAL', 'TRIALED'].includes(payload.trialStatus)
+	)
 		return new Response('invalid status', { status: 400 });
 	if (payload.highScoring && !['true', 'false'].includes(payload.highScoring))
 		return new Response('invalid highScoring', { status: 400 });
@@ -56,7 +61,9 @@ export const PATCH: RequestHandler = async ({ request, locals, params }) => {
 	const status = await updateEvent(eventId, {
 		name: payload.name,
 		trialStatus: payload.trialStatus,
-		highScoring: payload.highScoring ? payload.highScoring === 'true' : undefined,
+		highScoring: payload.highScoring
+			? payload.highScoring === 'true'
+			: undefined,
 		medals: payload.medals
 	});
 
@@ -77,7 +84,10 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 	} = await request.json();
 	if (!payload.name || typeof payload.name !== 'string')
 		return new Response('missing name', { status: 400 });
-	if (!payload.trialStatus || !['SCORING', 'TRIAL', 'TRIALED'].includes(payload.trialStatus))
+	if (
+		!payload.trialStatus ||
+		!['SCORING', 'TRIAL', 'TRIALED'].includes(payload.trialStatus)
+	)
 		return new Response('invalid status', { status: 400 });
 	if (!payload.highScoring || !['true', 'false'].includes(payload.highScoring))
 		return new Response('invalid highScoring', { status: 400 });

@@ -1,7 +1,7 @@
 import { updateMember, createTournament } from '$lib/db';
 import type { Actions } from './$types';
 import { redirect } from '@sveltejs/kit';
-import type { Divisions, States, TournamentLevels } from '@prisma/client';
+import type { Divisions, States, TournamentLevels } from '$drizzle/types';
 
 export const actions = {
 	default: async ({ request, locals }) => {
@@ -22,7 +22,9 @@ export const actions = {
 
 		const enableTracks = !!formData.get('enableTracks') || false;
 
-		const medals = ((m) => (isNaN(m) ? 6 : m))(parseInt(formData.get('medals')?.toString() ?? ''));
+		const medals = ((m) => (isNaN(m) ? 6 : m))(
+			parseInt(formData.get('medals')?.toString() ?? '')
+		);
 		const trophies = ((t) => (isNaN(t) ? 3 : t))(
 			parseInt(formData.get('trophies')?.toString() ?? '')
 		);

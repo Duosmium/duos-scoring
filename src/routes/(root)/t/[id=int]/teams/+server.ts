@@ -1,5 +1,5 @@
 import { addTeams, deleteTeam, updateTeam } from '$lib/db';
-import type { Team } from '@prisma/client';
+import type { Team } from '$drizzle/types';
 import type { RequestHandler } from './$types';
 import { checkScoremasterPerms } from '$lib/utils';
 
@@ -46,7 +46,10 @@ export const PATCH: RequestHandler = async ({ request, locals, params }) => {
 	const teamId = BigInt(payload.id);
 	const data = {
 		...payload.data,
-		trackId: payload.data.trackId != null ? BigInt(payload.data.trackId) : payload.data.trackId
+		trackId:
+			payload.data.trackId != null
+				? BigInt(payload.data.trackId)
+				: payload.data.trackId
 	};
 	await updateTeam(teamId, data);
 

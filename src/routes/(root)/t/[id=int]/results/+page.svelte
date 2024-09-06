@@ -23,7 +23,7 @@
 	import { page } from '$app/stores';
 	import yaml from 'js-yaml';
 	import * as zip from '@zip.js/zip.js';
-	import type { Tournament } from '@prisma/client';
+	import type { Tournament } from '$drizzle/types';
 
 	import { invalidateAll } from '$app/navigation';
 	import Slides from './Slides.svelte';
@@ -41,7 +41,8 @@
 	$: roles = data.roles;
 	$: events = data.events.map((e) => ({
 		...e,
-		initiallyChecked: e.scores.length === data.teams.length && e.lastExportedAt == null
+		initiallyChecked:
+			e.scores.length === data.teams.length && e.lastExportedAt == null
 	}));
 	let selected: typeof events = [];
 
@@ -58,7 +59,10 @@
 				case 'auditTime':
 					return (b.auditedAt?.getTime() ?? 0) - (a.auditedAt?.getTime() ?? 0);
 				case 'exportTime':
-					return (b.lastExportedAt?.getTime() ?? 0) - (a.lastExportedAt?.getTime() ?? 0);
+					return (
+						(b.lastExportedAt?.getTime() ?? 0) -
+						(a.lastExportedAt?.getTime() ?? 0)
+					);
 				default:
 					return 0;
 			}
@@ -154,8 +158,13 @@
 								team: s.team.number,
 								event: s.event.name,
 								participated:
-									s.ranking === 'PARTICIPATION' ? true : s.ranking === 'NOSHOW' ? false : undefined,
-								disqualified: s.status === 'DISQUALIFICATION' ? true : undefined,
+									s.ranking === 'PARTICIPATION'
+										? true
+										: s.ranking === 'NOSHOW'
+											? false
+											: undefined,
+								disqualified:
+									s.status === 'DISQUALIFICATION' ? true : undefined,
 								place: typeof s.ranking === 'number' ? s.ranking : undefined,
 								tie: s.tie || undefined
 							}
@@ -177,7 +186,9 @@
 				? {
 						type: 'data',
 						data: data.events.flatMap((e) =>
-							selectedEvents.has(e.id) ? [{ ...data.histos.get(e.id), event: e.name }] : []
+							selectedEvents.has(e.id)
+								? [{ ...data.histos.get(e.id), event: e.name }]
+								: []
 						)
 					}
 				: undefined
@@ -246,8 +257,11 @@
 		// ^(19|20)\d{2}-[01]\d-[0-3]\d_([\w]+_invitational|([ns]?[A-Z]{2})_[\w]+_regional|([ns]?[A-Z]{2})_states|nationals)_(no_builds_)?[abc]$
 		let output = '';
 		output += tournament.startDate.getUTCFullYear();
-		output += '-' + (tournament.startDate.getUTCMonth() + 1).toString().padStart(2, '0');
-		output += '-' + tournament.startDate.getUTCDate().toString().padStart(2, '0');
+		output +=
+			'-' +
+			(tournament.startDate.getUTCMonth() + 1).toString().padStart(2, '0');
+		output +=
+			'-' + tournament.startDate.getUTCDate().toString().padStart(2, '0');
 		switch (tournament.level) {
 			case 'NATIONAL':
 				output += '_nationals';
@@ -256,7 +270,9 @@
 				output += `_${tournament.state}_states`;
 				break;
 			case 'REGIONAL':
-				output += `_${tournament.state}_${(tournament.shortName ?? tournament.name)
+				output += `_${tournament.state}_${(
+					tournament.shortName ?? tournament.name
+				)
 					.toLowerCase()
 					.split('regional')[0]
 					.replace(/\./g, '')
@@ -293,9 +309,11 @@
 			t.school + (t.suffix ? ` ${t.suffix}` : ''),
 			...data.events.map((e) => {
 				const score = e.scores.find((s) => s.teamId === t.id);
-				return ['NOSHOW', 'DISQUALIFICATION', 'PARTICIPATION'].includes(score?.status ?? '')
-					? score?.status ?? ''
-					: score?.rawScore ?? '';
+				return ['NOSHOW', 'DISQUALIFICATION', 'PARTICIPATION'].includes(
+					score?.status ?? ''
+				)
+					? (score?.status ?? '')
+					: (score?.rawScore ?? '');
 			})
 		]);
 		const csv = [header, ...body].map((row) => row.join(',')).join('\n');
@@ -335,7 +353,9 @@
 						s?.tier ?? '',
 						s?.tiebreak ?? '',
 						s?.status ?? '',
-						data.rankings.find((r) => r.teamId === t.id && r.event.id === event.id)?.ranking ?? '',
+						data.rankings.find(
+							(r) => r.teamId === t.id && r.event.id === event.id
+						)?.ranking ?? '',
 						s?.notes ?? ''
 					];
 				});
@@ -362,17 +382,18 @@
 </script>
 
 <Head
-	title="Results | {data.tournament.year} {data.tournament.shortName} {data.tournament
-		.division} | Duosmium Scoring"
+	title="Results | {data.tournament.year} {data.tournament.shortName} {data
+		.tournament.division} | Duosmium Scoring"
 />
 
 <Heading tag="h2" class="w-fit">Results</Heading>
 
 <P
-	>Preview and export results on this page. Select the events you want to export with the checkboxes
-	on the left, or check the top-most checkbox to check all the events. Then use the "Preview" button
-	to preview the results page, where you can download a PDF version. In order to select an event,
-	the event must be marked as audited by a tournament director or scoremaster.</P
+	>Preview and export results on this page. Select the events you want to export
+	with the checkboxes on the left, or check the top-most checkbox to check all
+	the events. Then use the "Preview" button to preview the results page, where
+	you can download a PDF version. In order to select an event, the event must be
+	marked as audited by a tournament director or scoremaster.</P
 >
 
 <P>To update/publish results to duosmium.org, email admin@duosmium.org.</P>
@@ -513,9 +534,15 @@
 	</svelte:fragment>
 	<svelte:fragment slot="item" let:item={event}>
 		<TableBodyCell class="py-0 px-2">{event.name}</TableBodyCell>
-		<TableBodyCell class="py-0 px-2">{event.medals ?? data.tournament.medals}</TableBodyCell>
-		<TableBodyCell class="py-0 px-2">{trialStatusDisplay[event.trialStatus]}</TableBodyCell>
-		<TableBodyCell class="py-0 px-2">{event.scores.length} / {data.teams.length}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2"
+			>{event.medals ?? data.tournament.medals}</TableBodyCell
+		>
+		<TableBodyCell class="py-0 px-2"
+			>{trialStatusDisplay[event.trialStatus]}</TableBodyCell
+		>
+		<TableBodyCell class="py-0 px-2"
+			>{event.scores.length} / {data.teams.length}</TableBodyCell
+		>
 		<TableBodyCell class="py-0 px-2"
 			>{#if event.audited}
 				<Avatar class={`user_${event.audited.id} -ml-2`}
@@ -559,7 +586,12 @@
 	{/each}
 {/key}
 
-<Slides {generateFilename} {generateSciolyFF} tournament={data.tournament} bind:this={slides} />
+<Slides
+	{generateFilename}
+	{generateSciolyFF}
+	tournament={data.tournament}
+	bind:this={slides}
+/>
 
 <Modal
 	title={events.find((e) => e.id === histoEvent)?.name}
@@ -598,7 +630,13 @@
 	</svelte:fragment>
 </Modal>
 
-<Modal title="Results Preview" bind:open={showPreview} autoclose outsideclose size="xl">
+<Modal
+	title="Results Preview"
+	bind:open={showPreview}
+	autoclose
+	outsideclose
+	size="xl"
+>
 	{#await generatePreview()}
 		<div class="grid place-items-center h-60">
 			<span class="flex items-center">
@@ -618,7 +656,11 @@
 			</span>
 		</div>
 	{:then previewContent}
-		<iframe title="Results Preview" class="w-full h-[calc(100vh-200px)]" srcdoc={previewContent} />
+		<iframe
+			title="Results Preview"
+			class="w-full h-[calc(100vh-200px)]"
+			srcdoc={previewContent}
+		/>
 	{/await}
 </Modal>
 

@@ -23,7 +23,7 @@
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 	import papaparse from 'papaparse';
-	import type { UserRole } from '@prisma/client';
+	import type { UserRole } from '$drizzle/types';
 
 	export let data: PageData;
 
@@ -65,7 +65,10 @@
 				} else {
 					invites = invites.filter((i) => !ids.invites?.includes(i.link));
 				}
-				addToastMessage(`${thing[0].toLocaleUpperCase() + thing.slice(1)} deleted!`, 'success');
+				addToastMessage(
+					`${thing[0].toLocaleUpperCase() + thing.slice(1)} deleted!`,
+					'success'
+				);
 			} else {
 				addToastMessage(`Failed to delete ${thing}!`, 'error');
 			}
@@ -106,7 +109,11 @@
 					return acc;
 				}, new Map<string, { events: Set<string>; role: UserRole }>())
 				.entries()
-		].map(([email, { events, role }]) => ({ email, events: [...events], role }));
+		].map(([email, { events, role }]) => ({
+			email,
+			events: [...events],
+			role
+		}));
 		parsedError = '';
 		parsedInvites.forEach((t) => {
 			if (!emailRegex.test(t.email)) {
@@ -134,7 +141,9 @@
 			body: JSON.stringify(
 				parsedInvites.slice(0, 15).map((i) => ({
 					email: i.email,
-					events: i.events.map((name) => events.get(name.toLowerCase())?.id.toString()),
+					events: i.events.map((name) =>
+						events.get(name.toLowerCase())?.id.toString()
+					),
 					role: i.role
 				}))
 			)
@@ -246,8 +255,8 @@
 </script>
 
 <Head
-	title="Members | {data.tournament.year} {data.tournament.shortName} {data.tournament
-		.division} | Duosmium Scoring"
+	title="Members | {data.tournament.year} {data.tournament.shortName} {data
+		.tournament.division} | Duosmium Scoring"
 />
 
 <div class="w-full flex justify-between flex-wrap mb-2">
@@ -278,8 +287,11 @@
 	</svelte:fragment>
 	<svelte:fragment slot="item" let:item={member}>
 		<TableBodyCell class="py-0 px-2">{member.user.name}</TableBodyCell>
-		<TableBodyCell class="py-0 px-2">{data.emails.get(member.user.id)}</TableBodyCell>
-		<TableBodyCell class="py-0 px-2">{roleNames.get(member.role)}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2"
+			>{data.emails.get(member.user.id)}</TableBodyCell
+		>
+		<TableBodyCell class="py-0 px-2">{roleNames.get(member.role)}</TableBodyCell
+		>
 		<TableBodyCell class="py-0 px-2"
 			>{member.supEvents
 				.map((event) => event.name)
@@ -322,10 +334,12 @@
 	</svelte:fragment>
 	<svelte:fragment slot="item" let:item={invite}>
 		<TableBodyCell class="py-0 px-2"
-			><button on:click={copyInvite(invite.id)}>{invite.id}</button></TableBodyCell
+			><button on:click={copyInvite(invite.id)}>{invite.id}</button
+			></TableBodyCell
 		>
 		<TableBodyCell class="py-0 px-2">{invite.email}</TableBodyCell>
-		<TableBodyCell class="py-0 px-2">{roleNames.get(invite.role)}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2">{roleNames.get(invite.role)}</TableBodyCell
+		>
 		<TableBodyCell class="py-0 px-2"
 			>{invite.events
 				.map((e) => e.name)
@@ -354,7 +368,8 @@
 		confirmDelete('members');
 	}}
 >
-	Are you sure you want to remove {selectedMembers.length} member{selectedMembers.length > 1
+	Are you sure you want to remove {selectedMembers.length} member{selectedMembers.length >
+	1
 		? 's'
 		: ''}? This action cannot be undone.
 </ConfirmModal>
@@ -367,16 +382,18 @@
 		confirmDelete('invites');
 	}}
 >
-	Are you sure you want to remove {selectedInvites.length} invite{selectedInvites.length > 1
+	Are you sure you want to remove {selectedInvites.length} invite{selectedInvites.length >
+	1
 		? 's'
 		: ''}? This action cannot be undone.
 </ConfirmModal>
 
 <Modal title="Add Member" bind:open={showInviteMembers} autoclose outsideclose>
 	<P>
-		To invite members, paste in list of emails below (max 15 at a time). You can also add events
-		that the person will automatically be assigned to by separating the email and events by commas
-		or tabs (the default in Google Sheets when you copy).
+		To invite members, paste in list of emails below (max 15 at a time). You can
+		also add events that the person will automatically be assigned to by
+		separating the email and events by commas or tabs (the default in Google
+		Sheets when you copy).
 		<List tag="ul" class="space-y-1 my-2">
 			<Li
 				><code class="dark:text-red-300 text-red-700">Email</code>
@@ -388,7 +405,8 @@
 			>
 			<Li
 				><code class="dark:text-blue-300 text-blue-700">Events</code>
-				<i>(Optional)</i>: The invite will automatically add them to these events</Li
+				<i>(Optional)</i>: The invite will automatically add them to these
+				events</Li
 			>
 		</List>
 		If you need to invite more than 15 people, just repeat the process!
@@ -407,7 +425,9 @@
 			{#each parsedInvites.slice(0, 15) as invite}
 				<li>
 					<span class="dark:text-red-300 text-red-700"
-						>{invite.email} ({invite.role}){invite.events.length !== 0 ? ': ' : ''}</span
+						>{invite.email} ({invite.role}){invite.events.length !== 0
+							? ': '
+							: ''}</span
 					><span class="dark:text-blue-300 text-blue-700"
 						>{invite.events.length !== 0 ? invite.events.join(', ') : ''}</span
 					>
@@ -423,8 +443,10 @@
 
 	<svelte:fragment slot="footer">
 		<!-- TODO: validation -->
-		<Button color="green" disabled={parsedError.length !== 0} on:click={inviteMembers}
-			>Invite Members</Button
+		<Button
+			color="green"
+			disabled={parsedError.length !== 0}
+			on:click={inviteMembers}>Invite Members</Button
 		>
 		<Button color="alternative">Cancel</Button>
 	</svelte:fragment>
@@ -441,7 +463,10 @@
 				if (e.target?.checked) {
 					editMemberData.events.push(event.id);
 				} else {
-					editMemberData.events.splice(editMemberData.events.indexOf(event.id), 1);
+					editMemberData.events.splice(
+						editMemberData.events.indexOf(event.id),
+						1
+					);
 				}
 			}}>{event.name}</Checkbox
 		>
@@ -450,7 +475,12 @@
 		<Heading tag="h2" class="text-2xl mt-20">Permissions</Heading>
 		<Label class="!mt-4">
 			Role
-			<Select underline class="mt-2" bind:value={editMemberData.role} items={roleOptions} />
+			<Select
+				underline
+				class="mt-2"
+				bind:value={editMemberData.role}
+				items={roleOptions}
+			/>
 		</Label>
 	{/if}
 
@@ -472,7 +502,10 @@
 				if (e.target?.checked) {
 					editInviteData.events.push(event.id);
 				} else {
-					editInviteData.events.splice(editInviteData.events.indexOf(event.id), 1);
+					editInviteData.events.splice(
+						editInviteData.events.indexOf(event.id),
+						1
+					);
 				}
 			}}>{event.name}</Checkbox
 		>
@@ -481,7 +514,12 @@
 	<Heading tag="h2" class="text-2xl mt-20">Permissions</Heading>
 	<Label class="!mt-4">
 		Role
-		<Select underline class="mt-2" bind:value={editInviteData.role} items={roleOptions} />
+		<Select
+			underline
+			class="mt-2"
+			bind:value={editInviteData.role}
+			items={roleOptions}
+		/>
 	</Label>
 
 	<svelte:fragment slot="footer">

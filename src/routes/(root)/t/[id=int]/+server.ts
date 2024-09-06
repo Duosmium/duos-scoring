@@ -1,5 +1,5 @@
 import { updateTournament } from '$lib/db';
-import type { Tournament } from '@prisma/client';
+import type { Tournament } from '$drizzle/types';
 import type { RequestHandler } from './$types';
 import { checkIsDirector } from '$lib/utils';
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ScoreStatus } from '@prisma/client';
+	import type { ScoreStatus } from '$drizzle/types';
 	import Question from './Question.svelte';
 	import { Status, type CheckboxValue } from './Checkbox.svelte';
 
@@ -24,6 +24,7 @@
 
 <div class="my-8">
 	<Question {checklistItem} input={false} {highlightFunction} bind:checkbox>
-		The team is disqualified. (Notify the team and their coach as soon as possible.)
+		The team is disqualified. (Notify the team and their coach as soon as
+		possible.)
 	</Question>
 </div>

@@ -21,7 +21,7 @@
 	} from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import { beforeNavigate, invalidateAll } from '$app/navigation';
-	import type { ScoreStatus, Score } from '@prisma/client';
+	import type { ScoreStatus, Score } from '$drizzle/types';
 	import papaparse from 'papaparse';
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
@@ -30,7 +30,8 @@
 
 	export let data: PageData;
 
-	const ChecklistComponent = checklists[data.tournament.year]?.[data.event.name];
+	const ChecklistComponent =
+		checklists[data.tournament.year]?.[data.event.name];
 
 	beforeNavigate(({ cancel }) => {
 		if (!clean) {
@@ -82,18 +83,29 @@
 	$: locked = data.event.locked;
 
 	function generateModifiedTeams(data: PageData) {
-		const scores = (typeof data.scores === 'boolean' ? [] : data.scores).reduce((acc, s) => {
-			acc.set(s.team.id, s);
-			return acc;
-		}, new Map<bigint, Score>());
+		const scores = (typeof data.scores === 'boolean' ? [] : data.scores).reduce(
+			(acc, s) => {
+				acc.set(s.team.id, s);
+				return acc;
+			},
+			new Map<bigint, Score>()
+		);
 		return data.teams.map((t) => {
 			let origScore = scores.get(t.id);
 			let score = origScore
 				? {
 						...origScore,
-						rawScore: { old: origScore.rawScore, new: origScore.rawScore, dirty: false },
+						rawScore: {
+							old: origScore.rawScore,
+							new: origScore.rawScore,
+							dirty: false
+						},
 						tier: { old: origScore.tier, new: origScore.tier, dirty: false },
-						tiebreak: { old: origScore.tiebreak, new: origScore.tiebreak, dirty: false },
+						tiebreak: {
+							old: origScore.tiebreak,
+							new: origScore.tiebreak,
+							dirty: false
+						},
 						status: {
 							old: (origScore.status ?? 'NA') as ScoreStatus | 'NA',
 							new: (origScore.status ?? 'NA') as ScoreStatus | 'NA',
@@ -182,7 +194,8 @@
 					}
 					break;
 				case 'notes':
-					team.score.notes.new = (e.target as HTMLTextAreaElement).value || null;
+					team.score.notes.new =
+						(e.target as HTMLTextAreaElement).value || null;
 					break;
 				default:
 					break;
@@ -214,7 +227,8 @@
 	}[] = [];
 	let parsedError = '';
 	$: {
-		rawParsedImport = papaparse.parse(importScoresData, { header: true }).data as any;
+		rawParsedImport = papaparse.parse(importScoresData, { header: true })
+			.data as any;
 		parsedError = '';
 		const missingFields: Set<string> = new Set();
 		const invalidStatuses: Set<string> = new Set();
@@ -224,7 +238,9 @@
 		// TODO: validate stuff
 		parsedImportScores = [];
 		rawParsedImport.forEach((t) => {
-			const parsedNumber = parseInt(/\d+/.exec(t.Number || t['Team #'])?.[0] ?? '');
+			const parsedNumber = parseInt(
+				/\d+/.exec(t.Number || t['Team #'])?.[0] ?? ''
+			);
 			const team = teamLookup.get(parsedNumber);
 
 			if (!isNaN(parsedNumber) && seenTeams.has(parsedNumber)) {
@@ -242,14 +258,22 @@
 			} else if (t.Status && scoreAliases.every((s) => s.name !== t.Status)) {
 				invalidStatuses.add(t.Status);
 			}
-			if (!t['Raw Score'] && !t.Score && (t.Status === 'CO' || t.Status === 'C')) {
+			if (
+				!t['Raw Score'] &&
+				!t.Score &&
+				(t.Status === 'CO' || t.Status === 'C')
+			) {
 				missingFields.add('Score');
 			}
 
 			if (team) {
-				const rawScore = ((r) => (isNaN(r) ? null : r))(parseFloat(t['Raw Score'] || t.Score));
+				const rawScore = ((r) => (isNaN(r) ? null : r))(
+					parseFloat(t['Raw Score'] || t.Score)
+				);
 				const tier = ((t) => (isNaN(t) ? null : t))(parseInt(t.Tier));
-				const tiebreak = ((t) => (isNaN(t) ? null : t))(parseFloat(t.Tiebreak || t.Tiebreaker));
+				const tiebreak = ((t) => (isNaN(t) ? null : t))(
+					parseFloat(t.Tiebreak || t.Tiebreaker)
+				);
 				const status = scoreAliases.find((s) => s.name === t.Status)?.value;
 				parsedImportScores.push({
 					number: parsedNumber,
@@ -257,9 +281,10 @@
 					tier,
 					tiebreak,
 					status:
-						(rawScore != null || tier != null || tiebreak != null) && status !== 'DISQUALIFICATION'
+						(rawScore != null || tier != null || tiebreak != null) &&
+						status !== 'DISQUALIFICATION'
 							? 'COMPETED'
-							: status ?? team.score.status.old
+							: (status ?? team.score.status.old)
 				});
 			}
 		});
@@ -297,10 +322,22 @@
 			...t,
 			score: {
 				...t.score,
-				rawScore: { old: t.score.rawScore.old, new: t.score.rawScore.old, dirty: false },
+				rawScore: {
+					old: t.score.rawScore.old,
+					new: t.score.rawScore.old,
+					dirty: false
+				},
 				tier: { old: t.score.tier.old, new: t.score.tier.old, dirty: false },
-				tiebreak: { old: t.score.tiebreak.old, new: t.score.tiebreak.old, dirty: false },
-				status: { old: t.score.status.old, new: t.score.status.old, dirty: false },
+				tiebreak: {
+					old: t.score.tiebreak.old,
+					new: t.score.tiebreak.old,
+					dirty: false
+				},
+				status: {
+					old: t.score.status.old,
+					new: t.score.status.old,
+					dirty: false
+				},
 				notes: { old: t.score.notes.old, new: t.score.notes.old, dirty: false }
 			}
 		}));
@@ -372,10 +409,22 @@
 			...t,
 			score: {
 				...t.score,
-				rawScore: { old: t.score.rawScore.new, new: t.score.rawScore.new, dirty: false },
+				rawScore: {
+					old: t.score.rawScore.new,
+					new: t.score.rawScore.new,
+					dirty: false
+				},
 				tier: { old: t.score.tier.new, new: t.score.tier.new, dirty: false },
-				tiebreak: { old: t.score.tiebreak.new, new: t.score.tiebreak.new, dirty: false },
-				status: { old: t.score.status.new, new: t.score.status.new, dirty: false },
+				tiebreak: {
+					old: t.score.tiebreak.new,
+					new: t.score.tiebreak.new,
+					dirty: false
+				},
+				status: {
+					old: t.score.status.new,
+					new: t.score.status.new,
+					dirty: false
+				},
 				notes: { old: t.score.notes.new, new: t.score.notes.new, dirty: false }
 			}
 		}));
@@ -418,7 +467,10 @@
 			})
 		}).then((res) => {
 			if (res.status === 200) {
-				addToastMessage(locked ? 'Event marked as done grading!' : 'Event unlocked!', 'success');
+				addToastMessage(
+					locked ? 'Event marked as done grading!' : 'Event unlocked!',
+					'success'
+				);
 				invalidateAll();
 			} else {
 				addToastMessage('Failed to lock event!', 'error');
@@ -460,7 +512,7 @@
 	}
 
 	let checklistTeam: (typeof modifiedTeams)[0];
-	let checklistData: PrismaJson.ChecklistData | undefined;
+	let checklistData: DbJson.ChecklistData | undefined;
 	let showChecklist = false;
 	let checklistScore: number;
 	let checklistTier: number;
@@ -511,8 +563,10 @@
 		if (e.key === 'Enter') {
 			(e.target as HTMLInputElement).blur();
 			(
-				(e.target as HTMLInputElement).parentElement?.parentElement?.nextElementSibling?.children[
-					((e.target as HTMLInputElement).parentElement as HTMLTableCellElement)?.cellIndex ?? 0
+				(e.target as HTMLInputElement).parentElement?.parentElement
+					?.nextElementSibling?.children[
+					((e.target as HTMLInputElement).parentElement as HTMLTableCellElement)
+						?.cellIndex ?? 0
 				]?.firstElementChild as HTMLInputElement
 			)?.focus();
 		}
@@ -528,7 +582,8 @@
 					t.score.status.new === 'COMPETED'
 						? t.score.rawScore.new != null
 							? t.score.rawScore.new +
-								((t.score.tiebreak.new || 0) - 1000000 * (t.score.tier.new || 1)) *
+								((t.score.tiebreak.new || 0) -
+									1000000 * (t.score.tier.new || 1)) *
 									(data.event.highScoring ? 1 : -1)
 							: 'PARTICIPATION'
 						: t.score.status.new
@@ -549,12 +604,15 @@
 					(t.ranking === s[i - 1]?.ranking || t.ranking === s[i + 1]?.ranking)
 				) {
 					if (t.score.notes.new && t.score.notes.new !== 'TIE') {
-						t.score.notes.new = 'TIE; ' + t.score.notes.new.replace('TIE; ', '').replace('TIE', '');
+						t.score.notes.new =
+							'TIE; ' +
+							t.score.notes.new.replace('TIE; ', '').replace('TIE', '');
 					} else {
 						t.score.notes.new = 'TIE';
 					}
 				} else {
-					t.score.notes.new = t.score.notes.new?.replace('TIE; ', '').replace('TIE', '') || null;
+					t.score.notes.new =
+						t.score.notes.new?.replace('TIE; ', '').replace('TIE', '') || null;
 				}
 				return t;
 			})
@@ -578,17 +636,22 @@
 					return a.school.localeCompare(b.school);
 				case 'score':
 					return (
-						((b.score?.rawScore.new ?? (data.event.highScoring ? 0 : Infinity)) -
-							(a.score?.rawScore.new ?? (data.event.highScoring ? 0 : Infinity))) *
+						((b.score?.rawScore.new ??
+							(data.event.highScoring ? 0 : Infinity)) -
+							(a.score?.rawScore.new ??
+								(data.event.highScoring ? 0 : Infinity))) *
 							(data.event.highScoring ? 1 : -1) ||
 						(a.score?.tier.new ?? Infinity) - (b.score?.tier.new ?? Infinity) ||
 						(b.score?.tiebreak.new ?? 0) - (a.score?.tiebreak.new ?? 0)
 					);
 				case 'tier':
-					return (a.score?.tier.new ?? Infinity) - (b.score?.tier.new ?? Infinity);
+					return (
+						(a.score?.tier.new ?? Infinity) - (b.score?.tier.new ?? Infinity)
+					);
 				case 'status':
 					return (
-						statusOrder[a.score?.status.new ?? 'NA'] - statusOrder[b.score?.status.new ?? 'NA']
+						statusOrder[a.score?.status.new ?? 'NA'] -
+						statusOrder[b.score?.status.new ?? 'NA']
 					);
 				case 'ranking':
 					return typeof a.ranking === 'number' && typeof b.ranking === 'number'
@@ -613,7 +676,9 @@
 		});
 	}
 	$: clean = modifiedTeams.every((t) =>
-		(['rawScore', 'tier', 'tiebreak', 'status', 'notes'] as const).every((a) => !t.score[a].dirty)
+		(['rawScore', 'tier', 'tiebreak', 'status', 'notes'] as const).every(
+			(a) => !t.score[a].dirty
+		)
 	);
 	$: teamLookup = modifiedTeams.reduce((acc, t) => {
 		acc.set(t.number, t);
@@ -622,8 +687,8 @@
 </script>
 
 <Head
-	title="{data.event.name} | {data.tournament.year} {data.tournament.shortName} {data.tournament
-		.division} | Duosmium Scoring"
+	title="{data.event.name} | {data.tournament.year} {data.tournament
+		.shortName} {data.tournament.division} | Duosmium Scoring"
 />
 
 <svelte:window
@@ -660,7 +725,9 @@
 				}}>Import</Button
 			>
 			<ButtonGroup>
-				<Button disabled={clean || locked} on:click={saveScores} color="green">Save</Button>
+				<Button disabled={clean || locked} on:click={saveScores} color="green"
+					>Save</Button
+				>
 				<Button
 					disabled={clean || locked}
 					on:click={() => {
@@ -676,9 +743,13 @@
 		{/if}
 		{#if data.role.role !== 'ES' || !data.event.audited}
 			<ButtonGroup>
-				<Button color="yellow" on:click={toggleLock}>{locked ? 'Unlock' : 'Lock'}</Button>
+				<Button color="yellow" on:click={toggleLock}
+					>{locked ? 'Unlock' : 'Lock'}</Button
+				>
 				{#if data.role.role !== 'ES' && !data.event.audited}
-					<Button color="purple" disabled={!locked} on:click={openAuditConfirm}>Audit</Button>
+					<Button color="purple" disabled={!locked} on:click={openAuditConfirm}
+						>Audit</Button
+					>
 				{/if}
 				<Button color="alternative" on:click={openEditEvent}>Settings</Button>
 			</ButtonGroup>
@@ -709,14 +780,18 @@
 	</svelte:fragment>
 	<svelte:fragment slot="item" let:item={team}>
 		{@const disableScores =
-			team.score.status.new === 'NOSHOW' || team.score.status.new === 'PARTICIPATION'}
+			team.score.status.new === 'NOSHOW' ||
+			team.score.status.new === 'PARTICIPATION'}
 		<TableBodyCell class="px-2">{team.number}</TableBodyCell>
 		<TableBodyCell class="px-2"
 			>{team.abbreviation ??
-				team.school.slice(0, 30) + (team.school.length > 30 ? '…' : '')}</TableBodyCell
+				team.school.slice(0, 30) +
+					(team.school.length > 30 ? '…' : '')}</TableBodyCell
 		>
 		<TableBodyCell class="pl-2 pr-4">
-			{team.suffix ? team.suffix.slice(0, 20) + (team.suffix.length > 20 ? '…' : '') : ''}
+			{team.suffix
+				? team.suffix.slice(0, 20) + (team.suffix.length > 20 ? '…' : '')
+				: ''}
 		</TableBodyCell>
 		{#if ChecklistComponent}
 			<TableBodyCell class="pl-0 pr-4">
@@ -814,7 +889,9 @@
 </SelectableTable>
 
 <Modal title="Scoring Help" bind:open={showHelp} autoclose outsideclose>
-	<P class="dark:text-gray-300">Welcome to scoring! Enter scores for your event here.</P>
+	<P class="dark:text-gray-300"
+		>Welcome to scoring! Enter scores for your event here.</P
+	>
 	<Heading tag="h2" class="text-xl">Toolbar</Heading>
 	<P class="dark:text-gray-300">
 		<dl class="space-y-3 mt-6">
@@ -824,25 +901,31 @@
 			</div>
 			<div>
 				<dt>Import:</dt>
-				<dd>Paste in scores from an external source, such as a Google Sheet.</dd>
+				<dd>
+					Paste in scores from an external source, such as a Google Sheet.
+				</dd>
 			</div>
 			<div>
 				<dt>Save/Discard:</dt>
 				<dd>
-					Changes you have made will be highlighted in orange. You will need to click "Save" to
-					commit your changes, or use "Discard" to revert back to the original scores.
+					Changes you have made will be highlighted in orange. You will need to
+					click "Save" to commit your changes, or use "Discard" to revert back
+					to the original scores.
 				</dd>
 			</div>
 			<div>
 				<dt>Lock/Unlock:</dt>
 				<dd>
-					Locking an event will prevent scores from being edited and indicates that the event is
-					done grading.
+					Locking an event will prevent scores from being edited and indicates
+					that the event is done grading.
 				</dd>
 			</div>
 			<div>
 				<dt>Settings:</dt>
-				<dd>Change the event's scoring method (high, low) or the number of medals offered.</dd>
+				<dd>
+					Change the event's scoring method (high, low) or the number of medals
+					offered.
+				</dd>
 			</div>
 		</dl>
 	</P>
@@ -856,37 +939,49 @@
 			<div>
 				<dt>Tier:</dt>
 				<dd>
-					Only used in some build and hybrid events. <strong>Leave blank if not used.</strong> Lower
-					number tier (1) is ranked better than a higher number tier (2, 3, 4).
+					Only used in some build and hybrid events. <strong
+						>Leave blank if not used.</strong
+					> Lower number tier (1) is ranked better than a higher number tier (2,
+					3, 4).
 				</dd>
 			</div>
 			<div>
 				<dt>Tiebreak:</dt>
-				<dd>A value between 0 and 1. Give the tiebreaker to the better ranked team.</dd>
+				<dd>
+					A value between 0 and 1. Give the tiebreaker to the better ranked
+					team.
+				</dd>
 			</div>
 			<div>
 				<dt>Status:</dt>
 				<dd>
-					If a team competed as normal, select <strong>"CO" (Competed)</strong>. If a team
-					participated but cannot be assigned a raw score, select
-					<strong>"PO" (Participation)</strong>. If a team did not show up, select
+					If a team competed as normal, select <strong>"CO" (Competed)</strong>.
+					If a team participated but cannot be assigned a raw score, select
+					<strong>"PO" (Participation)</strong>. If a team did not show up,
+					select
 					<strong>"NS" (No Show)</strong>. If a team is disqualified, select
-					<strong>"DQ" (Disqualification)</strong>. If any score is entered into the "Raw Score",
-					"Tier", or "Tiebreak" columns, status cannot be set to "PO" or "NS". Remove scores before
-					modifying the status.
+					<strong>"DQ" (Disqualification)</strong>. If any score is entered into
+					the "Raw Score", "Tier", or "Tiebreak" columns, status cannot be set
+					to "PO" or "NS". Remove scores before modifying the status.
 				</dd>
 			</div>
 		</dl>
 	</P>
 </Modal>
 
-<Modal title="Import Scores" bind:open={showImportScores} autoclose outsideclose>
+<Modal
+	title="Import Scores"
+	bind:open={showImportScores}
+	autoclose
+	outsideclose
+>
 	<P>
 		To import scores, paste in a CSV or TSV of the data. You can use <a
 			href="https://docs.google.com/spreadsheets/d/12fKJX4-gEuy_tp1AaDC6MkLhHcHmcAVmy5BrZFr9yb4/copy"
 			>this spreadsheet</a
 		>
-		as a template for data import if necessary. Include the following headings when you copy and paste:
+		as a template for data import if necessary. Include the following headings when
+		you copy and paste:
 		<List tag="ul" class="space-y-1 mt-2">
 			<Li
 				><code>Number</code>
@@ -898,24 +993,29 @@
 			</Li>
 			<Li
 				><code class="dark:text-blue-300 text-blue-700">Tier</code>
-				<i>(Optional)</i>: Only used in some build/hybrid events. Lower number tier is better than
-				higher number.
+				<i>(Optional)</i>: Only used in some build/hybrid events. Lower number
+				tier is better than higher number.
 			</Li>
 			<Li
 				><code class="dark:text-pink-300 text-pink-700">Tiebreak</code>
-				<i>(Optional unless there's a tie)</i>: A number between 0-1. Give the tiebreaker to the
-				better ranked team.
+				<i>(Optional unless there's a tie)</i>: A number between 0-1. Give the
+				tiebreaker to the better ranked team.
 			</Li>
 			<Li
 				><code class="dark:text-violet-300 text-violet-700">Status</code>
-				<i>(Optional, default CO)</i>: CO, PO, NS, or DQ for Competed, Participation Only, No Show,
-				or Disqualified, respectively.
+				<i>(Optional, default CO)</i>: CO, PO, NS, or DQ for Competed,
+				Participation Only, No Show, or Disqualified, respectively.
 			</Li>
 		</List>
 	</P>
 	<Label>
 		Teams
-		<Textarea disabled={locked} class="mt-2" required bind:value={importScoresData} />
+		<Textarea
+			disabled={locked}
+			class="mt-2"
+			required
+			bind:value={importScoresData}
+		/>
 	</Label>
 
 	<Heading tag="h3" class="text-md">Preview</Heading>
@@ -933,13 +1033,16 @@
 							? `${t.abbreviation || t.school}${t.suffix ? ' ' + t.suffix : ''}`
 							: 'Team Not Found'}</span
 					>
-					<span class="dark:text-green-300 text-green-700">{score.rawScore ?? ''}</span><span
-						class="dark:text-blue-300 text-blue-700"
+					<span class="dark:text-green-300 text-green-700"
+						>{score.rawScore ?? ''}</span
+					><span class="dark:text-blue-300 text-blue-700"
 						>{score.tier ? ` [Tier ${score.tier}]` : ''}</span
 					><span class="dark:text-pink-300 text-pink-700"
 						>{score.tiebreak ? ` (*${score.tiebreak})` : ''}</span
 					>
-					<span class="dark:text-violet-300 text-violet-700">{statusLookup[score.status]}</span>
+					<span class="dark:text-violet-300 text-violet-700"
+						>{statusLookup[score.status]}</span
+					>
 				</li>
 			{/each}
 		</ol>
@@ -949,7 +1052,11 @@
 
 	<svelte:fragment slot="footer">
 		<!-- TODO: validation -->
-		<Button color="green" disabled={parsedError.length !== 0} on:click={importScores}>Save</Button>
+		<Button
+			color="green"
+			disabled={parsedError.length !== 0}
+			on:click={importScores}>Save</Button
+		>
 		<Button color="alternative">Cancel</Button>
 	</svelte:fragment>
 </Modal>
@@ -969,8 +1076,8 @@
 	bind:open={showConfirmUnlockAudited}
 	onConfirm={unlockAudited}
 >
-	Unlocking this event will allow scores to be edited, but the event will need to be audited again.
-	Are you sure you want to unlock this event?
+	Unlocking this event will allow scores to be edited, but the event will need
+	to be audited again. Are you sure you want to unlock this event?
 </ConfirmModal>
 
 <ConfirmModal
@@ -983,19 +1090,26 @@
 	color="green"
 	disabled={auditList.some((a) => !a)}
 >
-	Marking this event as audited means that you certify that the scores inputted are correct. Ensure
-	the following have been checked:
+	Marking this event as audited means that you certify that the scores inputted
+	are correct. Ensure the following have been checked:
 
 	<ul class="my-4 space-y-2">
-		<li><Checkbox bind:checked={auditList[0]}>Double check all scores</Checkbox></li>
-		<li><Checkbox bind:checked={auditList[1]}>Break all ties (except PO/NS/DQ)</Checkbox></li>
+		<li>
+			<Checkbox bind:checked={auditList[0]}>Double check all scores</Checkbox>
+		</li>
+		<li>
+			<Checkbox bind:checked={auditList[1]}
+				>Break all ties (except PO/NS/DQ)</Checkbox
+			>
+		</li>
 		<li>
 			<Checkbox bind:checked={auditList[2]}
 				>Spot check: Scores match each team, no unreasonable scores expected</Checkbox
 			>
 		</li>
 		<li>
-			<Checkbox bind:checked={auditList[3]}>Resolve appeals and adjust scores as necessary</Checkbox
+			<Checkbox bind:checked={auditList[3]}
+				>Resolve appeals and adjust scores as necessary</Checkbox
 			>
 		</li>
 		<li>
@@ -1009,7 +1123,9 @@
 			>
 		</li>
 		<li>
-			<Checkbox bind:checked={auditList[6]}>Resolve DQs through tournament director</Checkbox>
+			<Checkbox bind:checked={auditList[6]}
+				>Resolve DQs through tournament director</Checkbox
+			>
 		</li>
 		<li>
 			<Checkbox bind:checked={auditList[7]}
@@ -1045,8 +1161,8 @@
 
 <Modal title="Save Changes" bind:open={showLockDirty} autoclose outsideclose>
 	<P
-		>Locking this event will mark grading as done and prevent further edits. Please save or discard
-		your existing changes before locking this event.</P
+		>Locking this event will mark grading as done and prevent further edits.
+		Please save or discard your existing changes before locking this event.</P
 	>
 
 	<svelte:fragment slot="footer">
@@ -1054,11 +1170,18 @@
 	</svelte:fragment>
 </Modal>
 
-<Modal title="Checklists" size="xl" bind:open={showChecklist} on:close={saveChecklist} outsideclose>
+<Modal
+	title="Checklists"
+	size="xl"
+	bind:open={showChecklist}
+	on:close={saveChecklist}
+	outsideclose
+>
 	<svelte:component
 		this={ChecklistComponent}
 		teamNumber={checklistTeam.number}
-		teamName={checklistTeam.school + (checklistTeam.suffix ? ' ' + checklistTeam.suffix : '')}
+		teamName={checklistTeam.school +
+			(checklistTeam.suffix ? ' ' + checklistTeam.suffix : '')}
 		bind:checklistData
 		bind:score={checklistScore}
 		bind:tier={checklistTier}

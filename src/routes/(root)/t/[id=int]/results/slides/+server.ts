@@ -17,7 +17,9 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 	const slides = await getSlides(params.id);
 
 	return new Response(
-		JSON.stringify(slides, (_, v) => (typeof v === 'bigint' ? v.toString() : v)),
+		JSON.stringify(slides, (_, v) =>
+			typeof v === 'bigint' ? v.toString() : v
+		),
 		{
 			headers: {
 				'content-type': 'application/json'
@@ -37,7 +39,8 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 		return new Response('missing events or done', { status: 400 });
 	if (
 		payload.events &&
-		(!Array.isArray(payload.events) || payload.events.some((event) => typeof event !== 'string'))
+		(!Array.isArray(payload.events) ||
+			payload.events.some((event) => typeof event !== 'string'))
 	)
 		return new Response('invalid events', { status: 400 });
 
@@ -92,11 +95,12 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 	await checkScoremasterPerms(locals.user, params.id);
 
-	const payload: PrismaJson.SlidesSettings = await request.json();
+	const payload: DbJson.SlidesSettings = await request.json();
 	if (!payload) return new Response('invalid payload', { status: 400 });
 
 	const status = await updateSlidesSettings(params.id, payload);
-	if (!status) return new Response('failed to update settings', { status: 500 });
+	if (!status)
+		return new Response('failed to update settings', { status: 500 });
 
 	return new Response('ok');
 };
@@ -105,7 +109,8 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 	await checkScoremasterPerms(locals.user, params.id);
 
 	const slides = await getSlides(params.id);
-	if (!slides.channelId) return new Response('no presentation in progress', { status: 400 });
+	if (!slides.channelId)
+		return new Response('no presentation in progress', { status: 400 });
 
 	const status = await clearSlides(params.id);
 

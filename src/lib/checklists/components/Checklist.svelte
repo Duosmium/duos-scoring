@@ -8,7 +8,7 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 
-	import type { ScoreStatus } from '@prisma/client';
+	import type { ScoreStatus } from '$drizzle/types';
 
 	import { setContext } from 'svelte';
 	import { get, writable, type Writable } from 'svelte/store';
@@ -18,7 +18,7 @@
 
 	export let teamNumber: number;
 	export let teamName: string;
-	export let checklistData: PrismaJson.ChecklistData;
+	export let checklistData: DbJson.ChecklistData;
 
 	export let score: number;
 	export let tier: number;
@@ -35,7 +35,9 @@
 		if (!browser) return;
 		localStorage.setItem(
 			'checklist',
-			JSON.stringify(Object.fromEntries([...state.entries()].map(([k, v]) => [k, get(v)])))
+			JSON.stringify(
+				Object.fromEntries([...state.entries()].map(([k, v]) => [k, get(v)]))
+			)
 		);
 	};
 
@@ -68,7 +70,9 @@
 	});
 	state = state;
 
-	$: checklistData = Object.fromEntries([...state.entries()].map(([k, v]) => [k, get(v)]));
+	$: checklistData = Object.fromEntries(
+		[...state.entries()].map(([k, v]) => [k, get(v)])
+	);
 
 	let counter = 0;
 	setContext('questionCounter', () => {
@@ -87,8 +91,14 @@
 	<h2>Team Checklist - {year}</h2>
 
 	<div>
-		<p class="mb-2"><span class="font-semibold">Team Number:</span> {teamNumber}</p>
-		<p class="mb-2"><span class="font-semibold">School and Team Name:</span> {teamName}</p>
+		<p class="mb-2">
+			<span class="font-semibold">Team Number:</span>
+			{teamNumber}
+		</p>
+		<p class="mb-2">
+			<span class="font-semibold">School and Team Name:</span>
+			{teamName}
+		</p>
 		<label>
 			<span class="font-semibold">Student Names:</span>
 			<input type="text" bind:value={studentNamesValue} />

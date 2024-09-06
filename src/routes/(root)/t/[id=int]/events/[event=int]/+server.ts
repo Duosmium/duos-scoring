@@ -1,5 +1,12 @@
-import { updateEvent, addScores, updateScores, deleteScores, getUserInfo, getEvent } from '$lib/db';
-import type { ScoreStatus, Score } from '@prisma/client';
+import {
+	updateEvent,
+	addScores,
+	updateScores,
+	deleteScores,
+	getUserInfo,
+	getEvent
+} from '$lib/db';
+import type { ScoreStatus, Score } from '$drizzle/types';
 import type { RequestHandler } from './$types';
 import { checkEventPerms } from '$lib/utils';
 
@@ -37,7 +44,9 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 		return new Response("can't lock with missing scores", { status: 400 });
 	if (
 		payload.audited === true &&
-		(!user.roles.find((role) => role.tournamentId.toString() === params.id && role.role !== 'ES') ||
+		(!user.roles.find(
+			(role) => role.tournamentId.toString() === params.id && role.role !== 'ES'
+		) ||
 			!event.locked ||
 			event.auditedUserId != undefined)
 	)
@@ -45,7 +54,9 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 	if (
 		payload.locked === false &&
 		event.auditedUserId != undefined &&
-		!user.roles.find((role) => role.tournamentId.toString() === params.id && role.role !== 'ES')
+		!user.roles.find(
+			(role) => role.tournamentId.toString() === params.id && role.role !== 'ES'
+		)
 	)
 		return new Response('unauthorized user', { status: 403 });
 
@@ -62,7 +73,9 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 		});
 	} else {
 		status = await updateEvent(eventId, {
-			highScoring: payload.highScoring ? payload.highScoring === 'true' : undefined,
+			highScoring: payload.highScoring
+				? payload.highScoring === 'true'
+				: undefined,
 			medals: payload.medals ?? undefined,
 			locked: payload.locked ?? undefined
 		});
@@ -92,27 +105,44 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 		tiebreak: number | null;
 		status: ScoreStatus;
 		notes: string | null;
-		checklist: PrismaJson.ChecklistData | null;
+		checklist: DbJson.ChecklistData | null;
 	}[] = await request.json();
 
 	// TODO: more validation
-	if (!Array.isArray(payload)) return new Response('invalid payload', { status: 400 });
+	if (!Array.isArray(payload))
+		return new Response('invalid payload', { status: 400 });
 	if (payload.some((score) => score.id && typeof score.id !== 'string'))
 		return new Response('invalid id', { status: 400 });
-	if (payload.some((score) => !score.teamId || typeof score.teamId !== 'string'))
+	if (
+		payload.some((score) => !score.teamId || typeof score.teamId !== 'string')
+	)
 		return new Response('missing/invalid teamId', { status: 400 });
-	if (payload.some((score) => score.rawScore && typeof score.rawScore !== 'number'))
+	if (
+		payload.some(
+			(score) => score.rawScore && typeof score.rawScore !== 'number'
+		)
+	)
 		return new Response('invalid rawScore', { status: 400 });
 	if (payload.some((score) => score.tier && typeof score.tier !== 'number'))
 		return new Response('invalid tier', { status: 400 });
-	if (payload.some((score) => score.tiebreak && typeof score.tiebreak !== 'number'))
+	if (
+		payload.some(
+			(score) => score.tiebreak && typeof score.tiebreak !== 'number'
+		)
+	)
 		return new Response('invalid tiebreak', { status: 400 });
 	if (
 		payload.some(
 			(score) =>
 				(!score.status && !score.id) ||
 				(score.status &&
-					!['COMPETED', 'PARTICIPATION', 'NOSHOW', 'DISQUALIFICATION', 'NA'].includes(score.status))
+					![
+						'COMPETED',
+						'PARTICIPATION',
+						'NOSHOW',
+						'DISQUALIFICATION',
+						'NA'
+					].includes(score.status))
 		)
 	)
 		return new Response('missing/invalid status', { status: 400 });
@@ -129,7 +159,12 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 			} else if ((score.status as ScoreStatus | 'NA') === 'NA') {
 				acc[2].push(BigInt(score.id));
 			} else {
-				acc[1].push({ ...score, id: BigInt(score.id), teamId: BigInt(score.teamId), eventId });
+				acc[1].push({
+					...score,
+					id: BigInt(score.id),
+					teamId: BigInt(score.teamId),
+					eventId
+				});
 			}
 			return acc;
 		},
