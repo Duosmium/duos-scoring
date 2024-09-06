@@ -1,0 +1,1054 @@
+{
+  "id": "d1ba97ad-6f7c-4047-9746-04c960fba44b",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "scoring.Event": {
+      "name": "Event",
+      "schema": "scoring",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigserial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "trialStatus": {
+          "name": "trialStatus",
+          "type": "TrialStatus",
+          "typeSchema": "scoring",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'SCORING'"
+        },
+        "highScoring": {
+          "name": "highScoring",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "locked": {
+          "name": "locked",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "medals": {
+          "name": "medals",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "auditedUserId": {
+          "name": "auditedUserId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "auditedAt": {
+          "name": "auditedAt",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tournamentId": {
+          "name": "tournamentId",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lastExportedAt": {
+          "name": "lastExportedAt",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "Event_auditedUserId_User_id_fk": {
+          "name": "Event_auditedUserId_User_id_fk",
+          "tableFrom": "Event",
+          "tableTo": "User",
+          "schemaTo": "scoring",
+          "columnsFrom": [
+            "auditedUserId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "Event_tournamentId_Tournament_id_fk": {
+          "name": "Event_tournamentId_Tournament_id_fk",
+          "tableFrom": "Event",
+          "tableTo": "Tournament",
+          "schemaTo": "scoring",
+          "columnsFrom": [
+            "tournamentId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "scoring.Invite": {
+      "name": "Invite",
+      "schema": "scoring",
+      "columns": {
+        "link": {
+          "name": "link",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tournamentId": {
+          "name": "tournamentId",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "UserRole",
+          "typeSchema": "scoring",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'ES'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "Invite_tournamentId_Tournament_id_fk": {
+          "name": "Invite_tournamentId_Tournament_id_fk",
+          "tableFrom": "Invite",
+          "tableTo": "Tournament",
+          "schemaTo": "scoring",
+          "columnsFrom": [
+            "tournamentId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "scoring.Role": {
+      "name": "Role",
+      "schema": "scoring",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigserial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "UserRole",
+          "typeSchema": "scoring",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tournamentId": {
+          "name": "tournamentId",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "Role_userId_tournamentId_key": {
+          "name": "Role_userId_tournamentId_key",
+          "columns": [
+            {
+              "expression": "userId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "tournamentId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "Role_userId_User_id_fk": {
+          "name": "Role_userId_User_id_fk",
+          "tableFrom": "Role",
+          "tableTo": "User",
+          "schemaTo": "scoring",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "Role_tournamentId_Tournament_id_fk": {
+          "name": "Role_tournamentId_Tournament_id_fk",
+          "tableFrom": "Role",
+          "tableTo": "Tournament",
+          "schemaTo": "scoring",
+          "columnsFrom": [
+            "tournamentId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "scoring.Score": {
+      "name": "Score",
+      "schema": "scoring",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigserial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "teamId": {
+          "name": "teamId",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "eventId": {
+          "name": "eventId",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rawScore": {
+          "name": "rawScore",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tier": {
+          "name": "tier",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tiebreak": {
+          "name": "tiebreak",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "ScoreStatus",
+          "typeSchema": "scoring",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "checklist": {
+          "name": "checklist",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "Score_eventId_teamId_key": {
+          "name": "Score_eventId_teamId_key",
+          "columns": [
+            {
+              "expression": "eventId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "teamId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "Score_teamId_Team_id_fk": {
+          "name": "Score_teamId_Team_id_fk",
+          "tableFrom": "Score",
+          "tableTo": "Team",
+          "schemaTo": "scoring",
+          "columnsFrom": [
+            "teamId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "Score_eventId_Event_id_fk": {
+          "name": "Score_eventId_Event_id_fk",
+          "tableFrom": "Score",
+          "tableTo": "Event",
+          "schemaTo": "scoring",
+          "columnsFrom": [
+            "eventId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "scoring.Slides": {
+      "name": "Slides",
+      "schema": "scoring",
+      "columns": {
+        "tournamentId": {
+          "name": "tournamentId",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "channelId": {
+          "name": "channelId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "settings": {
+          "name": "settings",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "batches": {
+          "name": "batches",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "done": {
+          "name": "done",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {
+        "Slides_tournamentId_key": {
+          "name": "Slides_tournamentId_key",
+          "columns": [
+            {
+              "expression": "tournamentId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "Slides_tournamentId_Tournament_id_fk": {
+          "name": "Slides_tournamentId_Tournament_id_fk",
+          "tableFrom": "Slides",
+          "tableTo": "Tournament",
+          "schemaTo": "scoring",
+          "columnsFrom": [
+            "tournamentId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "scoring.Team": {
+      "name": "Team",
+      "schema": "scoring",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigserial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "number": {
+          "name": "number",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "school": {
+          "name": "school",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "abbreviation": {
+          "name": "abbreviation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "suffix": {
+          "name": "suffix",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "city": {
+          "name": "city",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "state": {
+          "name": "state",
+          "type": "States",
+          "typeSchema": "scoring",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "trackId": {
+          "name": "trackId",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "exhibition": {
+          "name": "exhibition",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "penalties": {
+          "name": "penalties",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tournamentId": {
+          "name": "tournamentId",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "Team_tournamentId_number_key": {
+          "name": "Team_tournamentId_number_key",
+          "columns": [
+            {
+              "expression": "tournamentId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "number",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "Team_trackId_Track_id_fk": {
+          "name": "Team_trackId_Track_id_fk",
+          "tableFrom": "Team",
+          "tableTo": "Track",
+          "schemaTo": "scoring",
+          "columnsFrom": [
+            "trackId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "Team_tournamentId_Tournament_id_fk": {
+          "name": "Team_tournamentId_Tournament_id_fk",
+          "tableFrom": "Team",
+          "tableTo": "Tournament",
+          "schemaTo": "scoring",
+          "columnsFrom": [
+            "tournamentId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "scoring.Tournament": {
+      "name": "Tournament",
+      "schema": "scoring",
+      "columns": {
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "location": {
+          "name": "location",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "state": {
+          "name": "state",
+          "type": "States",
+          "typeSchema": "scoring",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "level": {
+          "name": "level",
+          "type": "TournamentLevels",
+          "typeSchema": "scoring",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year": {
+          "name": "year",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "medals": {
+          "name": "medals",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 6
+        },
+        "trophies": {
+          "name": "trophies",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 3
+        },
+        "bids": {
+          "name": "bids",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "drops": {
+          "name": "drops",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "shortName": {
+          "name": "shortName",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "awardsDate": {
+          "name": "awardsDate",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "endDate": {
+          "name": "endDate",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nOffset": {
+          "name": "nOffset",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "startDate": {
+          "name": "startDate",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "division": {
+          "name": "division",
+          "type": "Divisions",
+          "typeSchema": "scoring",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "enableTracks": {
+          "name": "enableTracks",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "id": {
+          "name": "id",
+          "type": "bigserial",
+          "primaryKey": true,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "scoring.Track": {
+      "name": "Track",
+      "schema": "scoring",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigserial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "medals": {
+          "name": "medals",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "trophies": {
+          "name": "trophies",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tournamentId": {
+          "name": "tournamentId",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "Track_tournamentId_Tournament_id_fk": {
+          "name": "Track_tournamentId_Tournament_id_fk",
+          "tableFrom": "Track",
+          "tableTo": "Tournament",
+          "schemaTo": "scoring",
+          "columnsFrom": [
+            "tournamentId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "scoring.User": {
+      "name": "User",
+      "schema": "scoring",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "scoring._ESEventRoles": {
+      "name": "_ESEventRoles",
+      "schema": "scoring",
+      "columns": {
+        "A": {
+          "name": "A",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "B": {
+          "name": "B",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "_ESEventRoles_AB_unique": {
+          "name": "_ESEventRoles_AB_unique",
+          "columns": [
+            {
+              "expression": "A",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "B",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "_ESEventRoles_B_index": {
+          "name": "_ESEventRoles_B_index",
+          "columns": [
+            {
+              "expression": "B",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "_ESEventRoles_A_Event_id_fk": {
+          "name": "_ESEventRoles_A_Event_id_fk",
+          "tableFrom": "_ESEventRoles",
+          "tableTo": "Event",
+          "schemaTo": "scoring",
+          "columnsFrom": [
+            "A"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "_ESEventRoles_B_Role_id_fk": {
+          "name": "_ESEventRoles_B_Role_id_fk",
+          "tableFrom": "_ESEventRoles",
+          "tableTo": "Role",
+          "schemaTo": "scoring",
+          "columnsFrom": [
+            "B"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "scoring._InviteEvents": {
+      "name": "_InviteEvents",
+      "schema": "scoring",
+      "columns": {
+        "A": {
+          "name": "A",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "B": {
+          "name": "B",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "_InviteEvents_AB_unique": {
+          "name": "_InviteEvents_AB_unique",
+          "columns": [
+            {
+              "expression": "A",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "B",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "_InviteEvents_B_index": {
+          "name": "_InviteEvents_B_index",
+          "columns": [
+            {
+              "expression": "B",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "_InviteEvents_A_Event_id_fk": {
+          "name": "_InviteEvents_A_Event_id_fk",
+          "tableFrom": "_InviteEvents",
+          "tableTo": "Event",
+          "schemaTo": "scoring",
+          "columnsFrom": [
+            "A"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "_InviteEvents_B_Invite_link_fk": {
+          "name": "_InviteEvents_B_Invite_link_fk",
+          "tableFrom": "_InviteEvents",
+          "tableTo": "Invite",
+          "schemaTo": "scoring",
+          "columnsFrom": [
+            "B"
+          ],
+          "columnsTo": [
+            "link"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    }
+  },
+  "enums": {
+    "scoring.Divisions": {
+      "name": "Divisions",
+      "schema": "scoring",
+      "values": [
+        "A",
+        "B",
+        "C"
+      ]
+    },
+    "scoring.ScoreStatus": {
+      "name": "ScoreStatus",
+      "schema": "scoring",
+      "values": [
+        "COMPETED",
+        "PARTICIPATION",
+        "NOSHOW",
+        "DISQUALIFICATION"
+      ]
+    },
+    "scoring.States": {
+      "name": "States",
+      "schema": "scoring",
+      "values": [
+        "AL",
+        "AK",
+        "AZ",
+        "AR",
+        "CA",
+        "nCA",
+        "sCA",
+        "CO",
+        "CT",
+        "DE",
+        "DC",
+        "FL",
+        "GA",
+        "HI",
+        "ID",
+        "IL",
+        "IN",
+        "IA",
+        "KS",
+        "KY",
+        "LA",
+        "ME",
+        "MD",
+        "MA",
+        "MI",
+        "MN",
+        "MS",
+        "MO",
+        "MT",
+        "NE",
+        "NV",
+        "NH",
+        "NJ",
+        "NM",
+        "NY",
+        "NC",
+        "ND",
+        "OH",
+        "OK",
+        "OR",
+        "PA",
+        "RI",
+        "SC",
+        "SD",
+        "TN",
+        "TX",
+        "UT",
+        "VT",
+        "VA",
+        "WA",
+        "WV",
+        "WI",
+        "WY",
+        "INTERNATIONAL"
+      ]
+    },
+    "scoring.TournamentLevels": {
+      "name": "TournamentLevels",
+      "schema": "scoring",
+      "values": [
+        "INVITATIONAL",
+        "REGIONAL",
+        "STATE",
+        "NATIONAL"
+      ]
+    },
+    "scoring.TrialStatus": {
+      "name": "TrialStatus",
+      "schema": "scoring",
+      "values": [
+        "SCORING",
+        "TRIAL",
+        "TRIALED"
+      ]
+    },
+    "scoring.UserRole": {
+      "name": "UserRole",
+      "schema": "scoring",
+      "values": [
+        "TD",
+        "SM",
+        "ES"
+      ]
+    }
+  },
+  "schemas": {
+    "scoring": "scoring"
+  },
+  "sequences": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

@@ -23,7 +23,7 @@ declare global {
 		// interface Platform {}
 	}
 
-	namespace PrismaJson {
+	namespace DbJson {
 		interface SlidesSettings {
 			tournamentLogo: string;
 			tournamentLogoDimensions: [number, number];

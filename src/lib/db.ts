@@ -1,37 +1,46 @@
+// import {
+// 	PrismaClient,
+// 	type Tournament,
+// 	type TrialStatus,
+// 	type Team,
+// 	type Track,
+// 	type Score,
+// 	UserRole,
+// 	Prisma
+// } from '@prisma/client';
+import { supabase } from './supabaseAdmin';
+// const prisma = new PrismaClient();
+
 import {
-	PrismaClient,
 	type Tournament,
 	type TrialStatus,
 	type Team,
 	type Track,
 	type Score,
-	UserRole,
-	Prisma
-} from '@prisma/client';
-import { supabase } from './supabaseAdmin';
-const prisma = new PrismaClient();
-
+	type UserRole
+} from '../../drizzle/types';
+import * as schema from '../../drizzle/schema';
+import { db } from '../../drizzle/db';
+import { and, eq, inArray } from 'drizzle-orm';
 // TODO: double check permissions in every function
 
 export async function createOrUpdateUser(userId: string, name: string) {
-	await prisma.user.upsert({
-		where: {
-			id: userId
-		},
-		update: {
-			name
-		},
-		create: {
+	await db
+		.insert(schema.User)
+		.values({
 			id: userId,
 			name
-		}
-	});
+		})
+		.onConflictDoUpdate({
+			target: schema.User.id,
+			set: {
+				name
+			}
+		});
 }
 
 export async function createTournament(tournament: Omit<Tournament, 'id'>) {
-	return await prisma.tournament.create({
-		data: tournament
-	});
+	return await db.insert(schema.Tournament).values(tournament).returning();
 }
 
 export async function updateTournament(
@@ -42,14 +51,10 @@ export async function updateTournament(
 		tournamentId = BigInt(tournamentId);
 	}
 	try {
-		await prisma.tournament.update({
-			where: {
-				id: tournamentId
-			},
-			data: {
-				...tournament
-			}
-		});
+		await db
+			.update(schema.Tournament)
+			.set(tournament)
+			.where(eq(schema.Tournament.id, tournamentId));
 	} catch (e) {
 		return false;
 	}
@@ -69,20 +74,22 @@ export async function createInvites(
 		tournamentId = BigInt(tournamentId);
 	}
 	try {
-		await Promise.all(
-			invites.map(async (invite) => {
-				await prisma.invite.create({
-					data: {
-						tournamentId: tournamentId as bigint,
-						link: invite.link,
-						email: invite.email,
-						role: invite.role,
-						events: {
-							connect: invite.events?.map((e) => ({ id: e }))
-						}
-					}
-				});
-			})
+		await db.insert(schema.Invite).values(
+			invites.map((i) => ({
+				tournamentId: tournamentId as bigint,
+				link: i.link,
+				email: i.email,
+				role: i.role
+			}))
+		);
+		await db.insert(schema._InviteEvents).values(
+			invites.flatMap(
+				(i) =>
+					i.events?.map((e) => ({
+						A: e,
+						B: i.link
+					})) ?? []
+			)
 		);
 	} catch (e) {
 		return false;
@@ -92,14 +99,22 @@ export async function createInvites(
 
 export async function getInvite(link: string) {
 	try {
-		return await prisma.invite.findUnique({
-			where: {
-				link
-			},
-			include: {
-				events: true
+		const invite = await db.query.Invite.findFirst({
+			where: (i, { eq }) => eq(i.link, link),
+			with: {
+				events: {
+					with: {
+						event: true
+					}
+				}
 			}
 		});
+		return invite
+			? {
+					...invite,
+					events: invite.events.map((e) => e.event)
+				}
+			: false;
 	} catch (e) {
 		return false;
 	}
@@ -107,17 +122,23 @@ export async function getInvite(link: string) {
 
 export async function updateInvite(link: string, events: bigint[], role?: UserRole) {
 	try {
-		await prisma.invite.update({
-			where: {
-				link
-			},
-			data: {
-				events: {
-					set: events.map((e) => ({ id: e }))
-				},
+		await db
+			.update(schema.Invite)
+			.set({
 				role: role
-			}
-		});
+			})
+			.where(eq(schema.Invite.link, link));
+		if (events && events.length !== 0) {
+			await db.transaction(async (tx) => {
+				await tx.delete(schema._InviteEvents).where(eq(schema._InviteEvents.B, link));
+				await tx.insert(schema._InviteEvents).values(
+					events.map((e) => ({
+						A: e,
+						B: link
+					}))
+				);
+			});
+		}
 	} catch (e) {
 		return false;
 	}
@@ -126,13 +147,7 @@ export async function updateInvite(link: string, events: bigint[], role?: UserRo
 
 export async function deleteInvites(invites: string[]) {
 	try {
-		await prisma.invite.deleteMany({
-			where: {
-				link: {
-					in: invites
-				}
-			}
-		});
+		await db.delete(schema.Invite).where(inArray(schema.Invite.link, invites));
 	} catch (e) {
 		return false;
 	}
@@ -148,27 +163,30 @@ export async function updateMember(
 		tournamentId = BigInt(tournamentId);
 	}
 	try {
-		await prisma.role.upsert({
-			where: {
-				userId_tournamentId: {
+		const role = (
+			await db
+				.insert(schema.Role)
+				.values({
 					tournamentId,
-					userId
-				}
-			},
-			update: {
-				role: data.role,
-				supEvents: {
-					set: data.events?.map((e) => ({ id: e }))
-				}
-			},
-			create: {
-				tournamentId,
-				userId,
-				role: data.role,
-				supEvents: {
-					connect: data.events?.map((e) => ({ id: e }))
-				}
-			}
+					userId,
+					role: data.role
+				})
+				.onConflictDoUpdate({
+					target: [schema.Role.tournamentId, schema.Role.userId],
+					set: {
+						role: data.role
+					}
+				})
+				.returning()
+		)[0];
+		await db.transaction(async (tx) => {
+			await tx.delete(schema._ESEventRoles).where(eq(schema._ESEventRoles.B, role.id));
+			await tx.insert(schema._ESEventRoles).values(
+				data.events?.map((e) => ({
+					A: e,
+					B: role.id
+				})) ?? []
+			);
 		});
 	} catch (e) {
 		return false;
@@ -181,16 +199,9 @@ export async function deleteMembers(tournamentId: bigint | string, members: stri
 		tournamentId = BigInt(tournamentId);
 	}
 	try {
-		await prisma.role.deleteMany({
-			where: {
-				AND: {
-					tournamentId,
-					userId: {
-						in: members
-					}
-				}
-			}
-		});
+		await db
+			.delete(schema.Role)
+			.where(and(eq(schema.Role.tournamentId, tournamentId), inArray(schema.Role.userId, members)));
 	} catch (e) {
 		return false;
 	}
@@ -198,14 +209,12 @@ export async function deleteMembers(tournamentId: bigint | string, members: stri
 }
 
 export async function getEvent(id: bigint) {
-	return await prisma.event.findUnique({
-		where: {
-			id
-		},
-		include: {
+	return await db.query.Event.findFirst({
+		where: (i, { eq }) => eq(i.id, id),
+		with: {
 			scores: true,
 			tournament: {
-				include: {
+				with: {
 					teams: true
 				}
 			}
@@ -226,12 +235,9 @@ export async function addEvents(
 		tournamentId = BigInt(tournamentId);
 	}
 	try {
-		await prisma.event.createMany({
-			data: events.map((event) => ({
-				...event,
-				tournamentId: tournamentId as bigint
-			}))
-		});
+		await db
+			.insert(schema.Event)
+			.values(events.map((e) => ({ ...e, tournamentId: tournamentId as bigint })));
 	} catch (e) {
 		return false;
 	}
@@ -240,16 +246,10 @@ export async function addEvents(
 
 export async function touchEventsExport(eventIds: bigint[]) {
 	try {
-		await prisma.event.updateMany({
-			where: {
-				id: {
-					in: eventIds
-				}
-			},
-			data: {
-				lastExportedAt: new Date()
-			}
-		});
+		await db
+			.update(schema.Event)
+			.set({ lastExportedAt: new Date() })
+			.where(inArray(schema.Event.id, eventIds));
 	} catch (e) {
 		return false;
 	}
@@ -269,36 +269,25 @@ export async function updateEvent(
 ) {
 	try {
 		if (event.auditedUserId != null) {
-			await prisma.event.update({
-				where: {
-					id: eventId
-				},
-				data: {
+			await db
+				.update(schema.Event)
+				.set({
 					auditedUserId: event.auditedUserId,
 					locked: true,
 					auditedAt: new Date()
-				}
-			});
+				})
+				.where(eq(schema.Event.id, eventId));
 		} else if (event.auditedUserId === null && event.locked === false) {
-			await prisma.event.update({
-				where: {
-					id: eventId
-				},
-				data: {
+			await db
+				.update(schema.Event)
+				.set({
 					auditedUserId: null,
 					locked: false,
 					auditedAt: null
-				}
-			});
+				})
+				.where(eq(schema.Event.id, eventId));
 		} else {
-			await prisma.event.update({
-				where: {
-					id: eventId
-				},
-				data: {
-					...event
-				}
-			});
+			await db.update(schema.Event).set(event).where(eq(schema.Event.id, eventId));
 		}
 	} catch (e) {
 		return false;
@@ -308,11 +297,7 @@ export async function updateEvent(
 
 export async function deleteEvent(eventId: bigint) {
 	try {
-		await prisma.event.delete({
-			where: {
-				id: eventId
-			}
-		});
+		await db.delete(schema.Event).where(eq(schema.Event.id, eventId));
 	} catch (e) {
 		return false;
 	}
@@ -324,12 +309,9 @@ export async function addTeams(tournamentId: bigint | string, teams: Team[]) {
 		tournamentId = BigInt(tournamentId);
 	}
 	try {
-		await prisma.team.createMany({
-			data: teams.map((team) => ({
-				...team,
-				tournamentId: tournamentId as bigint
-			}))
-		});
+		await db
+			.insert(schema.Team)
+			.values(teams.map((t) => ({ ...t, tournamentId: tournamentId as bigint })));
 	} catch (e) {
 		return false;
 	}
@@ -338,14 +320,7 @@ export async function addTeams(tournamentId: bigint | string, teams: Team[]) {
 
 export async function updateTeam(teamId: bigint, team: Partial<Team>) {
 	try {
-		await prisma.team.update({
-			where: {
-				id: teamId
-			},
-			data: {
-				...team
-			}
-		});
+		await db.update(schema.Team).set(team).where(eq(schema.Team.id, teamId));
 	} catch (e) {
 		return false;
 	}
@@ -354,11 +329,7 @@ export async function updateTeam(teamId: bigint, team: Partial<Team>) {
 
 export async function deleteTeam(teamId: bigint) {
 	try {
-		await prisma.team.delete({
-			where: {
-				id: teamId
-			}
-		});
+		await db.delete(schema.Team).where(eq(schema.Team.id, teamId));
 	} catch (e) {
 		return false;
 	}
@@ -370,12 +341,9 @@ export async function addTracks(tournamentId: bigint | string, tracks: Track[]) 
 		tournamentId = BigInt(tournamentId);
 	}
 	try {
-		await prisma.track.createMany({
-			data: tracks.map((track) => ({
-				...track,
-				tournamentId: tournamentId as bigint
-			}))
-		});
+		await db
+			.insert(schema.Track)
+			.values(tracks.map((t) => ({ ...t, tournamentId: tournamentId as bigint })));
 	} catch (e) {
 		return false;
 	}
@@ -384,14 +352,7 @@ export async function addTracks(tournamentId: bigint | string, tracks: Track[]) 
 
 export async function updateTrack(trackId: bigint, track: Partial<Track>) {
 	try {
-		await prisma.track.update({
-			where: {
-				id: trackId
-			},
-			data: {
-				...track
-			}
-		});
+		await db.update(schema.Track).set(track).where(eq(schema.Track.id, trackId));
 	} catch (e) {
 		return false;
 	}
@@ -400,11 +361,7 @@ export async function updateTrack(trackId: bigint, track: Partial<Track>) {
 
 export async function deleteTrack(trackId: bigint) {
 	try {
-		await prisma.track.delete({
-			where: {
-				id: trackId
-			}
-		});
+		await db.delete(schema.Track).where(eq(schema.Track.id, trackId));
 	} catch (e) {
 		return false;
 	}
@@ -412,13 +369,17 @@ export async function deleteTrack(trackId: bigint) {
 }
 
 export async function getUserInfo(userId: string) {
-	const user = await prisma.user.findUnique({
-		where: { id: userId },
-		include: {
+	const user = await db.query.User.findFirst({
+		where: (i, { eq }) => eq(i.id, userId),
+		with: {
 			roles: {
-				include: {
+				with: {
 					tournament: true,
-					supEvents: true
+					supEvents: {
+						with: {
+							event: true
+						}
+					}
 				}
 			}
 		}
@@ -431,15 +392,22 @@ export async function getUserInfo(userId: string) {
 		return false;
 	}
 
-	return { ...user, email: supabaseUser.email };
+	return {
+		...user,
+		roles: user.roles.map((r) => ({
+			...r,
+			supEvents: r.supEvents.map((e) => e.event)
+		})),
+		email: supabaseUser.email
+	};
 }
 
 export async function getTournamentInfo(tournamentId: bigint | string) {
 	if (typeof tournamentId === 'string') {
 		tournamentId = BigInt(tournamentId);
 	}
-	const tournament = await prisma.tournament.findUnique({
-		where: { id: tournamentId }
+	const tournament = await db.query.Tournament.findFirst({
+		where: (i, { eq }) => eq(i.id, tournamentId)
 	});
 
 	if (tournament == undefined) {
@@ -453,19 +421,21 @@ export async function getEvents(tournamentId: bigint | string) {
 	if (typeof tournamentId === 'string') {
 		tournamentId = BigInt(tournamentId);
 	}
-	const events = await prisma.event.findMany({
-		where: {
-			tournamentId
-		},
-		include: {
+	const events = await db.query.Event.findMany({
+		where: (i, { eq }) => eq(i.tournamentId, tournamentId),
+		with: {
 			supervisors: {
-				include: {
-					user: true
+				with: {
+					role: {
+						with: {
+							user: true
+						}
+					}
 				}
 			},
 			audited: true,
 			scores: {
-				include: {
+				with: {
 					team: true,
 					event: true
 				}
@@ -477,20 +447,27 @@ export async function getEvents(tournamentId: bigint | string) {
 		return false;
 	}
 
-	return events.sort((a, b) => a.name.localeCompare(b.name));
+	return events
+		.map((e) => ({
+			...e,
+			supervisors: e.supervisors.map((r) => r.role)
+		}))
+		.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export async function getRoles(tournamentId: bigint | string) {
 	if (typeof tournamentId === 'string') {
 		tournamentId = BigInt(tournamentId);
 	}
-	const roles = await prisma.role.findMany({
-		where: {
-			tournamentId
-		},
-		include: {
+	const roles = await db.query.Role.findMany({
+		where: (i, { eq }) => eq(i.tournamentId, tournamentId),
+		with: {
 			user: true,
-			supEvents: true
+			supEvents: {
+				with: {
+					event: true
+				}
+			}
 		}
 	});
 
@@ -498,21 +475,22 @@ export async function getRoles(tournamentId: bigint | string) {
 		return false;
 	}
 
-	return roles;
+	return roles.map((r) => ({
+		...r,
+		supEvents: r.supEvents.map((e) => e.event)
+	}));
 }
 
 export async function getTeams(tournamentId: bigint | string) {
 	if (typeof tournamentId === 'string') {
 		tournamentId = BigInt(tournamentId);
 	}
-	const teams = await prisma.team.findMany({
-		where: {
-			tournamentId
-		},
-		include: {
-			tracks: true,
+	const teams = await db.query.Team.findMany({
+		where: (i, { eq }) => eq(i.tournamentId, tournamentId),
+		with: {
+			track: true,
 			scores: {
-				include: {
+				with: {
 					event: true
 				}
 			}
@@ -530,11 +508,9 @@ export async function getTracks(tournamentId: bigint | string) {
 	if (typeof tournamentId === 'string') {
 		tournamentId = BigInt(tournamentId);
 	}
-	const tracks = await prisma.track.findMany({
-		where: {
-			tournamentId
-		},
-		include: {
+	const tracks = await db.query.Track.findMany({
+		where: (i, { eq }) => eq(i.tournamentId, tournamentId),
+		with: {
 			teams: true
 		}
 	});
@@ -550,12 +526,14 @@ export async function getInvites(tournamentId: bigint | string) {
 	if (typeof tournamentId === 'string') {
 		tournamentId = BigInt(tournamentId);
 	}
-	const invites = await prisma.invite.findMany({
-		where: {
-			tournamentId
-		},
-		include: {
-			events: true
+	const invites = await db.query.Invite.findMany({
+		where: (i, { eq }) => eq(i.tournamentId, tournamentId),
+		with: {
+			events: {
+				with: {
+					event: true
+				}
+			}
 		}
 	});
 
@@ -563,15 +541,16 @@ export async function getInvites(tournamentId: bigint | string) {
 		return false;
 	}
 
-	return invites;
+	return invites.map((i) => ({
+		...i,
+		events: i.events.map((e) => e.event)
+	}));
 }
 
 export async function getEventScores(eventId: bigint) {
-	const scores = await prisma.score.findMany({
-		where: {
-			eventId
-		},
-		include: {
+	const scores = await db.query.Score.findMany({
+		where: (i, { eq }) => eq(i.eventId, eventId),
+		with: {
 			team: true
 		}
 	});
@@ -583,20 +562,12 @@ export async function getEventScores(eventId: bigint) {
 	return scores;
 }
 
-export async function updateScores(scores: Partial<Score>[]) {
+export async function updateScores(scores: Partial<Score> & { id: bigint }[]) {
 	try {
 		await Promise.all(
 			scores.map(
 				async (score) =>
-					await prisma.score.update({
-						where: {
-							id: score.id
-						},
-						data: {
-							...score,
-							checklist: score.checklist ?? (score.checklist === null ? Prisma.DbNull : undefined)
-						}
-					})
+					await db.update(schema.Score).set(score).where(eq(schema.Score.id, score.id))
 			)
 		);
 	} catch (e) {
@@ -607,9 +578,9 @@ export async function updateScores(scores: Partial<Score>[]) {
 
 export async function addScores(scores: Omit<Score, 'id'>[]) {
 	try {
-		await prisma.score.createMany({
-			data: scores.map((score) => ({ ...score, checklist: score.checklist ?? Prisma.DbNull }))
-		});
+		await db
+			.insert(schema.Score)
+			.values(scores.map((s) => ({ ...s, checklist: s.checklist ?? null })));
 	} catch (e) {
 		return false;
 	}
@@ -618,11 +589,7 @@ export async function addScores(scores: Omit<Score, 'id'>[]) {
 
 export async function deleteScores(scores: bigint[]) {
 	try {
-		await prisma.score.deleteMany({
-			where: {
-				id: { in: scores }
-			}
-		});
+		await db.delete(schema.Score).where(inArray(schema.Score.id, scores));
 	} catch (e) {
 		return false;
 	}
@@ -634,18 +601,12 @@ export async function getSlides(tournamentId: bigint | string) {
 		tournamentId = BigInt(tournamentId);
 	}
 
-	let slides = await prisma.slides.findUnique({
-		where: {
-			tournamentId
-		}
+	let slides = await db.query.Slides.findMany({
+		where: (i, { eq }) => eq(i.tournamentId, tournamentId)
 	});
 
 	if (slides == undefined) {
-		slides = await prisma.slides.create({
-			data: {
-				tournamentId
-			}
-		});
+		slides = await db.insert(schema.Slides).values({ tournamentId }).returning();
 	}
 
 	return slides;
@@ -653,24 +614,16 @@ export async function getSlides(tournamentId: bigint | string) {
 
 export async function updateSlidesSettings(
 	tournamentId: bigint | string,
-	settings: PrismaJson.SlidesSettings
+	settings: DbJson.SlidesSettings
 ) {
 	if (typeof tournamentId === 'string') {
 		tournamentId = BigInt(tournamentId);
 	}
 
 	try {
-		await prisma.slides.upsert({
-			where: {
-				tournamentId
-			},
-			update: {
-				settings
-			},
-			create: {
-				tournamentId,
-				settings
-			}
+		await db.insert(schema.Slides).values({ tournamentId, settings }).onConflictDoUpdate({
+			target: schema.Slides.tournamentId,
+			set: { settings }
 		});
 	} catch (e) {
 		return false;
@@ -686,29 +639,16 @@ export async function addSlidesBatch(tournamentId: bigint | string, batch: bigin
 	try {
 		const batches =
 			(
-				await prisma.slides.findUnique({
-					where: {
-						tournamentId
-					},
-					select: {
-						batches: true
-					}
+				await db.query.Slides.findFirst({
+					where: (i, { eq }) => eq(i.tournamentId, tournamentId)
 				})
 			)?.batches ?? [];
 
 		batches.push(batch.map((e) => e.toString()));
 
-		await prisma.slides.upsert({
-			where: {
-				tournamentId
-			},
-			update: {
-				batches
-			},
-			create: {
-				tournamentId,
-				batches
-			}
+		await db.insert(schema.Slides).values({ tournamentId, batches }).onConflictDoUpdate({
+			target: schema.Slides.tournamentId,
+			set: { batches }
 		});
 	} catch (e) {
 		return false;
@@ -722,17 +662,9 @@ export async function markSlidesDone(tournamentId: bigint | string, done: boolea
 	}
 
 	try {
-		await prisma.slides.upsert({
-			where: {
-				tournamentId
-			},
-			update: {
-				done
-			},
-			create: {
-				tournamentId,
-				done
-			}
+		await db.insert(schema.Slides).values({ tournamentId, done }).onConflictDoUpdate({
+			target: schema.Slides.tournamentId,
+			set: { done }
 		});
 	} catch (e) {
 		return false;
@@ -746,17 +678,9 @@ export async function setSlidesChannel(tournamentId: bigint | string, channelId:
 	}
 
 	try {
-		await prisma.slides.upsert({
-			where: {
-				tournamentId
-			},
-			update: {
-				channelId
-			},
-			create: {
-				tournamentId,
-				channelId
-			}
+		await db.insert(schema.Slides).values({ tournamentId, channelId }).onConflictDoUpdate({
+			target: schema.Slides.tournamentId,
+			set: { channelId }
 		});
 	} catch (e) {
 		return false;
@@ -770,19 +694,13 @@ export async function clearSlides(tournamentId: bigint | string) {
 	}
 
 	try {
-		await prisma.slides.upsert({
-			where: {
-				tournamentId
-			},
-			update: {
-				batches: [],
-				channelId: null,
-				done: false
-			},
-			create: {
-				tournamentId
-			}
-		});
+		await db
+			.insert(schema.Slides)
+			.values({ tournamentId })
+			.onConflictDoUpdate({
+				target: schema.Slides.tournamentId,
+				set: { batches: [], channelId: null, done: false }
+			});
 	} catch (e) {
 		return false;
 	}
