@@ -42,7 +42,7 @@
 					<Dropdown triggeredBy="#user-drop">
 						<DropdownHeader>
 							<span class="block text-sm"> {user.name} </span>
-							<span class="block truncate text-sm font-medium"> {session.user.email} </span>
+							<span class="block truncate text-sm font-medium"> {user.email} </span>
 						</DropdownHeader>
 						<DropdownItem href="/dashboard">Dashboard</DropdownItem>
 						<DropdownItem href="/settings">Settings</DropdownItem>
