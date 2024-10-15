@@ -1,12 +1,5 @@
-import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ url, locals: { safeGetSession } }) => {
-	const session = await safeGetSession();
-
-	if (session) {
-		redirect(303, '/dashboard');
-	}
-
-	return { url: url.origin };
+export const load: PageServerLoad = async ({ locals: { user } }) => {
+	return { user };
 };
