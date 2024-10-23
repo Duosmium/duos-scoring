@@ -29,7 +29,7 @@
 <Navbar
 	let:hidden
 	let:toggle
-	class="py-4 mb-4 fixed top-3 z-30 px-0 sm:px-0"
+	class="py-4 mb-4 fixed top-3 z-30 px-0 sm:px-0 "
 	fluid={true}
 >
 	<div
