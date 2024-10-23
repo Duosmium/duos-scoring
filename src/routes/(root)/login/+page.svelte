@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Head from '$lib/components/Head.svelte';
 
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
@@ -67,6 +67,7 @@
 						password
 					});
 					if (error) throw error;
+					invalidateAll();
 					goto('/dashboard');
 					break;
 				}
@@ -97,6 +98,7 @@
 					const { error } = await supabase.auth.updateUser({ password });
 					if (error) throw error;
 					goto('/dashboard');
+					invalidateAll();
 					break;
 				}
 			}

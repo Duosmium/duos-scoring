@@ -36,7 +36,7 @@
 		class="mx-auto flex flex-wrap justify-between items-center lg:max-w-5xl xl:max-w-7xl w-full px-6"
 	>
 		<div class="flex justify-between items-center w-full lg:w-fit">
-			<NavBrand href="/">
+			<NavBrand href={user && session ? '/dashboard' : '/'}>
 				<span
 					class="self-center text-xl font-semibold dark:text-white flex items-center"
 				>
