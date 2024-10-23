@@ -62,7 +62,10 @@
 
 			switch (view) {
 				case 'sign_in': {
-					const { error } = await supabase.auth.signInWithPassword({ email, password });
+					const { error } = await supabase.auth.signInWithPassword({
+						email,
+						password
+					});
 					if (error) throw error;
 					goto('/dashboard');
 					break;
@@ -111,8 +114,16 @@
 
 <main class="main">
 	<div class="logo">
-		<img class="dark:hidden inline-block" src="/logo_dark.png" alt="Duosmium Logo" />
-		<img class="dark:inline-block hidden" src="/logo_light.png" alt="Duosmium Logo" />
+		<img
+			class="dark:hidden inline-block"
+			src="/assets/logo_dark.png"
+			alt="Duosmium Logo"
+		/>
+		<img
+			class="dark:inline-block hidden"
+			src="/assets/logo_light.png"
+			alt="Duosmium Logo"
+		/>
 	</div>
 	<h1>{headingText[view]}</h1>
 	{#if !successMessage}
