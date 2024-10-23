@@ -8,25 +8,6 @@
 </script>
 
 <Navigation user={data.user} session={data.session}>
-	<svelte:fragment slot="brand">
-		<NavBrand href="/dashboard">
-			<span class="self-center text-xl font-semibold dark:text-white flex items-center">
-				<span class="min-w-fit">
-					<img
-						class="h-12 mr-2 dark:hidden inline-block"
-						src="/logo_dark.png"
-						alt="Duosmium Logo"
-					/>
-					<img
-						class="h-12 mr-2 dark:inline-block hidden"
-						src="/logo_light.png"
-						alt="Duosmium Logo"
-					/>
-				</span>
-				<span class="text-ellipsis overflow-hidden">Duosmium Scoring</span>
-			</span>
-		</NavBrand>
-	</svelte:fragment>
 	<svelte:fragment slot="links">
 		<NavLi href="/dashboard">My Tournaments</NavLi>
 		<!-- TODO: create tournaments -->

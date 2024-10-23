@@ -15,27 +15,6 @@
 <Head title="Duosmium Scoring" />
 
 <Navigation user={data.user} session={data.session}>
-	<svelte:fragment slot="brand">
-		<NavBrand href="/">
-			<span
-				class="self-center text-xl font-semibold dark:text-white flex items-center"
-			>
-				<span class="min-w-fit">
-					<img
-						class="h-12 mr-2 dark:hidden inline-block"
-						src="/logo_dark.png"
-						alt="Duosmium Logo"
-					/>
-					<img
-						class="h-12 mr-2 dark:inline-block hidden"
-						src="/logo_light.png"
-						alt="Duosmium Logo"
-					/>
-				</span>
-				<span class="text-ellipsis overflow-hidden">Duosmium Scoring</span>
-			</span>
-		</NavBrand>
-	</svelte:fragment>
 	<svelte:fragment slot="links">
 		<NavLi href="#benefits">Solutions</NavLi>
 		<NavLi href="#features">Features</NavLi>
@@ -210,7 +189,10 @@
 			</Card>
 		</svelte:fragment>
 	</Section>
-	<Section wrapperClass="pb-8">
+	<Section
+		wrapperClass="pb-8 text-slate-900"
+		innerClass="bg-slate-100 rounded-xl px-12"
+	>
 		<svelte:fragment slot="title"
 			>Trusted by tournaments nationwide</svelte:fragment
 		>
@@ -220,49 +202,52 @@
 		>
 			{@const logos = [
 				{
-					t: 'GullSO Invitational',
-					i: 'https://www.duosmium.org/images/logos/gullso_invitational.png'
-				},
-				{
-					t: 'Troy Invitational',
-					i: 'https://www.duosmium.org/images/logos/troy_invitational.jpg'
-				},
-				{
-					t: 'BirdSO Invitational',
-					i: 'https://www.duosmium.org/images/logos/birdso_invitational.png'
+					t: 'UMASO Invitational',
+					i: '/assets/home/umaso_invitational.png'
 				},
 				{
 					t: 'Stanford Invitational',
-					i: 'https://www.duosmium.org/images/logos/stanford_invitational.png'
+					i: '/assets/home/stanford_invitational.png'
 				},
 				{
-					t: 'BullSO Invitational',
-					i: 'https://www.duosmium.org/images/logos/bullso_invitational.png'
-				},
-				{
-					t: 'Golden Gate Invitational',
-					i: 'https://www.duosmium.org/images/logos/golden_gate_invitational.png'
+					t: 'GullSO Invitational',
+					i: '/assets/home/gullso_invitational.png'
 				},
 				{
 					t: 'Harvard Invitational',
-					i: 'https://www.duosmium.org/images/logos/harvard_invitational.png'
+					i: '/assets/home/harvard_invitational.png'
 				},
 				{
-					t: 'UMASO Invitational',
-					i: 'https://www.duosmium.org/images/logos/umaso_invitational.png'
+					t: 'BullSO Invitational',
+					i: '/assets/home/bullso_invitational.png'
 				},
+
 				{
 					t: 'Sierra Vista Invitational',
-					i: 'https://www.duosmium.org/images/logos/sierra_vista_invitational.png'
+					i: '/assets/home/sierra_vista_invitational.png'
 				},
 				{
+					t: 'Troy Invitational',
+					i: '/assets/home/troy_invitational.jpg'
+				},
+				{
+					t: 'BirdSO Invitational',
+					i: '/assets/home/birdso_invitational.png'
+				},
+
+				{
+					t: 'Golden Gate Invitational',
+					i: '/assets/home/golden_gate_invitational.png'
+				},
+
+				{
 					t: 'Southern California Science Olympiad',
-					i: 'https://www.duosmium.org/images/logos/sCA_states.jpg'
+					i: '/assets/home/sCA_states.png'
 				}
 			]}
 			{#each logos as { t, i }}
 				<li>
-					<img src={i} alt={t} class="max-h-16 sm:max-h-24 m-4" />
+					<img src={i} alt={t} class="max-h-16 sm:max-h-24 mx-4 my-5" />
 				</li>
 			{/each}
 		</ul>

@@ -7,6 +7,7 @@
 		DropdownItem,
 		DropdownDivider,
 		Navbar,
+		NavBrand,
 		NavLi,
 		NavUl,
 		NavHamburger
@@ -35,7 +36,27 @@
 		class="mx-auto flex flex-wrap justify-between items-center lg:max-w-5xl xl:max-w-7xl w-full px-6"
 	>
 		<div class="flex justify-between items-center w-full lg:w-fit">
-			<slot name="brand" />
+			<NavBrand href="/">
+				<span
+					class="self-center text-xl font-semibold dark:text-white flex items-center"
+				>
+					<span class="min-w-fit">
+						<img
+							class="h-12 mr-2 dark:hidden inline-block"
+							src="/assets/logo_dark.png"
+							alt="Duosmium Logo"
+						/>
+						<img
+							class="h-12 mr-2 dark:inline-block hidden"
+							src="/assets/logo_light.png"
+							alt="Duosmium Logo"
+						/>
+					</span>
+					<slot name="brand">
+						<span class="text-ellipsis overflow-hidden">Duosmium Scoring</span>
+					</slot>
+				</span>
+			</NavBrand>
 			<NavHamburger
 				onClick={() => {
 					toggle();

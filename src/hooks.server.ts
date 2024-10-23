@@ -69,6 +69,11 @@ const handler: Handle = async ({ event, resolve }) => {
 		return await resolve(event);
 	}
 
+	// don't do any redirects when handling static assets
+	if (event.url.pathname.startsWith('/assets')) {
+		return await resolve(event);
+	}
+
 	// get the current session or try logging in with a passed supabase code
 	const returned = await event.locals.safeGetSession();
 	const supabaseUser = returned.user;

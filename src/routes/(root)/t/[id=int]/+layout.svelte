@@ -9,23 +9,19 @@
 
 <Navigation user={data.user} session={data.session}>
 	<svelte:fragment slot="brand">
-		<span class="self-center text-xl font-semibold dark:text-white flex items-center">
-			<a href="/dashboard" class="min-w-fit">
-				<img class="h-12 mr-2 dark:hidden inline-block" src="/logo_dark.png" alt="Duosmium Logo" />
-				<img class="h-12 mr-2 dark:inline-block hidden" src="/logo_light.png" alt="Duosmium Logo" />
-			</a>
-			<a href="/t/{data.tournament.id}" class="overflow-hidden text-ellipsis">
-				{data.tournament.shortName}
-				{data.tournament.division}
-			</a>
-		</span>
+		<a href="/t/{data.tournament.id}" class="overflow-hidden text-ellipsis">
+			{data.tournament.shortName}
+			{data.tournament.division}
+		</a>
 	</svelte:fragment>
 	<svelte:fragment slot="links">
 		{#if data.role.role !== 'ES'}
 			{#if data.role.role === 'TD'}
 				<NavLi href="/t/{data.tournament.id}/members">Members</NavLi>
 			{/if}
-			<NavLi href="/t/{data.tournament.id}/events">Events/Score Counseling</NavLi>
+			<NavLi href="/t/{data.tournament.id}/events"
+				>Events/Score Counseling</NavLi
+			>
 			{#if data.tournament.enableTracks}
 				<NavLi href="/t/{data.tournament.id}/tracks">Tracks</NavLi>
 			{/if}
