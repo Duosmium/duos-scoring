@@ -12,7 +12,10 @@
 	export let data;
 </script>
 
-<Head title="Duosmium Scoring" />
+<Head
+	title="Duosmium Scoring: Next-level scoring for Science Olympiad"
+	description="Managing scoring for Science Olympiad can quickly become a logistical nightmare. Ditch outdated systems and embrace real-time, transparent, and efficient scoring with Duosmium."
+/>
 
 <Navigation user={data.user} session={data.session}>
 	<svelte:fragment slot="links">
