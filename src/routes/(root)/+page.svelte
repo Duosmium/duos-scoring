@@ -13,7 +13,7 @@
 </script>
 
 <Head
-	title="Duosmium Scoring: Next-level scoring for Science Olympiad"
+	title="Next-level scoring for Science Olympiad | Duosmium Scoring"
 	description="Managing scoring for Science Olympiad can quickly become a logistical nightmare. Ditch outdated systems and embrace real-time, transparent, and efficient scoring with Duosmium."
 />
 
