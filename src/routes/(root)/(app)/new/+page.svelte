@@ -1,161 +1,267 @@
 <script lang="ts">
-	import type { ActionData } from './$types';
 	import Head from '$lib/components/Head.svelte';
-	import { enhance } from '$app/forms';
-	import { Button, Checkbox, Input, Label, P, Select } from 'flowbite-svelte';
+	import {
+		Button,
+		Checkbox,
+		Input,
+		Label,
+		Radio,
+		Select,
+		Timeline
+	} from 'flowbite-svelte';
+	import Step from '$lib/components/Step.svelte';
 
-	export let form: ActionData;
+	import type { Tournament } from '$drizzle/types';
+	import type { Snapshot } from './$types';
+	import { divisions, levels, states } from './consts';
+	import { shortName } from '$lib/sciolyffHelpers';
+	import { redirect } from '@sveltejs/kit';
 
-	const states = [
-		{ value: 'AL', name: 'Alabama' },
-		{ value: 'AK', name: 'Alaska' },
-		{ value: 'AZ', name: 'Arizona' },
-		{ value: 'AR', name: 'Arkansas' },
-		{ value: 'CA', name: 'California' },
-		{ value: 'nCA', name: 'Northern California (for regionals/states only)' },
-		{ value: 'sCA', name: 'Southern California (for regionals/states only)' },
-		{ value: 'CO', name: 'Colorado' },
-		{ value: 'CT', name: 'Connecticut' },
-		{ value: 'DE', name: 'Delaware' },
-		{ value: 'DC', name: 'District of Columbia' },
-		{ value: 'FL', name: 'Florida' },
-		{ value: 'GA', name: 'Georgia' },
-		{ value: 'HI', name: 'Hawaii' },
-		{ value: 'ID', name: 'Idaho' },
-		{ value: 'IL', name: 'Illinois' },
-		{ value: 'IN', name: 'Indiana' },
-		{ value: 'IA', name: 'Iowa' },
-		{ value: 'KS', name: 'Kansas' },
-		{ value: 'KY', name: 'Kentucky' },
-		{ value: 'LA', name: 'Louisiana' },
-		{ value: 'ME', name: 'Maine' },
-		{ value: 'MD', name: 'Maryland' },
-		{ value: 'MA', name: 'Massachusetts' },
-		{ value: 'MI', name: 'Michigan' },
-		{ value: 'MN', name: 'Minnesota' },
-		{ value: 'MS', name: 'Mississippi' },
-		{ value: 'MO', name: 'Missouri' },
-		{ value: 'MT', name: 'Montana' },
-		{ value: 'NE', name: 'Nebraska' },
-		{ value: 'NV', name: 'Nevada' },
-		{ value: 'NH', name: 'New Hampshire' },
-		{ value: 'NJ', name: 'New Jersey' },
-		{ value: 'NM', name: 'New Mexico' },
-		{ value: 'NY', name: 'New York' },
-		{ value: 'NC', name: 'North Carolina' },
-		{ value: 'ND', name: 'North Dakota' },
-		{ value: 'OH', name: 'Ohio' },
-		{ value: 'OK', name: 'Oklahoma' },
-		{ value: 'OR', name: 'Oregon' },
-		{ value: 'PA', name: 'Pennsylvania' },
-		{ value: 'RI', name: 'Rhode Island' },
-		{ value: 'SC', name: 'South Carolina' },
-		{ value: 'SD', name: 'South Dakota' },
-		{ value: 'TN', name: 'Tennessee' },
-		{ value: 'TX', name: 'Texas' },
-		{ value: 'UT', name: 'Utah' },
-		{ value: 'VT', name: 'Vermont' },
-		{ value: 'VA', name: 'Virginia' },
-		{ value: 'WA', name: 'Washington' },
-		{ value: 'WV', name: 'West Virginia' },
-		{ value: 'WI', name: 'Wisconsin' },
-		{ value: 'WY', name: 'Wyoming' }
-	];
-	const levels = [
-		{ value: 'INVITATIONAL', name: 'Invitational' },
-		{ value: 'REGIONAL', name: 'Regional' },
-		{ value: 'STATE', name: 'State' },
-		{ value: 'NATIONAL', name: 'National' }
-	];
-	const divisions = [
-		{ value: 'C', name: 'High School (Div. C)' },
-		{ value: 'B', name: 'Middle School (Div. B)' },
-		{ value: 'A', name: 'Elementary School (Div. A)' }
-	];
+	let fields: Partial<Omit<Tournament, 'id'>> = {};
+	let dirty: { [k in keyof Tournament]?: boolean } = {};
+
+	let step = 0;
+	function commit() {
+		fields.shortName = dirty.shortName
+			? fields.shortName
+			: shortName(fields.name);
+		fields.endDate = dirty.endDate ? fields.endDate : fields.startDate;
+		fields.awardsDate = dirty.awardsDate ? fields.awardsDate : fields.endDate;
+
+		step = Object.values(fields).filter((v) => v).length;
+	}
+
+	export const snapshot: Snapshot<typeof fields> = {
+		capture: () => fields,
+		restore: (value) => (fields = value)
+	};
+
+	async function createTournament() {
+		// TODO: Validate fields
+		console.log(fields);
+		const formData = new FormData();
+		for (const [key, value] of Object.entries(fields)) {
+			formData.append(key, value?.toString() ?? '');
+		}
+		const resp = await fetch('/new', {
+			method: 'POST',
+			body: formData
+		});
+		if (resp.ok) {
+			redirect(303, '/dashboard');
+		} else {
+			// TODO: Handle error
+		}
+	}
 </script>
 
 <Head title="Create Tournament | Duosmium Scoring" />
 
-<h1>Create a new tournament!</h1>
+<h1 class="text-center">Create a new tournament!</h1>
 
-<h2>General Info</h2>
-
-<P><span class="text-red-600">*</span> Indicates required field.</P>
-
-<form use:enhance method="post">
-	<Label>
-		Name: <span class="text-red-600">*</span>
-		<Input type="text" name="name" value={form?.returned.name} required />
-	</Label>
-	<Label>
-		Short Name: <span class="text-red-600">*</span>
-		<Input type="text" name="shortName" value={form?.returned.shortName} required />
-	</Label>
-	<Label>
-		Location: <span class="text-red-600">*</span>
-		<Input type="text" name="location" value={form?.returned.location} required />
-	</Label>
-	<Label>
-		State: <span class="text-red-600">*</span>
-		<Select name="state" items={states} value={form?.returned.state} required />
-	</Label>
-	<Label>
-		Level: <span class="text-red-600">*</span>
-		<Select name="level" items={levels} value={form?.returned.level} required />
-	</Label>
-	<Label>
-		Division: <span class="text-red-600">*</span>
-		<Select name="division" items={divisions} value={form?.returned.division} required />
-	</Label>
-	<Label>
-		Year: <span class="text-red-600">*</span>
-		<Input type="number" name="year" value={form?.returned.year} required />
-	</Label>
-	<Label>
-		Start Date: <span class="text-red-600">*</span>
-		<Input type="date" name="startDate" value={form?.returned.startDate} required />
-	</Label>
-	<Label>
-		End Date: <span class="text-red-600">*</span>
-		<Input type="date" name="endDate" value={form?.returned.endDate} required />
-	</Label>
-	<Label>
-		Awards Date: <span class="text-red-600">*</span>
-		<Input type="date" name="awardsDate" value={form?.returned.awardsDate} required />
-	</Label>
-	<Checkbox name="enableTracks" checked={form?.returned.enableTracks}
-		>Enable Tracks (Optional)</Checkbox
-	>
-	<Label>
-		Number of Medals Awarded (Optional, default 6): <Input
-			type="number"
-			name="medals"
-			value={form?.returned.medals}
+<Timeline class="mt-14 max-w-3xl mx-auto">
+	<Step {step} thisStep={0} title="First, what type of tournament is this?">
+		<ul
+			class="items-center w-full rounded-lg border border-gray-200 sm:flex dark:bg-gray-800 dark:border-gray-600 divide-x rtl:divide-x-reverse divide-gray-200 dark:divide-gray-600"
+		>
+			{#each levels as { value, name }}
+				<li class="w-full">
+					<Radio
+						on:change={() => {
+							dirty.level = true;
+							commit();
+						}}
+						bind:group={fields.level}
+						{value}
+						name="tournament-level"
+						class="p-3">{name}</Radio
+					>
+				</li>
+			{/each}
+		</ul>
+	</Step>
+	<Step {step} thisStep={1} title="Where is this tournament being held?">
+		<Select
+			on:change={() => {
+				dirty.state = true;
+				commit();
+			}}
+			name="state"
+			items={states}
+			bind:value={fields.state}
+			required
 		/>
-	</Label>
-	<Label>
-		Number of Trophies Awarded (Optional, default 3): <Input
-			type="number"
-			name="trophies"
-			value={form?.returned.trophies}
+	</Step>
+	<Step {step} thisStep={2} title="Now for a name.">
+		<Input
+			on:change={() => {
+				dirty.name = true;
+				commit();
+			}}
+			type="text"
+			name="name"
+			bind:value={fields.name}
+			required
 		/>
-	</Label>
-	<Label>
-		Bids (Optional): <Input type="number" name="bids" value={form?.returned.bids} />
-	</Label>
-	<Label>
-		N-Offset (Optional): <Input type="number" name="nOffset" value={form?.returned.nOffset} />
-	</Label>
-	<Label>
-		Drops (Optional): <Input type="number" name="drops" value={form?.returned.drops} />
-	</Label>
-	<Button type="submit">Save</Button>
-</form>
+	</Step>
+	<Step {step} thisStep={3} title="Short Name">
+		<Input
+			on:change={() => {
+				dirty.shortName = true;
+				commit();
+			}}
+			type="text"
+			name="shortName"
+			bind:value={fields.shortName}
+			required
+		/>
+	</Step>
+	<Step {step} thisStep={4} title="Location">
+		<Input
+			on:change={() => {
+				dirty.location = true;
+				commit();
+			}}
+			type="text"
+			name="location"
+			bind:value={fields.location}
+			required
+		/>
+	</Step>
+	<Step {step} thisStep={5} title="Division">
+		<Select
+			on:change={() => {
+				dirty.division = true;
+				commit();
+			}}
+			name="division"
+			items={divisions}
+			bind:value={fields.division}
+			required
+		/>
+	</Step>
+	<Step {step} thisStep={6} title="Year">
+		<Input
+			on:change={() => {
+				dirty.year = true;
+				commit();
+			}}
+			type="number"
+			name="year"
+			bind:value={fields.year}
+			required
+		/>
+	</Step>
+	<Step {step} thisStep={7} title="When does your tournament start and end?">
+		<p>If your tournament is one day, set them to the same day.</p>
+		<div class="flex flex-wrap items-center gap-4">
+			<Input
+				class="flex-1"
+				on:change={() => {
+					dirty.startDate = true;
+					commit();
+				}}
+				type="date"
+				bind:value={fields.startDate}
+				required
+			/>
+			<span>to</span>
+			<Input
+				class="flex-1"
+				on:change={() => {
+					dirty.endDate = true;
+					commit();
+				}}
+				type="date"
+				bind:value={fields.endDate}
+				required
+			/>
+		</div>
+	</Step>
+	<Step {step} thisStep={8} title="What day is your awards ceremony?">
+		<Input
+			on:change={() => {
+				dirty.awardsDate = true;
+				commit();
+			}}
+			type="date"
+			bind:value={fields.awardsDate}
+			required
+		/>
+	</Step>
+	<Step {step} thisStep={9} title="Optional settings">
+		<Checkbox
+			on:change={() => {
+				dirty.enableTracks = true;
+				commit();
+			}}
+			name="enableTracks"
+			bind:checked={fields.enableTracks}>Enable Tracks</Checkbox
+		>
+		<Label>
+			Number of Medals Awarded (Optional, default 6): <Input
+				on:change={() => {
+					dirty.medals = true;
+					commit();
+				}}
+				type="number"
+				name="medals"
+				bind:value={fields.medals}
+			/>
+		</Label>
+		<Label>
+			Number of Trophies Awarded (Optional, default 3): <Input
+				on:change={() => {
+					dirty.trophies = true;
+					commit();
+				}}
+				type="number"
+				name="trophies"
+				bind:value={fields.trophies}
+			/>
+		</Label>
+		<Label>
+			Bids (Optional): <Input
+				on:change={() => {
+					dirty.bids = true;
+					commit();
+				}}
+				type="number"
+				name="bids"
+				bind:value={fields.bids}
+			/>
+		</Label>
+		<Label>
+			N-Offset (Optional): <Input
+				on:change={() => {
+					dirty.nOffset = true;
+					commit();
+				}}
+				type="number"
+				name="nOffset"
+				bind:value={fields.nOffset}
+			/>
+		</Label>
+		<Label>
+			Drops (Optional): <Input
+				on:change={() => {
+					dirty.drops = true;
+					commit();
+				}}
+				type="number"
+				name="drops"
+				bind:value={fields.drops}
+			/>
+		</Label>
+	</Step>
+	<Step {step} thisStep={10} title="Finish!">
+		<p>
+			Please review your tournament information. If everything looks good, click
+			"Create Tournament" to create your tournament.
+		</p>
+		<Button on:click={createTournament}>Create Tournament</Button>
+	</Step>
+</Timeline>
 
 <style>
-	form {
-		display: flex;
-		flex-direction: column;
-		gap: 16px;
-	}
 </style>
