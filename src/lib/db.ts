@@ -11,6 +11,7 @@ import {
 import * as schema from '$drizzle/schema';
 import { db } from '$drizzle/db';
 import { and, eq, inArray } from 'drizzle-orm';
+import { captureException } from '@sentry/sveltekit';
 // TODO: double check permissions in every function
 
 export async function createOrUpdateUser(userId: string, name: string) {
@@ -45,6 +46,8 @@ export async function updateTournament(
 			.set(tournament)
 			.where(eq(schema.Tournament.id, tournamentId));
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 	return true;
@@ -61,6 +64,9 @@ export async function createInvites(
 ) {
 	if (typeof tournamentId === 'string') {
 		tournamentId = BigInt(tournamentId);
+	}
+	if (invites.length === 0) {
+		return true;
 	}
 	try {
 		await db.insert(schema.Invite).values(
@@ -81,6 +87,8 @@ export async function createInvites(
 			)
 		);
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 	return true;
@@ -105,6 +113,8 @@ export async function getInvite(link: string) {
 				}
 			: false;
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 }
@@ -135,6 +145,8 @@ export async function updateInvite(
 			});
 		}
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 	return true;
@@ -144,6 +156,8 @@ export async function deleteInvites(invites: string[]) {
 	try {
 		await db.delete(schema.Invite).where(inArray(schema.Invite.link, invites));
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 	return true;
@@ -174,7 +188,7 @@ export async function updateMember(
 				})
 				.returning()
 		)[0];
-		if (data.events != null) {
+		if (data.events && data.events.length !== 0) {
 			await db.transaction(async (tx) => {
 				await tx
 					.delete(schema._ESEventRoles)
@@ -188,6 +202,8 @@ export async function updateMember(
 			});
 		}
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 	return true;
@@ -210,6 +226,8 @@ export async function deleteMembers(
 				)
 			);
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 	return true;
@@ -241,6 +259,9 @@ export async function addEvents(
 	if (typeof tournamentId === 'string') {
 		tournamentId = BigInt(tournamentId);
 	}
+	if (events.length === 0) {
+		return true;
+	}
 	try {
 		await db
 			.insert(schema.Event)
@@ -248,6 +269,8 @@ export async function addEvents(
 				events.map((e) => ({ ...e, tournamentId: tournamentId as bigint }))
 			);
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 	return true;
@@ -260,6 +283,8 @@ export async function touchEventsExport(eventIds: bigint[]) {
 			.set({ lastExportedAt: new Date() })
 			.where(inArray(schema.Event.id, eventIds));
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 	return true;
@@ -302,6 +327,8 @@ export async function updateEvent(
 				.where(eq(schema.Event.id, eventId));
 		}
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 	return true;
@@ -311,6 +338,8 @@ export async function deleteEvent(eventId: bigint) {
 	try {
 		await db.delete(schema.Event).where(eq(schema.Event.id, eventId));
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 	return true;
@@ -320,6 +349,9 @@ export async function addTeams(tournamentId: bigint | string, teams: Team[]) {
 	if (typeof tournamentId === 'string') {
 		tournamentId = BigInt(tournamentId);
 	}
+	if (teams.length === 0) {
+		return true;
+	}
 	try {
 		await db
 			.insert(schema.Team)
@@ -327,6 +359,8 @@ export async function addTeams(tournamentId: bigint | string, teams: Team[]) {
 				teams.map((t) => ({ ...t, tournamentId: tournamentId as bigint }))
 			);
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 	return true;
@@ -336,6 +370,8 @@ export async function updateTeam(teamId: bigint, team: Partial<Team>) {
 	try {
 		await db.update(schema.Team).set(team).where(eq(schema.Team.id, teamId));
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 	return true;
@@ -345,6 +381,8 @@ export async function deleteTeam(teamId: bigint) {
 	try {
 		await db.delete(schema.Team).where(eq(schema.Team.id, teamId));
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 	return true;
@@ -357,6 +395,9 @@ export async function addTracks(
 	if (typeof tournamentId === 'string') {
 		tournamentId = BigInt(tournamentId);
 	}
+	if (tracks.length === 0) {
+		return true;
+	}
 	try {
 		await db
 			.insert(schema.Track)
@@ -364,6 +405,8 @@ export async function addTracks(
 				tracks.map((t) => ({ ...t, tournamentId: tournamentId as bigint }))
 			);
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 	return true;
@@ -376,6 +419,8 @@ export async function updateTrack(trackId: bigint, track: Partial<Track>) {
 			.set(track)
 			.where(eq(schema.Track.id, trackId));
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 	return true;
@@ -385,6 +430,8 @@ export async function deleteTrack(trackId: bigint) {
 	try {
 		await db.delete(schema.Track).where(eq(schema.Track.id, trackId));
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 	return true;
@@ -596,17 +643,24 @@ export async function updateScores(scores: Partial<Score> & { id: bigint }[]) {
 			)
 		);
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 	return true;
 }
 
 export async function addScores(scores: Omit<Score, 'id'>[]) {
+	if (scores.length === 0) {
+		return true;
+	}
 	try {
 		await db
 			.insert(schema.Score)
 			.values(scores.map((s) => ({ ...s, checklist: s.checklist ?? null })));
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 	return true;
@@ -616,6 +670,8 @@ export async function deleteScores(scores: bigint[]) {
 	try {
 		await db.delete(schema.Score).where(inArray(schema.Score.id, scores));
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 	return true;
@@ -656,6 +712,8 @@ export async function updateSlidesSettings(
 				set: { settings }
 			});
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 	return true;
@@ -687,6 +745,8 @@ export async function addSlidesBatch(
 				set: { batches }
 			});
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 	return true;
@@ -709,6 +769,8 @@ export async function markSlidesDone(
 				set: { done }
 			});
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 	return true;
@@ -731,6 +793,8 @@ export async function setSlidesChannel(
 				set: { channelId }
 			});
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 	return true;
@@ -750,6 +814,8 @@ export async function clearSlides(tournamentId: bigint | string) {
 				set: { batches: [], channelId: null, done: false }
 			});
 	} catch (e) {
+		console.error(e);
+		captureException(e);
 		return false;
 	}
 	return true;
