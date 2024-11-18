@@ -174,17 +174,19 @@ export async function updateMember(
 				})
 				.returning()
 		)[0];
-		await db.transaction(async (tx) => {
-			await tx
-				.delete(schema._ESEventRoles)
-				.where(eq(schema._ESEventRoles.B, role.id));
-			await tx.insert(schema._ESEventRoles).values(
-				data.events?.map((e) => ({
-					A: e,
-					B: role.id
-				})) ?? []
-			);
-		});
+		if (data.events != null) {
+			await db.transaction(async (tx) => {
+				await tx
+					.delete(schema._ESEventRoles)
+					.where(eq(schema._ESEventRoles.B, role.id));
+				await tx.insert(schema._ESEventRoles).values(
+					data.events!.map((e) => ({
+						A: e,
+						B: role.id
+					})) ?? []
+				);
+			});
+		}
 	} catch (e) {
 		return false;
 	}

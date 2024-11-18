@@ -29,25 +29,6 @@ export const POST = async ({ request, locals }) => {
 	const nOffset = parseInt(formData.get('nOffset')?.toString() ?? '') || null;
 	const drops = parseInt(formData.get('drops')?.toString() ?? '') || null;
 
-	console.log({
-		name,
-		shortName,
-		location,
-		state,
-		level,
-		division,
-		year,
-		startDate,
-		endDate,
-		awardsDate,
-		enableTracks,
-		medals,
-		trophies,
-		bids,
-		nOffset,
-		drops
-	});
-
 	const tournament = await createTournament({
 		name,
 		shortName,
@@ -66,7 +47,15 @@ export const POST = async ({ request, locals }) => {
 		nOffset,
 		drops
 	});
-	await updateMember(tournament.id, locals.userId, { role: 'TD' });
+	const memberUpdate = await updateMember(tournament.id, locals.userId, {
+		role: 'TD'
+	});
+
+	if (!tournament || !memberUpdate) {
+		return new Response('error', {
+			status: 500
+		});
+	}
 
 	return new Response('ok', {
 		status: 200

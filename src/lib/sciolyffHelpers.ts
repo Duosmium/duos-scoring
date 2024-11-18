@@ -28,3 +28,11 @@ export function shortName(name?: string): string | undefined {
 		)
 		.join(' ');
 }
+
+export function seasonYear(date: Date): number {
+	const seasonStart = new Date(date.getFullYear(), 6, 15); // july 15
+	if (date >= seasonStart) {
+		return date.getFullYear() + 1;
+	}
+	return date.getFullYear();
+}
