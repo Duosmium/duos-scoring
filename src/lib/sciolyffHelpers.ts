@@ -16,10 +16,15 @@ export function shortName(name?: string): string | undefined {
 	return subs
 		.reduce(
 			(name, sub) =>
-				name.toLowerCase().replace(sub[0].toLowerCase(), sub[1] || ''),
+				name
+					.toLowerCase()
+					.replace(
+						new RegExp(`(\\s+|^)${sub[0].toLowerCase()}(\\s+|$)`),
+						sub[1] ? ' ' + sub[1] + ' ' : ' '
+					),
 			name
 		)
-		.split(' ')
+		.split(/\s+/)
 		.filter((w) => w.length > 0)
 		.map((w) =>
 			['at', 'of', 'and'].includes(w)
