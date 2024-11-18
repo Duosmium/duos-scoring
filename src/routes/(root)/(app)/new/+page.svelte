@@ -15,7 +15,7 @@
 	import type { Snapshot } from './$types';
 	import { divisions, levels, states, inviStates } from './consts';
 	import { seasonYear, shortName } from '$lib/sciolyffHelpers';
-	import { addToastMessage } from '$lib/components/Toasts.svelte';
+	import { addToastMessage, clearToasts } from '$lib/components/Toasts.svelte';
 	import { setContext, tick } from 'svelte';
 	import { writable } from 'svelte/store';
 	import { browser } from '$app/environment';
@@ -72,8 +72,12 @@
 		restore: (value) => (fields = value)
 	};
 
+	let creating = false;
 	async function createTournament() {
 		// TODO: Validate fields
+		if (creating || invalid) return;
+		creating = true;
+		addToastMessage('Creating tournament...', 'info');
 		const formData = new FormData();
 		for (const [key, value] of Object.entries(fields)) {
 			formData.append(key, value?.toString() ?? '');
@@ -82,10 +86,13 @@
 			method: 'POST',
 			body: formData
 		});
+		creating = false;
 		if (resp.ok) {
+			goto('/dashboard', { invalidateAll: true });
+			clearToasts();
 			addToastMessage('Tournament created!', 'success');
-			goto('/dashboard');
 		} else {
+			clearToasts();
 			addToastMessage('Failed to create tournament!', 'error');
 			// TODO: Handle error
 		}
@@ -383,7 +390,7 @@
 			Please review your tournament information. If everything looks good, click
 			"Create Tournament" to create your tournament.
 		</p>
-		<Button disabled={invalid} on:click={createTournament}
+		<Button disabled={invalid || creating} on:click={createTournament}
 			>Create Tournament</Button
 		>
 		{#if invalid}
