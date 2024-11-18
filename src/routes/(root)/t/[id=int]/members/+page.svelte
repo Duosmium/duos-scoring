@@ -18,12 +18,12 @@
 		Select
 	} from 'flowbite-svelte';
 	import { page } from '$app/stores';
-	import { invalidateAll } from '$app/navigation';
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 	import papaparse from 'papaparse';
 	import type { UserRole } from '$drizzle/types';
+	import { sendData } from '../helpers';
 
 	export let data: PageData;
 
@@ -52,25 +52,19 @@
 			thing === 'members'
 				? { members: selectedMembers.map((m) => m.user.id) }
 				: { invites: selectedInvites.map((i) => i.link) };
-		fetch(`/t/${$page.params['id']}/members`, {
+		sendData({
 			method: 'DELETE',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(ids)
-		}).then((res) => {
-			if (res.status === 200) {
-				if (thing === 'members') {
-					members = members.filter((m) => !ids.members?.includes(m.user.id));
-				} else {
-					invites = invites.filter((i) => !ids.invites?.includes(i.link));
-				}
-				addToastMessage(
-					`${thing[0].toLocaleUpperCase() + thing.slice(1)} deleted!`,
-					'success'
-				);
+			body: ids,
+			msgs: {
+				info: `Deleting ${thing}...`,
+				success: `${thing[0].toLocaleUpperCase() + thing.slice(1)} deleted!`,
+				error: `Failed to delete ${thing}!`
+			}
+		}).then(() => {
+			if (thing === 'members') {
+				members = members.filter((m) => !ids.members?.includes(m.user.id));
 			} else {
-				addToastMessage(`Failed to delete ${thing}!`, 'error');
+				invites = invites.filter((i) => !ids.invites?.includes(i.link));
 			}
 		});
 	}
@@ -133,28 +127,22 @@
 	}
 	function inviteMembers() {
 		// TODO: validation
-		fetch(`/t/${$page.params['id']}/members`, {
+		sendData({
 			method: 'PUT',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(
-				parsedInvites.slice(0, 15).map((i) => ({
-					email: i.email,
-					events: i.events.map((name) =>
-						events.get(name.toLowerCase())?.id.toString()
-					),
-					role: i.role
-				}))
-			)
-		}).then((res) => {
-			if (res.status === 200) {
-				inviteMembersData = '';
-				addToastMessage('Invites sent!', 'success');
-				invalidateAll();
-			} else {
-				addToastMessage('Failed to send invites!', 'error');
+			body: parsedInvites.slice(0, 15).map((i) => ({
+				email: i.email,
+				events: i.events.map((name) =>
+					events.get(name.toLowerCase())?.id.toString()
+				),
+				role: i.role
+			})),
+			msgs: {
+				info: 'Sending invites...',
+				success: 'Invites sent!',
+				error: 'Failed to send invites!'
 			}
+		}).then(() => {
+			inviteMembersData = '';
 		});
 	}
 
@@ -179,24 +167,19 @@
 	}
 	function editMember() {
 		// TODO: validation
-		fetch(`/t/${$page.params['id']}/members`, {
+		sendData({
 			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
+			body: {
 				member: {
 					userId: editMemberData.userId,
 					role: editMemberData.role,
 					events: editMemberData.events.map((e) => e.toString())
 				}
-			}) // TODO: validate
-		}).then((res) => {
-			if (res.status === 200) {
-				addToastMessage('Member updated!', 'success');
-				invalidateAll();
-			} else {
-				addToastMessage('Failed to update member!', 'error');
+			},
+			msgs: {
+				info: 'Updating member...',
+				success: 'Member updated!',
+				error: 'Failed to update member!'
 			}
 		});
 	}
@@ -222,24 +205,19 @@
 	}
 	function editInvite() {
 		// TODO: validation
-		fetch(`/t/${$page.params['id']}/members`, {
+		sendData({
 			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
+			body: {
 				invite: {
 					link: editInviteData.link,
 					events: editInviteData.events.map((e) => e.toString()),
 					role: editInviteData.role
 				}
-			}) // TODO: validate
-		}).then((res) => {
-			if (res.status === 200) {
-				addToastMessage('Invite updated!', 'success');
-				invalidateAll();
-			} else {
-				addToastMessage('Failed to update invite!', 'error');
+			},
+			msgs: {
+				info: 'Updating invite...',
+				success: 'Invite updated!',
+				error: 'Failed to update invite!'
 			}
 		});
 	}

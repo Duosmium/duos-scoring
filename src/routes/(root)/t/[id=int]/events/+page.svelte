@@ -17,14 +17,13 @@
 		List,
 		Li
 	} from 'flowbite-svelte';
-	import { page } from '$app/stores';
-	import { invalidateAll } from '$app/navigation';
 	import type { TrialStatus } from '$drizzle/types';
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 
 	import currentEvents from '$lib/data/currentEvents';
+	import { sendData } from '../helpers';
 
 	export let data: PageData;
 
@@ -47,19 +46,15 @@
 	function confirmDelete() {
 		const ids = selected.map((ev) => ev.id.toString());
 		events = events.filter((ev) => !ids.includes(ev.id.toString()));
-		fetch(`/t/${$page.params['id']}/events`, {
-			method: 'DELETE',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
+		sendData({
+			method: 'PATCH',
+			body: {
 				events: ids
-			})
-		}).then((res) => {
-			if (res.status === 200) {
-				addToastMessage('Events deleted!', 'success');
-			} else {
-				addToastMessage('Failed to delete events!', 'error');
+			},
+			msgs: {
+				info: 'Deleting events...',
+				success: 'Events deleted!',
+				error: 'Failed to delete events!'
 			}
 		});
 	}
@@ -73,21 +68,16 @@
 				ev.id === id ? { ...ev, trialStatus: newStatus as TrialStatus } : ev
 			);
 
-			fetch(`/t/${$page.params['id']}/events`, {
+			sendData({
 				method: 'PATCH',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
+				body: {
 					event: id.toString(),
 					trialStatus: newStatus
-				})
-			}).then((res) => {
-				if (res.status === 200) {
-					addToastMessage('Event status updated!', 'success');
-					invalidateAll();
-				} else {
-					addToastMessage('Failed to update event status!', 'error');
+				},
+				msgs: {
+					info: 'Updating event status...',
+					success: 'Event status updated!',
+					error: 'Failed to update event status!'
 				}
 			});
 		};
@@ -99,29 +89,21 @@
 			addToastMessage('Cannot add all events to division A!', 'error');
 			return;
 		}
-		addToastMessage('Adding events...', 'success');
-
-		Promise.all(
-			currentEvents[data.tournament.division].map(([eventName, highScoring]) =>
-				fetch(`/t/${$page.params['id']}/events`, {
-					method: 'PUT',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({
-						name: eventName,
-						trialStatus: 'SCORING',
-						highScoring: highScoring.toString()
-					})
+		sendData({
+			method: 'PUT',
+			multiple: true,
+			body: currentEvents[data.tournament.division].map(
+				([eventName, highScoring]) => ({
+					name: eventName,
+					trialStatus: 'SCORING',
+					highScoring: highScoring.toString()
 				})
-			)
-		).then((results) => {
-			if (results.some((res) => res.status !== 200)) {
-				addToastMessage('Failed to add events!', 'error');
-			} else {
-				addToastMessage('Events added!', 'success');
+			),
+			msgs: {
+				info: 'Adding events...',
+				success: 'Events added!',
+				error: 'Failed to add events!'
 			}
-			invalidateAll();
 		});
 	}
 
@@ -139,23 +121,18 @@
 	}
 	function addEvent() {
 		// TODO: validate event names for canonicalization
-		fetch(`/t/${$page.params['id']}/events`, {
+		sendData({
 			method: 'PUT',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
+			body: {
 				name: addEventName,
 				trialStatus: addEventTrialStatus,
 				highScoring: addHighScoring,
 				medals: parseInt(addEventMedals) || undefined
-			})
-		}).then((res) => {
-			if (res.status === 200) {
-				addToastMessage('Event added!', 'success');
-				invalidateAll();
-			} else {
-				addToastMessage('Failed to add event!', 'error');
+			},
+			msgs: {
+				info: 'Adding event...',
+				success: 'Event added!',
+				error: 'Failed to add event!'
 			}
 		});
 	}
@@ -189,24 +166,19 @@
 				: ev
 		);
 		// TODO: validate event names for canonicalization
-		fetch(`/t/${$page.params['id']}/events`, {
+		sendData({
 			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
+			body: {
 				event: editEventId.toString(),
 				name: editEventName,
 				trialStatus: editEventTrialStatus,
 				highScoring: editHighScoring,
 				medals: parseInt(editEventMedals) || undefined
-			})
-		}).then((res) => {
-			if (res.status === 200) {
-				addToastMessage('Event edited!', 'success');
-				invalidateAll();
-			} else {
-				addToastMessage('Failed to edit event!', 'error');
+			},
+			msgs: {
+				info: 'Updating event...',
+				success: 'Event edited!',
+				error: 'Failed to edit event!'
 			}
 		});
 	}

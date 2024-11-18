@@ -12,12 +12,10 @@
 		Input,
 		P
 	} from 'flowbite-svelte';
-	import { page } from '$app/stores';
-	import { invalidateAll } from '$app/navigation';
 	import type { Track } from '$drizzle/types';
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
-	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
+	import { sendData } from '../helpers';
 
 	export let data: PageData;
 
@@ -27,21 +25,17 @@
 	let showConfirmDelete = false;
 	function confirmDelete() {
 		const ids = selected.map((t) => t.id.toString());
-		fetch(`/t/${$page.params['id']}/tracks`, {
+		sendData({
 			method: 'DELETE',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				tracks: ids
-			})
-		}).then((res) => {
-			if (res.status === 200) {
-				tracks = tracks.filter((t) => !ids.includes(t.id.toString()));
-				addToastMessage('Tracks deleted!', 'success');
-			} else {
-				addToastMessage('Failed to delete tracks!', 'error');
+			body: { tracks: ids },
+			msgs: {
+				info: 'Deleting tracks...',
+				success: 'Tracks deleted!',
+				error: 'Failed to delete tracks!'
 			}
+		}).then(() => {
+			tracks = tracks.filter((t) => !ids.includes(t.id.toString()));
+			selected = [];
 		});
 	}
 
@@ -59,20 +53,16 @@
 		addTrackData.trophies = addTrackData.trophies
 			? parseInt(addTrackData.trophies as any)
 			: null;
-		fetch(`/t/${$page.params['id']}/tracks`, {
+		sendData({
 			method: 'PUT',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify([addTrackData]) // TODO: validate
-		}).then((res) => {
-			if (res.status === 200) {
-				addTrackData = {};
-				addToastMessage('Track added!', 'success');
-				invalidateAll();
-			} else {
-				addToastMessage('Failed to add track!', 'error');
+			body: [addTrackData],
+			msgs: {
+				info: 'Adding track...',
+				success: 'Track added!',
+				error: 'Failed to add track!'
 			}
+		}).then(() => {
+			addTrackData = {};
 		});
 	}
 
@@ -94,21 +84,13 @@
 				? parseInt(editTrackData.trophies as any)
 				: null
 		};
-		fetch(`/t/${$page.params['id']}/tracks`, {
+		sendData({
 			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				id: editTrackData.id?.toString(),
-				data: sendTrackData
-			}) // TODO: validate
-		}).then((res) => {
-			if (res.status === 200) {
-				addToastMessage('Track updated!', 'success');
-				invalidateAll();
-			} else {
-				addToastMessage('Failed to update track!', 'error');
+			body: { id: editTrackData.id?.toString(), data: sendTrackData },
+			msgs: {
+				info: 'Updating track...',
+				success: 'Track updated!',
+				error: 'Failed to update track!'
 			}
 		});
 	}

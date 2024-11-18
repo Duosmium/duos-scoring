@@ -19,14 +19,14 @@
 		Alert,
 		Checkbox
 	} from 'flowbite-svelte';
-	import { page } from '$app/stores';
-	import { beforeNavigate, invalidateAll } from '$app/navigation';
+	import { beforeNavigate } from '$app/navigation';
 	import type { ScoreStatus, Score } from '$drizzle/types';
 	import papaparse from 'papaparse';
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 	import checklists from '$lib/checklists/checklists';
+	import { sendData } from '../../helpers';
 
 	export let data: PageData;
 
@@ -352,59 +352,38 @@
 		editEventMedals = data.event.medals?.toString() || '';
 	}
 	function editEvent() {
-		fetch(`/t/${$page.params['id']}/events/${$page.params['event']}`, {
+		sendData({
 			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
+			body: {
 				highScoring: editHighScoring,
 				medals: parseInt(editEventMedals) || undefined
-			})
-		}).then((res) => {
-			if (res.status === 200) {
-				addToastMessage('Event edited!', 'success');
-				invalidateAll();
-			} else {
-				addToastMessage('Failed to edit event!', 'error');
+			},
+			msgs: {
+				info: 'Updating event...',
+				success: 'Event edited!',
+				error: 'Failed to edit event!'
 			}
 		});
 	}
 
-	function saveScores() {
+	async function saveScores() {
 		if (locked) return;
-		fetch(`/t/${$page.params['id']}/events/${$page.params['event']}`, {
-			method: 'PUT',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(
-				modifiedTeams
-					.filter((t) =>
-						(['rawScore', 'tier', 'tiebreak', 'status', 'notes'] as const).some(
-							(a) => t.score[a].dirty
-						)
-					)
-					.map((t) => ({
-						id: t.score.id?.toString(),
-						teamId: t.id.toString(),
-						rawScore: t.score.rawScore.dirty ? t.score.rawScore.new : undefined,
-						tier: t.score.tier.dirty ? t.score.tier.new : undefined,
-						tiebreak: t.score.tiebreak.dirty ? t.score.tiebreak.new : undefined,
-						status: t.score.status.dirty ? t.score.status.new : undefined,
-						notes: t.score.notes.dirty ? t.score.notes.new : undefined
-					}))
+		const body = modifiedTeams
+			.filter((t) =>
+				(['rawScore', 'tier', 'tiebreak', 'status', 'notes'] as const).some(
+					(a) => t.score[a].dirty
+				)
 			)
-		}).then((res) => {
-			if (res.status === 200) {
-				addToastMessage('Scores saved!', 'success');
-				invalidateAll().then(() => {
-					modifiedTeams = generateModifiedTeams(data);
-				});
-			} else {
-				addToastMessage('Failed to save scores!', 'error');
-			}
-		});
+			.map((t) => ({
+				id: t.score.id?.toString(),
+				teamId: t.id.toString(),
+				rawScore: t.score.rawScore.dirty ? t.score.rawScore.new : undefined,
+				tier: t.score.tier.dirty ? t.score.tier.new : undefined,
+				tiebreak: t.score.tiebreak.dirty ? t.score.tiebreak.new : undefined,
+				status: t.score.status.dirty ? t.score.status.new : undefined,
+				notes: t.score.notes.dirty ? t.score.notes.new : undefined
+			}));
+
 		modifiedTeams = modifiedTeams.map((t) => ({
 			...t,
 			score: {
@@ -428,6 +407,17 @@
 				notes: { old: t.score.notes.new, new: t.score.notes.new, dirty: false }
 			}
 		}));
+
+		await sendData({
+			method: 'PUT',
+			body,
+			msgs: {
+				info: 'Saving scores...',
+				success: 'Scores saved!',
+				error: 'Failed to save scores!'
+			}
+		});
+		modifiedTeams = generateModifiedTeams(data);
 	}
 
 	let showLockDirty = false;
@@ -457,23 +447,15 @@
 			}
 		}
 		locked = !data.event.locked;
-		fetch(`/t/${$page.params['id']}/events/${$page.params['event']}`, {
+		sendData({
 			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json'
+			body: {
+				locked
 			},
-			body: JSON.stringify({
-				locked: !data.event.locked
-			})
-		}).then((res) => {
-			if (res.status === 200) {
-				addToastMessage(
-					locked ? 'Event marked as done grading!' : 'Event unlocked!',
-					'success'
-				);
-				invalidateAll();
-			} else {
-				addToastMessage('Failed to lock event!', 'error');
+			msgs: {
+				info: `${locked ? 'Locking' : 'Unlocking'} event...`,
+				success: `Event ${locked ? 'marked as done grading' : 'unlocked'}!`,
+				error: `Failed to ${locked ? 'lock' : 'unlock'} event!`
 			}
 		});
 	}
@@ -493,20 +475,15 @@
 			addToastMessage('Cannot audit event!', 'error');
 			return;
 		}
-		fetch(`/t/${$page.params['id']}/events/${$page.params['event']}`, {
+		sendData({
 			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
+			body: {
 				audited: true
-			})
-		}).then((res) => {
-			if (res.status === 200) {
-				addToastMessage('Event audited!');
-				invalidateAll();
-			} else {
-				addToastMessage('Failed to audit event!', 'error');
+			},
+			msgs: {
+				info: 'Auditing event...',
+				success: 'Event audited!',
+				error: 'Failed to audit event!'
 			}
 		});
 	}
@@ -531,32 +508,26 @@
 		checklistData = team.score.checklist ?? undefined;
 		showChecklist = true;
 	}
-	function saveChecklist() {
-		fetch(`/t/${$page.params['id']}/events/${$page.params['event']}`, {
+	async function saveChecklist() {
+		await sendData({
 			method: 'PUT',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify([
+			body: [
 				{
 					id: checklistTeam.score.id?.toString(),
 					teamId: checklistTeam.id.toString(),
 					checklist: checklistData
 				}
-			])
-		}).then((res) => {
-			if (res.status === 200) {
-				addToastMessage('Checklist saved!', 'success');
-				invalidateAll().then(() => {
-					modifiedTeams = modifiedTeams.map((t) => ({
-						...t,
-						checklist: data.scores.find((s) => s.teamId === t.id)?.checklist
-					}));
-				});
-			} else {
-				addToastMessage('Failed to save checklist!', 'error');
+			],
+			msgs: {
+				info: 'Saving checklist...',
+				success: 'Checklist saved!',
+				error: 'Failed to save checklist!'
 			}
 		});
+		modifiedTeams = modifiedTeams.map((t) => ({
+			...t,
+			checklist: data.scores.find((s) => s.teamId === t.id)?.checklist
+		}));
 	}
 
 	function handleKeypress(e: KeyboardEvent) {

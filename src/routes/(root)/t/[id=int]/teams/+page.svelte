@@ -19,12 +19,10 @@
 		Alert
 	} from 'flowbite-svelte';
 	import papaparse from 'papaparse';
-	import { page } from '$app/stores';
-	import { invalidateAll } from '$app/navigation';
 	import type { Team } from '$drizzle/types';
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
-	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
+	import { sendData } from '../helpers';
 
 	export let data: PageData;
 
@@ -98,21 +96,17 @@
 	let showConfirmDelete = false;
 	function confirmDelete() {
 		const ids = selected.map((t) => t.id.toString());
-		fetch(`/t/${$page.params['id']}/teams`, {
+		sendData({
 			method: 'DELETE',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				teams: ids
-			})
-		}).then((res) => {
-			if (res.status === 200) {
-				teams = teams.filter((t) => !ids.includes(t.id.toString()));
-				addToastMessage('Teams deleted!', 'success');
-			} else {
-				addToastMessage('Failed to delete teams!', 'error');
+			body: { teams: ids },
+			msgs: {
+				info: 'Deleting teams...',
+				success: 'Teams deleted!',
+				error: 'Failed to delete teams!'
 			}
+		}).then(() => {
+			teams = teams.filter((t) => !ids.includes(t.id.toString()));
+			selected = [];
 		});
 	}
 
@@ -128,20 +122,16 @@
 			number: parseInt(/\d+/.exec(addTeamData.number as any)?.[0] ?? ''),
 			trackId: addTeamData.trackId?.toString() || null
 		};
-		fetch(`/t/${$page.params['id']}/teams`, {
+		sendData({
 			method: 'PUT',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify([payloadData]) // TODO: validate
-		}).then((res) => {
-			if (res.status === 200) {
-				addTeamData = {};
-				addToastMessage('Team added!', 'success');
-				invalidateAll();
-			} else {
-				addToastMessage('Failed to add team!', 'error');
+			body: [payloadData],
+			msgs: {
+				info: 'Adding team...',
+				success: 'Team added!',
+				error: 'Failed to add team!'
 			}
+		}).then(() => {
+			addTeamData = {};
 		});
 	}
 
@@ -168,21 +158,16 @@
 				? parseInt(editTeamData.penalties as any)
 				: null
 		};
-		fetch(`/t/${$page.params['id']}/teams`, {
+		sendData({
 			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
+			body: {
 				id: editTeamData.id?.toString(),
 				data: sendTeamData
-			}) // TODO: validate
-		}).then((res) => {
-			if (res.status === 200) {
-				addToastMessage('Team updated!', 'success');
-				invalidateAll();
-			} else {
-				addToastMessage('Failed to update team!', 'error');
+			},
+			msgs: {
+				info: 'Updating team...',
+				success: 'Team updated!',
+				error: 'Failed to update team!'
 			}
 		});
 	}
@@ -250,33 +235,27 @@
 	}
 	function importTeams() {
 		if (parsedError) return;
-		fetch(`/t/${$page.params['id']}/teams`, {
+		sendData({
 			method: 'PUT',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(
-				parsedImportTeams.map((t) => ({
-					number: parseInt(t.Number),
-					school: t.School,
-					abbreviation: t.Abbreviation || null,
-					suffix: t.Suffix || null,
-					city: t.City || null,
-					state: t.State,
-					trackId: data.tournament.enableTracks
-						? (tracks?.find((track) => track.name === t.Track)?.value ?? null)
-						: null,
-					exhibition: !!t.Exhibition
-				}))
-			)
-		}).then((res) => {
-			if (res.status === 200) {
-				importTeamsData = '';
-				addToastMessage('Team added!', 'success');
-				invalidateAll();
-			} else {
-				addToastMessage('Failed to add team!', 'error');
+			body: parsedImportTeams.map((t) => ({
+				number: parseInt(t.Number),
+				school: t.School,
+				abbreviation: t.Abbreviation || null,
+				suffix: t.Suffix || null,
+				city: t.City || null,
+				state: t.State,
+				trackId: data.tournament.enableTracks
+					? (tracks?.find((track) => track.name === t.Track)?.value ?? null)
+					: null,
+				exhibition: !!t.Exhibition
+			})),
+			msgs: {
+				info: 'Adding teams...',
+				success: 'Teams added!',
+				error: 'Failed to add teams!'
 			}
+		}).then(() => {
+			importTeamsData = '';
 		});
 	}
 </script>

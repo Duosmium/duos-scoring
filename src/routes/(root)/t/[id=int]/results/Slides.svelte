@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Modal } from 'flowbite-svelte';
-	import { addToastMessage } from '$lib/components/Toasts.svelte';
 
 	import { page } from '$app/stores';
 	import { generatePdf, getColor, getImage } from '$lib/slides/gen';
@@ -8,6 +7,7 @@
 	import type { Slides, Tournament } from '$drizzle/types';
 	import FullscreenPdf from '$lib/components/FullscreenPdf.svelte';
 	import type { RealtimeChannel } from '@supabase/supabase-js';
+	import { sendData } from '../helpers';
 
 	export let tournament: Tournament;
 	export let generateFilename: (tournament: Tournament) => string;
@@ -92,12 +92,14 @@
 	}
 
 	function saveSlidesSettings() {
-		fetch(`/t/${$page.params.id}/results/slides`, {
+		sendData({
 			method: 'PATCH',
-			body: JSON.stringify(currentSettings())
-		}).then((res) => {
-			if (res.status === 200) {
-				addToastMessage('Settings saved!', 'success');
+			body: currentSettings(),
+			path: `/t/${$page.params.id}/results/slides`,
+			msgs: {
+				info: 'Saving settings...',
+				success: 'Settings saved!',
+				error: 'Failed to save settings!'
 			}
 		});
 	}
@@ -209,15 +211,16 @@
 	};
 
 	export const addBatch = async (events: bigint[], done?: boolean) => {
-		const resp = await fetch(`/t/${$page.params.id}/results/slides`, {
+		sendData({
 			method: 'PUT',
-			body: JSON.stringify({ events: events.map((e) => e.toString()), done })
+			body: { events: events.map((e) => e.toString()), done },
+			path: `/t/${$page.params.id}/results/slides`,
+			msgs: {
+				info: 'Pushing events...',
+				success: 'Events pushed!',
+				error: 'Failed to push events!'
+			}
 		});
-		if (resp.status == 200) {
-			addToastMessage('Events pushed!', 'success');
-		} else {
-			addToastMessage('Failed to push events!', 'error');
-		}
 	};
 
 	export const stopPresentation = async () => {
@@ -225,15 +228,18 @@
 			broadcastChannel.unsubscribe();
 			broadcastChannel = undefined;
 		}
-		const resp = await fetch(`/t/${$page.params.id}/results/slides`, {
-			method: 'DELETE'
+		sendData({
+			method: 'DELETE',
+			path: `/t/${$page.params.id}/results/slides`,
+			body: {},
+			msgs: {
+				info: 'Stopping presentation...',
+				success: 'Presentation stopped!',
+				error: 'Failed to stop presentation!'
+			}
+		}).then(() => {
+			batchIndex = 0;
 		});
-		batchIndex = 0;
-		if (resp.status == 200) {
-			addToastMessage('Presentation stopped!', 'success');
-		} else {
-			addToastMessage('Failed to stop presentation!', 'error');
-		}
 	};
 </script>
 
