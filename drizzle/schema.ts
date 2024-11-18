@@ -85,7 +85,11 @@ export const TournamentLevels = scoring.enum('TournamentLevels', [
 	'STATE',
 	'NATIONAL'
 ]);
-export const TrialStatus = scoring.enum('TrialStatus', ['SCORING', 'TRIAL', 'TRIALED']);
+export const TrialStatus = scoring.enum('TrialStatus', [
+	'SCORING',
+	'TRIAL',
+	'TRIALED'
+]);
 export const UserRole = scoring.enum('UserRole', ['TD', 'SM', 'ES']);
 
 export const Slides = scoring.table(
@@ -101,7 +105,10 @@ export const Slides = scoring.table(
 	},
 	(table) => {
 		return {
-			tournamentId_key: uniqueIndex('Slides_tournamentId_key').using('btree', table.tournamentId)
+			tournamentId_key: uniqueIndex('Slides_tournamentId_key').using(
+				'btree',
+				table.tournamentId
+			)
 		};
 	}
 );
@@ -113,8 +120,14 @@ export const Event = scoring.table('Event', {
 	highScoring: boolean('highScoring').default(true).notNull(),
 	locked: boolean('locked').default(false).notNull(),
 	medals: smallint('medals'),
-	auditedUserId: uuid('auditedUserId').references(() => User.id, { onDelete: 'cascade' }),
-	auditedAt: timestamp('auditedAt', { precision: 3, withTimezone: true, mode: 'date' }),
+	auditedUserId: uuid('auditedUserId').references(() => User.id, {
+		onDelete: 'cascade'
+	}),
+	auditedAt: timestamp('auditedAt', {
+		precision: 3,
+		withTimezone: true,
+		mode: 'date'
+	}),
 	tournamentId: bigint('tournamentId', { mode: 'bigint' })
 		.notNull()
 		.references(() => Tournament.id, { onDelete: 'cascade' }),
@@ -176,11 +189,9 @@ export const Role = scoring.table(
 	},
 	(table) => {
 		return {
-			userId_tournamentId_key: uniqueIndex('Role_userId_tournamentId_key').using(
-				'btree',
-				table.userId,
-				table.tournamentId
-			)
+			userId_tournamentId_key: uniqueIndex(
+				'Role_userId_tournamentId_key'
+			).using('btree', table.userId, table.tournamentId)
 		};
 	}
 );
@@ -206,11 +217,9 @@ export const Team = scoring.table(
 	},
 	(table) => {
 		return {
-			tournamentId_number_key: uniqueIndex('Team_tournamentId_number_key').using(
-				'btree',
-				table.tournamentId,
-				table.number
-			)
+			tournamentId_number_key: uniqueIndex(
+				'Team_tournamentId_number_key'
+			).using('btree', table.tournamentId, table.number)
 		};
 	}
 );
@@ -232,7 +241,9 @@ export const Tournament = scoring.table('Tournament', {
 	startDate: date('startDate', { mode: 'date' }).notNull(),
 	division: Divisions('division').notNull(),
 	enableTracks: boolean('enableTracks').default(false).notNull(),
-	id: bigserial('id', { mode: 'bigint' }).primaryKey().notNull()
+	id: bigserial('id', { mode: 'bigint' }).primaryKey().notNull(),
+	approved: boolean('approved').default(false).notNull(),
+	requestingApproval: boolean('requestingApproval').default(false).notNull()
 });
 
 export const Track = scoring.table('Track', {
@@ -262,7 +273,11 @@ export const _ESEventRoles = scoring.table(
 	},
 	(table) => {
 		return {
-			AB_unique: uniqueIndex('_ESEventRoles_AB_unique').using('btree', table.A, table.B),
+			AB_unique: uniqueIndex('_ESEventRoles_AB_unique').using(
+				'btree',
+				table.A,
+				table.B
+			),
 			B_idx: index().using('btree', table.B)
 		};
 	}
@@ -276,11 +291,18 @@ export const _InviteEvents = scoring.table(
 			.references(() => Event.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
 		B: text('B')
 			.notNull()
-			.references(() => Invite.link, { onDelete: 'cascade', onUpdate: 'cascade' })
+			.references(() => Invite.link, {
+				onDelete: 'cascade',
+				onUpdate: 'cascade'
+			})
 	},
 	(table) => {
 		return {
-			AB_unique: uniqueIndex('_InviteEvents_AB_unique').using('btree', table.A, table.B),
+			AB_unique: uniqueIndex('_InviteEvents_AB_unique').using(
+				'btree',
+				table.A,
+				table.B
+			),
 			B_idx: index().using('btree', table.B)
 		};
 	}

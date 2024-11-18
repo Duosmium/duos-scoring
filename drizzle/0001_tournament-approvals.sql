@@ -1,0 +1,2 @@
+ALTER TABLE "scoring"."Tournament" ADD COLUMN "approved" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "scoring"."Tournament" ADD COLUMN "requestingApproval" boolean DEFAULT false NOT NULL;
