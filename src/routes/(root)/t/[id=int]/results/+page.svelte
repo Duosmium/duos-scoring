@@ -275,6 +275,19 @@
 			}
 		});
 	}
+
+	function requestApproval() {
+		sendData({
+			path: `/t/${$page.params.id}`,
+			method: 'PATCH',
+			body: { requestingApproval: true },
+			msgs: {
+				info: 'Requesting approval...',
+				success: 'Approval requested!',
+				error: 'Failed to request approval!'
+			}
+		});
+	}
 </script>
 
 <Head
@@ -292,7 +305,92 @@
 	marked as audited by a tournament director or scoremaster.</P
 >
 
-<P>To update/publish results to duosmium.org, email admin@duosmium.org.</P>
+<P
+	>To update/publish results to duosmium.org, ensure the tournament is approved
+	and all events are audited, then select all events. A publish button should
+	appear at the bottom of your screen.</P
+>
+
+<ul class="flex gap-4 mb-6">
+	<li class="flex items-center gap-1">
+		{#if data.tournament.approved}
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				viewBox="0 0 24 24"
+				fill="currentColor"
+				class="size-6 text-green-500"
+			>
+				<path
+					fill-rule="evenodd"
+					d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z"
+					clip-rule="evenodd"
+				/>
+			</svg>
+			Tournament Approved
+		{:else if data.tournament.requestingApproval}
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				viewBox="0 0 24 24"
+				fill="currentColor"
+				class="size-6 text-yellow-400"
+			>
+				<path
+					fill-rule="evenodd"
+					d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm3 10.5a.75.75 0 0 0 0-1.5H9a.75.75 0 0 0 0 1.5h6Z"
+					clip-rule="evenodd"
+				/>
+			</svg>
+			Approval Pending
+		{:else}
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				viewBox="0 0 24 24"
+				fill="currentColor"
+				class="size-6 text-red-500"
+			>
+				<path
+					fill-rule="evenodd"
+					d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-1.72 6.97a.75.75 0 1 0-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06L12 13.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L13.06 12l1.72-1.72a.75.75 0 1 0-1.06-1.06L12 10.94l-1.72-1.72Z"
+					clip-rule="evenodd"
+				/>
+			</svg>
+			<button class="hover:underline cursor-pointer" on:click={requestApproval}
+				>Request Approval?</button
+			>
+		{/if}
+	</li>
+	<li class="flex items-center gap-1">
+		{#if events.every((e) => e.audited)}
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				viewBox="0 0 24 24"
+				fill="currentColor"
+				class="size-6 text-green-500"
+			>
+				<path
+					fill-rule="evenodd"
+					d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z"
+					clip-rule="evenodd"
+				/>
+			</svg>
+			All Events Audited
+		{:else}
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				viewBox="0 0 24 24"
+				fill="currentColor"
+				class="size-6 text-red-500"
+			>
+				<path
+					fill-rule="evenodd"
+					d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-1.72 6.97a.75.75 0 1 0-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06L12 13.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L13.06 12l1.72-1.72a.75.75 0 1 0-1.06-1.06L12 10.94l-1.72-1.72Z"
+					clip-rule="evenodd"
+				/>
+			</svg>
+			Some Events Not Audited
+		{/if}
+	</li>
+</ul>
 
 <div class="w-full flex justify-between items-center flex-wrap mb-2">
 	<Checkbox bind:checked={exportHistos}>Export Histograms</Checkbox>
@@ -438,7 +536,10 @@
 		</TableHeadCell>
 	</svelte:fragment>
 	<svelte:fragment slot="item" let:item={event}>
-		<TableBodyCell class="py-0 px-2">{event.name}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2"
+			><a href="/t/{$page.params.id}/events/{event.id}">{event.name}</a
+			></TableBodyCell
+		>
 		<TableBodyCell class="py-0 px-2"
 			>{event.medals ?? data.tournament.medals}</TableBodyCell
 		>
