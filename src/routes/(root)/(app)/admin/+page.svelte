@@ -77,7 +77,9 @@
 				{/each}
 			</List></TableBodyCell
 		>
-		<TableBodyCell class="py-0 px-2">{t.name}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2"
+			>{t.year} {t.name} {t.division}</TableBodyCell
+		>
 		<TableBodyCell class="px-2">
 			<List>
 				<li><span>Short Name:</span> {t.shortName}</li>
@@ -122,7 +124,9 @@
 				{/each}
 			</List></TableBodyCell
 		>
-		<TableBodyCell class="py-0 px-2">{t.name}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2"
+			>{t.year} {t.name} {t.division}</TableBodyCell
+		>
 		<TableBodyCell class="py-0 px-2"
 			>{t.startDate.toISOString().split('T')[0]} to {t.endDate
 				.toISOString()
@@ -168,7 +172,9 @@
 				{/each}
 			</List></TableBodyCell
 		>
-		<TableBodyCell class="py-0 px-2">{t.name}</TableBodyCell>
+		<TableBodyCell class="py-0 px-2"
+			>{t.year} {t.name} {t.division}</TableBodyCell
+		>
 		<TableBodyCell class="py-0 px-2"
 			>{t.startDate.toISOString().split('T')[0]} to {t.endDate
 				.toISOString()
