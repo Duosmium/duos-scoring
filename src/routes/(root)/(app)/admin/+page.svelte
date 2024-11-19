@@ -43,6 +43,10 @@
 			selectedApproved = [];
 		});
 	}
+
+	function fmtDate(date: Date): string {
+		return date.toUTCString().split(' ').slice(0, 4).join(' ');
+	}
 </script>
 
 <Head title="Admin Dashboard | Duosmium Scoring" />
@@ -99,11 +103,9 @@
 				<li><span>Year:</span> {t.year}</li>
 				<li>
 					<span>Dates:</span>
-					{t.startDate.toISOString().split('T')[0]} to {t.endDate
-						.toISOString()
-						.split('T')[0]}
+					{fmtDate(t.startDate)} to {fmtDate(t.endDate)}
 				</li>
-				<li><span>Awards:</span> {t.awardsDate.toISOString().split('T')[0]}</li>
+				<li><span>Awards:</span> {fmtDate(t.awardsDate)}</li>
 				<li><span>Medals:</span> {t.medals}</li>
 				<li><span>Trophies:</span> {t.trophies}</li>
 				<li><span>Bids:</span> {t.bids}</li>
@@ -137,9 +139,7 @@
 			>{t.year} {t.name} {t.division}</TableBodyCell
 		>
 		<TableBodyCell class="py-0 px-2"
-			>{t.startDate.toISOString().split('T')[0]} to {t.endDate
-				.toISOString()
-				.split('T')[0]}</TableBodyCell
+			>{fmtDate(t.startDate)} to {fmtDate(t.endDate)}</TableBodyCell
 		>
 	</svelte:fragment>
 </SelectableTable>
@@ -185,9 +185,7 @@
 			>{t.year} {t.name} {t.division}</TableBodyCell
 		>
 		<TableBodyCell class="py-0 px-2"
-			>{t.startDate.toISOString().split('T')[0]} to {t.endDate
-				.toISOString()
-				.split('T')[0]}</TableBodyCell
+			>{fmtDate(t.startDate)} to {fmtDate(t.endDate)}</TableBodyCell
 		>
 	</svelte:fragment>
 </SelectableTable>
