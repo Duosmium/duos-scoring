@@ -21,12 +21,12 @@
 	} from 'flowbite-svelte';
 	import ChevronDownOutline from 'flowbite-svelte-icons/ChevronDownOutline.svelte';
 	import { page } from '$app/stores';
-	import yaml from 'js-yaml';
 	import * as zip from '@zip.js/zip.js';
-	import type { Tournament } from '$drizzle/types';
 
 	import { invalidateAll } from '$app/navigation';
 	import Slides from './Slides.svelte';
+	import { generateFilename, generateSciolyFF } from '$lib/sciolyffHelpers';
+	import { sendData } from '../helpers';
 
 	export let data: PageData;
 
@@ -93,112 +93,27 @@
 			}
 		});
 	}
-	function generateSciolyFF(events?: bigint[]) {
+	function getSciolyFF(events?: bigint[]) {
 		if (!events && selected.length !== 0) touchEventsExportedAt();
-
-		const levelLookup = {
-			INVITATIONAL: 'Invitational',
-			REGIONAL: 'Regionals',
-			STATE: 'States',
-			NATIONAL: 'Nationals'
-		} as const;
 		const selectedEvents = new Set(events ?? selected.flatMap((e) => e.id));
-		const sciolyffRep = {
-			Tournament: {
-				name: data.tournament.name,
-				'short name': data.tournament.shortName ?? undefined,
-				location: data.tournament.location,
-				state: data.tournament.state,
-				level: levelLookup[data.tournament.level],
-				division: data.tournament.division,
-				year: data.tournament.year,
-				'start date': data.tournament.startDate.toISOString().split('T')[0],
-				'end date': data.tournament.endDate.toISOString().split('T')[0],
-				'awards date': data.tournament.awardsDate.toISOString().split('T')[0],
-				medals: data.tournament.medals,
-				trophies: data.tournament.trophies,
-				bids: data.tournament.bids ?? undefined,
-				'n offset': data.tournament.nOffset ?? undefined,
-				'worst placings dropped': data.tournament.drops ?? undefined
-			},
-			Events: data.events.flatMap((e) =>
-				selectedEvents.has(e.id)
-					? [
-							{
-								name: e.name,
-								trial: e.trialStatus === 'TRIAL' ? true : undefined,
-								trialed: e.trialStatus === 'TRIALED' ? true : undefined,
-								medals: e.medals ?? undefined
-							}
-						]
-					: []
-			),
-			Tracks:
-				data.tournament.enableTracks && data.tracks.length
-					? data.tracks.map((t) => ({
-							name: t.name,
-							medals: t.medals ?? undefined,
-							trophies: t.trophies ?? undefined
-						}))
-					: undefined,
-			Teams: data.teams.map((t) => ({
-				number: t.number,
-				school: t.school,
-				'school abbreviation': t.abbreviation ?? undefined,
-				suffix: t.suffix ?? undefined,
-				city: t.city ?? undefined,
-				state: t.state,
-				track: t.track?.name ?? undefined,
-				exhibition: t.exhibition || undefined
-			})),
-			Placings: data.rankings.flatMap((s) =>
-				selectedEvents.has(s.event.id)
-					? [
-							{
-								team: s.team.number,
-								event: s.event.name,
-								participated:
-									s.ranking === 'PARTICIPATION'
-										? true
-										: s.ranking === 'NOSHOW'
-											? false
-											: undefined,
-								disqualified:
-									s.status === 'DISQUALIFICATION' ? true : undefined,
-								place: typeof s.ranking === 'number' ? s.ranking : undefined,
-								tie: s.tie || undefined
-							}
-						]
-					: []
-			),
-			Penalties:
-				data.teams.flatMap((t) =>
-					t.penalties == null
-						? []
-						: [
-								{
-									team: t.number,
-									points: t.penalties
-								}
-							]
-				) || undefined,
-			Histograms: exportHistos
-				? {
-						type: 'data',
-						data: data.events.flatMap((e) =>
-							selectedEvents.has(e.id)
-								? [{ ...data.histos.get(e.id), event: e.name }]
-								: []
-						)
-					}
-				: undefined
-		};
 
-		return yaml.dump(sciolyffRep);
+		const filteredEvents = data.events.filter((e) => selectedEvents.has(e.id));
+		const filteredRankings = data.rankings.filter((r) =>
+			selectedEvents.has(r.event.id)
+		);
+
+		return generateSciolyFF(
+			data.tournament,
+			filteredEvents,
+			data.tracks,
+			data.teams,
+			filteredRankings,
+			exportHistos ? data.histos : undefined
+		);
 	}
 
 	async function generatePreview() {
-		const content = generateSciolyFF();
+		const content = getSciolyFF();
 
 		const res = await fetch('https://www.duosmium.org/preview/render/', {
 			method: 'POST',
@@ -229,7 +144,7 @@
 	}
 
 	function copySciolyFF() {
-		const content = generateSciolyFF();
+		const content = getSciolyFF();
 		navigator.clipboard.writeText(content).then(
 			() => {
 				addToastMessage('Copied!', 'success');
@@ -241,7 +156,7 @@
 	}
 
 	function downloadSciolyFF() {
-		const content = generateSciolyFF();
+		const content = getSciolyFF();
 		const url = URL.createObjectURL(new Blob([content], { type: 'text/yaml' }));
 		const a = document.createElement('a');
 		a.href = url;
@@ -251,43 +166,6 @@
 		a.click();
 		a.remove();
 		URL.revokeObjectURL(url);
-	}
-
-	function generateFilename(tournament: Tournament) {
-		// ^(19|20)\d{2}-[01]\d-[0-3]\d_([\w]+_invitational|([ns]?[A-Z]{2})_[\w]+_regional|([ns]?[A-Z]{2})_states|nationals)_(no_builds_)?[abc]$
-		let output = '';
-		output += tournament.startDate.getUTCFullYear();
-		output +=
-			'-' +
-			(tournament.startDate.getUTCMonth() + 1).toString().padStart(2, '0');
-		output +=
-			'-' + tournament.startDate.getUTCDate().toString().padStart(2, '0');
-		switch (tournament.level) {
-			case 'NATIONAL':
-				output += '_nationals';
-				break;
-			case 'STATE':
-				output += `_${tournament.state}_states`;
-				break;
-			case 'REGIONAL':
-				output += `_${tournament.state}_${(
-					tournament.shortName ?? tournament.name
-				)
-					.toLowerCase()
-					.split('regional')[0]
-					.replace(/\./g, '')
-					.replace(/[^\w]/g, '_')}regional`;
-				break;
-			default:
-				output += `_${(tournament.shortName ?? tournament.name)
-					.toLowerCase()
-					.split('invitational')[0]
-					.replace(/\./g, '')
-					.replace(/[^\w]/g, '_')}invitational`;
-				break;
-		}
-		output += '_' + tournament.division.toLowerCase();
-		return output;
 	}
 
 	let printPreview: HTMLIFrameElement;
@@ -378,6 +256,24 @@
 		a.click();
 		a.remove();
 		URL.revokeObjectURL(url);
+	}
+
+	let showPublish = false;
+	function publishResults() {
+		if (events.some((e) => !e.audited)) {
+			addToastMessage('All events must be audited before publishing.', 'error');
+			return;
+		}
+		sendData({
+			path: `/t/${$page.params.id}/results/publish`,
+			method: 'PUT',
+			body: JSON.stringify({ exportHistos }),
+			msgs: {
+				info: 'Uploading results...',
+				success: 'Results uploaded successfully!',
+				error: 'Failed to upload results.'
+			}
+		});
 	}
 </script>
 
@@ -520,7 +416,16 @@
 </div>
 
 <SelectableTable items={events} bind:selected cols={7}>
-	<svelte:fragment slot="buttons"></svelte:fragment>
+	<svelte:fragment slot="buttons">
+		{#if selected.length === events.length && data.tournament.approved && events.every((e) => e.audited)}
+			<Button
+				color="blue"
+				on:click={() => {
+					showPublish = true;
+				}}>Publish to duosmium.org</Button
+			>
+		{/if}
+	</svelte:fragment>
 	<svelte:fragment slot="headers">
 		<TableHeadCell class="px-2">Event</TableHeadCell>
 		<TableHeadCell class="px-2">Medals</TableHeadCell>
@@ -588,7 +493,7 @@
 
 <Slides
 	{generateFilename}
-	{generateSciolyFF}
+	generateSciolyFF={getSciolyFF}
 	tournament={data.tournament}
 	bind:this={slides}
 />
@@ -662,6 +567,50 @@
 			srcdoc={previewContent}
 		/>
 	{/await}
+</Modal>
+
+<Modal
+	title="Publish to duosmium.org"
+	bind:open={showPublish}
+	autoclose
+	outsideclose
+	size="xl"
+>
+	{#await generatePreview()}
+		<div class="grid place-items-center h-60">
+			<span class="flex items-center">
+				<svg
+					class="animate-spin mr-2 fill-black dark:fill-white"
+					width="24"
+					height="24"
+					viewBox="0 0 24 24"
+					xmlns="http://www.w3.org/2000/svg"
+					><path
+						d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z"
+						opacity=".25"
+					/><path
+						d="M10.14,1.16a11,11,0,0,0-9,8.92A1.59,1.59,0,0,0,2.46,12,1.52,1.52,0,0,0,4.11,10.7a8,8,0,0,1,6.66-6.61A1.42,1.42,0,0,0,12,2.69h0A1.57,1.57,0,0,0,10.14,1.16Z"
+					/></svg
+				><span>Loading...</span>
+			</span>
+		</div>
+	{:then previewContent}
+		<iframe
+			title="Results Preview"
+			class="w-full h-[calc(100vh-200px)]"
+			srcdoc={previewContent}
+		/>
+	{/await}
+	<svelte:fragment slot="footer">
+		<Button
+			color="blue"
+			disabled={selected.length !== events.length || !data.tournament.approved}
+			on:click={() => {
+				publishResults();
+			}}>Publish</Button
+		>
+		<Button color="alternative">Cancel</Button>
+	</svelte:fragment>
 </Modal>
 
 {#await generatePreview()}
