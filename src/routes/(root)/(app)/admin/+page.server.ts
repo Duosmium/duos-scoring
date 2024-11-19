@@ -7,8 +7,8 @@ export const load = async ({ locals }) => {
 		redirect(303, '/dashboard');
 	}
 
-	const pending = await getFilteredTournaments((t, { eq }) =>
-		eq(t.requestingApproval, true)
+	const pending = await getFilteredTournaments((t, { eq, and, ne }) =>
+		and(eq(t.requestingApproval, true), ne(t.approved, true))
 	);
 	const upcoming = await getFilteredTournaments((t, { gt }) =>
 		gt(t.startDate, new Date())
