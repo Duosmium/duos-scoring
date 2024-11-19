@@ -8,10 +8,14 @@
 	);
 	let selected: typeof pending = [];
 
-	$: upcoming = data.upcoming;
+	$: upcoming = data.upcoming.sort(
+		(a, b) => a.startDate.getDate() - b.startDate.getDate()
+	);
 	let selectedUpcoming: typeof upcoming = [];
 
-	$: approved = data.approved;
+	$: approved = data.approved.sort(
+		(a, b) => b.startDate.getDate() - a.startDate.getDate()
+	);
 	let selectedApproved: typeof approved = [];
 </script>
 
