@@ -61,6 +61,15 @@
 				showConfirm = true;
 			}}>Approve</Button
 		>
+		<Button
+			size="sm"
+			color="yellow"
+			on:click={() => {
+				action = 'archive';
+				selected = selectedPending;
+				showConfirm = true;
+			}}>Archive</Button
+		>
 	</svelte:fragment>
 	<svelte:fragment slot="headers">
 		<TableHeadCell class="px-2">Tournament Directors</TableHeadCell>

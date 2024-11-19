@@ -1,6 +1,6 @@
 import { isAdmin, updateTournament } from '$lib/db.js';
 
-export const PATCH = async ({ request, locals, params }) => {
+export const PATCH = async ({ request, locals }) => {
 	if (!(await isAdmin(locals.userId))) {
 		return new Response('Forbidden', { status: 403 });
 	}
