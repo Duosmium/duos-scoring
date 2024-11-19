@@ -3,10 +3,10 @@
 	import { Button, List, TableBodyCell, TableHeadCell } from 'flowbite-svelte';
 
 	export let data;
-	$: tournaments = data.tournaments.sort(
+	$: pending = data.pending.sort(
 		(a, b) => a.startDate.getDate() - b.startDate.getDate()
 	);
-	let selected: typeof tournaments = [];
+	let selected: typeof pending = [];
 
 	$: upcoming = data.upcoming;
 	let selectedUpcoming: typeof upcoming = [];
@@ -15,12 +15,10 @@
 	let selectedApproved: typeof approved = [];
 </script>
 
-tournaments.filter(t => t.approved)
-
 <h1>Admin Dashboard</h1>
 
 <h2 class="w-fit">Pending Approval</h2>
-<SelectableTable items={tournaments} bind:selected cols={6}>
+<SelectableTable items={pending} bind:selected cols={6}>
 	<svelte:fragment slot="buttons">
 		<Button
 			size="sm"

@@ -829,39 +829,14 @@ export async function isAdmin(userId: string) {
 	return admin != undefined;
 }
 
-export async function getTournamentsPendingApproval() {
+export async function getFilteredTournaments(
+	filter: Exclude<
+		Parameters<typeof db.query.Tournament.findMany>[0],
+		undefined
+	>['where']
+) {
 	const tournaments = await db.query.Tournament.findMany({
-		where: (t, { eq }) => eq(t.requestingApproval, true),
-		with: {
-			roles: {
-				with: {
-					user: true
-				}
-			}
-		}
-	});
-
-	return tournaments;
-}
-
-export async function getUpcomingTournaments() {
-	const tournaments = await db.query.Tournament.findMany({
-		where: (t, { gt }) => gt(t.startDate, new Date()),
-		with: {
-			roles: {
-				with: {
-					user: true
-				}
-			}
-		}
-	});
-
-	return tournaments;
-}
-
-export async function getApprovedTournaments() {
-	const tournaments = await db.query.Tournament.findMany({
-		where: (t, { eq }) => eq(t.approved, true),
+		where: filter,
 		with: {
 			roles: {
 				with: {

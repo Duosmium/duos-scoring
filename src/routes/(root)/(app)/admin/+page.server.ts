@@ -1,9 +1,4 @@
-import {
-	getApprovedTournaments,
-	getTournamentsPendingApproval,
-	getUpcomingTournaments,
-	isAdmin
-} from '$lib/db.js';
+import { getFilteredTournaments, isAdmin } from '$lib/db.js';
 import { redirect } from '@sveltejs/kit';
 import { supabase } from '$lib/supabaseAdmin';
 
@@ -12,13 +7,19 @@ export const load = async ({ locals }) => {
 		redirect(303, '/dashboard');
 	}
 
-	const tournaments = await getTournamentsPendingApproval();
-	const upcoming = await getUpcomingTournaments();
-	const approved = await getApprovedTournaments();
+	const pending = await getFilteredTournaments((t, { eq }) =>
+		eq(t.requestingApproval, true)
+	);
+	const upcoming = await getFilteredTournaments((t, { gt }) =>
+		gt(t.startDate, new Date())
+	);
+	const approved = await getFilteredTournaments((t, { eq }) =>
+		eq(t.approved, true)
+	);
 	const emails = new Map(
 		(
 			await Promise.all(
-				[...upcoming, ...tournaments, ...approved]
+				[...upcoming, ...pending, ...approved]
 					.flatMap((t) => t.roles.map((r) => r.userId))
 					.filter((id, i, a) => a.indexOf(id) === i)
 					.map(async (id) => {
@@ -32,5 +33,5 @@ export const load = async ({ locals }) => {
 		).flat()
 	);
 
-	return { approved, upcoming, tournaments, emails };
+	return { approved, upcoming, pending: pending, emails };
 };
