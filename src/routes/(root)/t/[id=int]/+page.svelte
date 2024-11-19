@@ -144,6 +144,17 @@
 			}
 		});
 	}
+	function requestApproval() {
+		sendData({
+			method: 'PATCH',
+			body: { requestingApproval: true },
+			msgs: {
+				info: 'Requesting approval...',
+				success: 'Approval requested!',
+				error: 'Failed to request approval!'
+			}
+		});
+	}
 </script>
 
 <Head
@@ -186,15 +197,32 @@
 		<Card size="lg">
 			<span class="flex justify-between flex-row">
 				<Heading tag="h2" class="mb-2 text-2xl w-fit">About Tournament</Heading>
-				{#if data.role.role === 'TD'}
-					<Button size="sm" on:click={openEditTournament}>Edit</Button>
-				{/if}
+				<div>
+					{#if (data.role.role === 'TD' || data.role.role === 'SM') && !data.tournament.approved && !data.tournament.requestingApproval}
+						<Button size="sm" color="green" on:click={requestApproval}
+							>Request Approval</Button
+						>
+					{/if}
+					{#if data.role.role === 'TD'}
+						<Button size="sm" on:click={openEditTournament}>Edit</Button>
+					{/if}
+				</div>
 			</span>
 			<!-- TODO: Make this pretty -->
 			<List
 				tag="dl"
 				class="text-gray-700 dark:text-gray-300 divide-y divide-gray-200 dark:divide-gray-700"
 			>
+				<div class="flex flex-col pb-3">
+					<DescriptionList tag="dt">Approval Status</DescriptionList>
+					<DescriptionList tag="dd"
+						>{data.tournament.approved
+							? 'Approved'
+							: data.tournament.requestingApproval
+								? 'Pending'
+								: 'Not Requested'}</DescriptionList
+					>
+				</div>
 				<div class="flex flex-col pb-3">
 					<DescriptionList tag="dt">Name</DescriptionList>
 					<DescriptionList tag="dd">{data.tournament.name}</DescriptionList>

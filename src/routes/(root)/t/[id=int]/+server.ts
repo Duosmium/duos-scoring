@@ -12,6 +12,9 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 		return new Response('invalid payload', { status: 400 });
 	}
 
+	// don't allow approval from this endpoint
+	payload.approved = undefined;
+
 	const status = await updateTournament(params.id, payload);
 
 	if (!status) {
