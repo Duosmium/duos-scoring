@@ -10,7 +10,8 @@ import {
 	Role,
 	Track,
 	_ESEventRoles,
-	_InviteEvents
+	_InviteEvents,
+	Admins
 } from './schema';
 
 export const SlidesRelations = relations(Slides, ({ one }) => ({
@@ -118,5 +119,12 @@ export const _InviteEventsRelations = relations(_InviteEvents, ({ one }) => ({
 	invite: one(Invite, {
 		fields: [_InviteEvents.B],
 		references: [Invite.link]
+	})
+}));
+
+export const AdminsRelations = relations(Admins, ({ one }) => ({
+	user: one(User, {
+		fields: [Admins.id],
+		references: [User.id]
 	})
 }));

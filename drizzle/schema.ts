@@ -307,3 +307,10 @@ export const _InviteEvents = scoring.table(
 		};
 	}
 );
+
+export const Admins = scoring.table('Admins', {
+	id: uuid('userId')
+		.primaryKey()
+		.notNull()
+		.references(() => User.id, { onDelete: 'cascade' })
+});
