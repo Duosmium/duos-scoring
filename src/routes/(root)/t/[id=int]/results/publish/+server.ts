@@ -23,7 +23,11 @@ export const PUT = async ({ request, locals, params }) => {
 	await checkScoremasterPerms(locals.user, params.id);
 
 	if (!locals.tournament) {
-		error(500, 'Tournament not found');
+		error(404, 'Tournament not found');
+	}
+
+	if (!locals.tournament.approved) {
+		error(403, 'Tournament not approved');
 	}
 
 	const exportHistos = (await request.json()).exportHistos === true;
