@@ -13,7 +13,7 @@
 
 	import type { Tournament } from '$drizzle/types';
 	import type { Snapshot } from './$types';
-	import { divisions, levels, states, inviStates } from './consts';
+	import { divisions, levels, states, inviStates } from '$lib/consts';
 	import { seasonYear, shortName } from '$lib/sciolyffHelpers';
 	import { addToastMessage, clearToasts } from '$lib/components/Toasts.svelte';
 	import { setContext, tick } from 'svelte';
