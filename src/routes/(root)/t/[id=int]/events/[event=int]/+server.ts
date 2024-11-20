@@ -5,10 +5,10 @@ import {
 	deleteScores,
 	getUserInfo,
 	getEvent
-} from '$lib/db';
+} from '$lib/server/db';
 import type { ScoreStatus, Score } from '$drizzle/types';
 import type { RequestHandler } from './$types';
-import { checkEventPerms } from '$lib/utils';
+import { checkEventPerms } from '$lib/server/utils';
 
 export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 	await checkEventPerms(locals.user, params.id, BigInt(params.event));

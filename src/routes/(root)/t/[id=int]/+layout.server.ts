@@ -1,5 +1,5 @@
 import type { LayoutServerLoad } from './$types';
-import { checkTournamentAccess } from '$lib/utils';
+import { checkTournamentAccess } from '$lib/server/utils';
 import { error } from '@sveltejs/kit';
 
 export const load: LayoutServerLoad = async ({ locals, params }) => {

@@ -1,5 +1,5 @@
 import type { RequestHandler } from './$types';
-import { checkScoremasterPerms } from '$lib/utils';
+import { checkScoremasterPerms } from '$lib/server/utils';
 import chromium from '@sparticuz/chromium';
 import puppeteer from 'puppeteer-core';
 import cookie from 'cookie';
@@ -9,7 +9,9 @@ export const GET: RequestHandler = async ({ params, locals, request }) => {
 
 	try {
 		const browser = await puppeteer.launch({
-			executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || (await chromium.executablePath()),
+			executablePath:
+				process.env.PUPPETEER_EXECUTABLE_PATH ||
+				(await chromium.executablePath()),
 			args: chromium.args,
 			defaultViewport: {
 				width: 1024,

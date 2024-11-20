@@ -7,13 +7,13 @@ import {
 	getEvents,
 	getInvites,
 	getRoles
-} from '$lib/db';
+} from '$lib/server/db';
 import type { RequestHandler } from './$types';
-import { checkIsDirector } from '$lib/utils';
+import { checkIsDirector } from '$lib/server/utils';
 import { customAlphabet } from 'nanoid';
 import { UserRole } from '$drizzle/types';
-import { sendInvite } from '$lib/email';
-import { supabase } from '$lib/supabaseAdmin';
+import { sendInvite } from '$lib/server/email';
+import { supabase } from '$lib/server/supabaseAdmin';
 
 const nanoid = customAlphabet(
 	'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',

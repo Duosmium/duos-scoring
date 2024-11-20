@@ -1,6 +1,6 @@
-import { getFilteredTournaments, isAdmin } from '$lib/db.js';
+import { getFilteredTournaments, isAdmin } from '$lib/server/db.js';
 import { redirect } from '@sveltejs/kit';
-import { supabase } from '$lib/supabaseAdmin';
+import { supabase } from '$lib/server/supabaseAdmin';
 
 export const load = async ({ locals }) => {
 	if (!(await isAdmin(locals.userId))) {

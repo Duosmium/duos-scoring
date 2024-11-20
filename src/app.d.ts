@@ -1,7 +1,7 @@
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
 import type { SupabaseClient, Session, User } from '@supabase/supabase-js';
-import type { getTournamentInfo, getUserInfo } from '$lib/db';
+import type { getTournamentInfo, getUserInfo } from '$lib/server/db';
 
 declare global {
 	namespace App {
@@ -13,8 +13,14 @@ declare global {
 			safeGetSession(): Promise<{ session: Session | null; user: User | null }>;
 			userId: string;
 			user: Exclude<Awaited<ReturnType<typeof getUserInfo>>, false>;
-			tournament?: Exclude<Awaited<ReturnType<typeof getTournamentInfo>>, false>;
-			role?: Exclude<Awaited<ReturnType<typeof getUserInfo>>, false>['roles'][number];
+			tournament?: Exclude<
+				Awaited<ReturnType<typeof getTournamentInfo>>,
+				false
+			>;
+			role?: Exclude<
+				Awaited<ReturnType<typeof getUserInfo>>,
+				false
+			>['roles'][number];
 		}
 		interface PageData {
 			session: Session | null;

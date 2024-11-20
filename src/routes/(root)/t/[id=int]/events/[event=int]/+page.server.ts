@@ -1,7 +1,7 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { getEventScores, getEvents, getTeams } from '$lib/db';
-import { checkEventPerms } from '$lib/utils';
+import { getEventScores, getEvents, getTeams } from '$lib/server/db';
+import { checkEventPerms } from '$lib/server/utils';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
 	await checkEventPerms(locals.user, params.id, BigInt(params.event));

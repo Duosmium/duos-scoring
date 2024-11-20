@@ -8,7 +8,11 @@ import { createServerClient } from '@supabase/ssr';
 import type { Handle } from '@sveltejs/kit';
 
 import * as Sentry from '@sentry/sveltekit';
-import { createOrUpdateUser, getTournamentInfo, getUserInfo } from '$lib/db';
+import {
+	createOrUpdateUser,
+	getTournamentInfo,
+	getUserInfo
+} from '$lib/server/db';
 import { sequence } from '@sveltejs/kit/hooks';
 
 Sentry.init({

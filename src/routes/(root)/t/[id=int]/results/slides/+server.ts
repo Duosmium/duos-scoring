@@ -5,11 +5,11 @@ import {
 	markSlidesDone,
 	setSlidesChannel,
 	updateSlidesSettings
-} from '$lib/db';
-import { checkScoremasterPerms } from '$lib/utils';
+} from '$lib/server/db';
+import { checkScoremasterPerms } from '$lib/server/utils';
 import type { RequestHandler } from './$types';
 import { nanoid } from 'nanoid';
-import { supabase } from '$lib/supabaseAdmin';
+import { supabase } from '$lib/server/supabaseAdmin';
 
 export const GET: RequestHandler = async ({ params, locals }) => {
 	await checkScoremasterPerms(locals.user, params.id);

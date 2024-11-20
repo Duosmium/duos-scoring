@@ -1,7 +1,7 @@
-import { updateTournament } from '$lib/db';
+import { updateTournament } from '$lib/server/db';
 import type { Tournament } from '$drizzle/types';
 import type { RequestHandler } from './$types';
-import { checkIsDirector } from '$lib/utils';
+import { checkIsDirector } from '$lib/server/utils';
 
 export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 	await checkIsDirector(locals.user, params.id);

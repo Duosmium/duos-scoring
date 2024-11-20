@@ -1,4 +1,4 @@
-import { updateMember, createTournament } from '$lib/db';
+import { updateMember, createTournament } from '$lib/server/db';
 import type { Divisions, States, TournamentLevels } from '$drizzle/types';
 
 export const POST = async ({ request, locals }) => {

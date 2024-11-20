@@ -1,7 +1,7 @@
-import { addTeams, deleteTeam, updateTeam } from '$lib/db';
+import { addTeams, deleteTeam, updateTeam } from '$lib/server/db';
 import type { Team } from '$drizzle/types';
 import type { RequestHandler } from './$types';
-import { checkScoremasterPerms } from '$lib/utils';
+import { checkScoremasterPerms } from '$lib/server/utils';
 
 export const DELETE: RequestHandler = async ({ request, locals, params }) => {
 	await checkScoremasterPerms(locals.user, params.id);

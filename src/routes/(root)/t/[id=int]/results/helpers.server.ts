@@ -1,5 +1,5 @@
-import { computeEventRankings, generateHisto } from '$lib/scoreUtils';
-import { getEvents, getTeams, getTracks } from '$lib/db';
+import { computeEventRankings, generateHisto } from '$lib/scoreHelpers';
+import { getEvents, getTeams, getTracks } from '$lib/server/db';
 import type { Histos } from '$lib/sciolyffHelpers';
 
 export async function fetchScores(id: string) {

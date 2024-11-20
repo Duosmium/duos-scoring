@@ -1,4 +1,4 @@
-import { deleteInvites, getInvite, updateMember } from '$lib/db';
+import { deleteInvites, getInvite, updateMember } from '$lib/server/db';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ locals, params }) => {
@@ -12,7 +12,8 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 	}
 
 	const role =
-		locals.user.roles.find((r) => r.tournament.id === invite.tournamentId)?.role ||
+		locals.user.roles.find((r) => r.tournament.id === invite.tournamentId)
+			?.role ||
 		invite.role ||
 		'ES';
 
@@ -27,5 +28,8 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 
 	await deleteInvites([params.invite]);
 
-	return new Response(null, { status: 303, headers: { Location: '/dashboard' } });
+	return new Response(null, {
+		status: 303,
+		headers: { Location: '/dashboard' }
+	});
 };

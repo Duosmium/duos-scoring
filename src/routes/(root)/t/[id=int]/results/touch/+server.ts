@@ -1,6 +1,6 @@
-import { getEvents, touchEventsExport } from '$lib/db';
+import { getEvents, touchEventsExport } from '$lib/server/db';
 import type { RequestHandler } from './$types';
-import { checkScoremasterPerms } from '$lib/utils';
+import { checkScoremasterPerms } from '$lib/server/utils';
 
 export const PATCH: RequestHandler = async ({ request, locals, params }) => {
 	await checkScoremasterPerms(locals.user, params.id);

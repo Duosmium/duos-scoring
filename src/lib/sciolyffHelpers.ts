@@ -1,5 +1,5 @@
 import type { Event, Team, Tournament, Track } from '$drizzle/types';
-import type { computeEventRankings } from './scoreUtils';
+import type { computeEventRankings } from './scoreHelpers';
 
 import yaml from 'js-yaml';
 

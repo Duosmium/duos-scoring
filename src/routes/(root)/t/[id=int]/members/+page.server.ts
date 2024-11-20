@@ -1,8 +1,8 @@
 import type { PageServerLoad } from './$types';
 
-import { checkIsDirector } from '$lib/utils';
-import { supabase } from '$lib/supabaseAdmin';
-import { getEvents, getInvites, getRoles } from '$lib/db';
+import { checkIsDirector } from '$lib/server/utils';
+import { supabase } from '$lib/server/supabaseAdmin';
+import { getEvents, getInvites, getRoles } from '$lib/server/db';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
 	await checkIsDirector(locals.user, params.id);
@@ -13,7 +13,9 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		(
 			await Promise.all(
 				roles.map(async (role) => {
-					const { data, error } = await supabase.auth.admin.getUserById(role.user.id);
+					const { data, error } = await supabase.auth.admin.getUserById(
+						role.user.id
+					);
 					if (error) {
 						return [];
 					}

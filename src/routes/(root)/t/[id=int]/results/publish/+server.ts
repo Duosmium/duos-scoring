@@ -5,9 +5,9 @@ import {
 } from '$env/static/private';
 import { error } from '@sveltejs/kit';
 import { App, Octokit } from 'octokit';
-import { fetchScores } from '../data.server';
+import { fetchScores } from '../helpers.server';
 import { generateFilename, generateSciolyFF } from '$lib/sciolyffHelpers';
-import { checkScoremasterPerms } from '$lib/utils';
+import { checkScoremasterPerms } from '$lib/server/utils';
 import { captureException } from '@sentry/sveltekit';
 import yaml from 'js-yaml';
 // @ts-ignore

@@ -1,8 +1,8 @@
 import type { PageServerLoad } from './$types';
 
-import { checkScoremasterPerms } from '$lib/utils';
-import { getRoles, getSlides } from '$lib/db';
-import { fetchScores } from './data.server';
+import { checkScoremasterPerms } from '$lib/server/utils';
+import { getRoles, getSlides } from '$lib/server/db';
+import { fetchScores } from './helpers.server';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
 	await checkScoremasterPerms(locals.user, params.id);

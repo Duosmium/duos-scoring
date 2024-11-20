@@ -1,4 +1,4 @@
-import { isAdmin, updateTournament } from '$lib/db.js';
+import { isAdmin, updateTournament } from '$lib/server/db.js';
 
 export const PATCH = async ({ request, locals }) => {
 	if (!(await isAdmin(locals.userId))) {

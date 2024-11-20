@@ -1,13 +1,15 @@
 import type { PageServerLoad } from './$types';
 
-import { checkScoremasterPerms } from '$lib/utils';
-import { generateHisto } from '$lib/scoreUtils';
-import { getEvents } from '$lib/db';
+import { checkScoremasterPerms } from '$lib/server/utils';
+import { generateHisto } from '$lib/scoreHelpers';
+import { getEvents } from '$lib/server/db';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
 	await checkScoremasterPerms(locals.user, params.id);
 
-	const event = ((await getEvents(params.id)) || []).find((e) => e.id.toString() === params.event);
+	const event = ((await getEvents(params.id)) || []).find(
+		(e) => e.id.toString() === params.event
+	);
 	if (!event) {
 		return {
 			error: 'Event not found!'
