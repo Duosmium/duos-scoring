@@ -59,8 +59,11 @@ export const PUT = async ({ request, locals, params }) => {
 				mediaType: { format: 'object' }
 			})
 		).data;
-		if (Array.isArray(data)) {
+		if (Array.isArray(data) || data.type !== 'file') {
 			error(500, 'Invalid file');
+		}
+		if (data.content.replace(/\s/g, '') === content) {
+			return new Response('ok', { status: 200 });
 		}
 		sha = data.sha;
 	} catch (e) {}
@@ -78,5 +81,5 @@ export const PUT = async ({ request, locals, params }) => {
 		captureException(e);
 		error(500, 'Error uploading file');
 	}
-	return new Response('ok', { status: 200 });
+	return new Response('ok', { status: 201 });
 };

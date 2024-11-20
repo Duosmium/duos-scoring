@@ -17,6 +17,8 @@
 		Select,
 		TableBodyCell,
 		TableHeadCell,
+		Timeline,
+		TimelineItem,
 		Tooltip
 	} from 'flowbite-svelte';
 	import ChevronDownOutline from 'flowbite-svelte-icons/ChevronDownOutline.svelte';
@@ -259,11 +261,16 @@
 	}
 
 	let showPublish = false;
+	let showStatus = false;
+	let publishStatus: [string, string, 'ok' | 'pending' | 'error'][] = [];
 	function publishResults() {
 		if (events.some((e) => !e.audited)) {
 			addToastMessage('All events must be audited before publishing.', 'error');
 			return;
 		}
+		showPublish = false;
+		publishStatus = [['Uploading results...', '', 'pending']];
+		showStatus = true;
 		sendData({
 			path: `/t/${$page.params.id}/results/publish`,
 			method: 'PUT',
@@ -273,7 +280,66 @@
 				success: 'Results uploaded successfully!',
 				error: 'Failed to upload results.'
 			}
-		});
+		})
+			.then(() => {
+				selected = [];
+				publishStatus = [
+					['Uploading results...', '', 'ok'],
+					['Results uploaded!', '', 'ok'],
+					['Building website...', 'This may take a while.', 'pending']
+				];
+				const interval = setInterval(async () => {
+					const resp = await fetch(
+						'https://api.netlify.com/api/v1/sites/e5240f06-f560-42cf-9484-ed20ba5c7e87/deploys?per_page=1'
+					);
+
+					const status = (await resp.json())[0].state;
+					if (status === 'ready') {
+						clearInterval(interval);
+						publishStatus = [
+							['Uploading results...', '', 'ok'],
+							['Results uploaded!', '', 'ok'],
+							['Building website...', '', 'ok'],
+							['Website built!', '', 'ok'],
+							['Results published!', '', 'ok']
+						];
+						addToastMessage('Results published!', 'success');
+					} else if (status === 'error') {
+						clearInterval(interval);
+						publishStatus = [
+							['Uploading results...', '', 'ok'],
+							['Results uploaded!', '', 'ok'],
+							['Building website...', '', 'error'],
+							[
+								'Failed to build website.',
+								'Please contact a Duosmium admin to resolve this issue.',
+								'error'
+							]
+						];
+						addToastMessage('Failed to publish (build error).', 'error');
+					} else {
+						publishStatus = [
+							['Uploading results...', '', 'ok'],
+							['Results uploaded!', '', 'ok'],
+							[
+								'Building website...',
+								`This may take a while.\nLast status: ${status}; Last checked: ${new Date().toLocaleTimeString()}`,
+								'pending'
+							]
+						];
+					}
+				}, 5000);
+			})
+			.catch(() => {
+				publishStatus = [
+					['Uploading results...', '', 'error'],
+					[
+						'Failed to upload results.',
+						'Please contact a Duosmium admin to resolve this issue.',
+						'error'
+					]
+				];
+			});
 	}
 
 	function requestApproval() {
@@ -677,6 +743,12 @@
 	outsideclose
 	size="xl"
 >
+	<p class="sticky top-0 success !mt-0">
+		Check the below preview, then hit "Publish" if everything looks correct.
+		Additional publishes overwrite previous publishes. <strong
+			>Once published, results can only be removed by a Duosmium admin.</strong
+		>
+	</p>
 	{#await generatePreview()}
 		<div class="grid place-items-center h-60">
 			<span class="flex items-center">
@@ -698,7 +770,7 @@
 	{:then previewContent}
 		<iframe
 			title="Results Preview"
-			class="w-full h-[calc(100vh-200px)]"
+			class="w-full h-[calc(100vh-320px)]"
 			srcdoc={previewContent}
 		/>
 	{/await}
@@ -712,6 +784,77 @@
 		>
 		<Button color="alternative">Cancel</Button>
 	</svelte:fragment>
+</Modal>
+
+<Modal
+	title="Publish Status"
+	bind:open={showStatus}
+	autoclose
+	outsideclose
+	size="sm"
+>
+	<p>
+		Results are being published! You do not need to keep this window open, but
+		it's helpful to check publishing status.
+	</p>
+	<Timeline order="vertical" class="ml-4">
+		{#each publishStatus as [title, body, status]}
+			<TimelineItem
+				{title}
+				classDiv="ring-0 bg-transparent dark:bg-transparent"
+			>
+				<svelte:fragment slot="icon">
+					<span
+						class="flex absolute -start-3 translate-y-0.5 justify-center items-center w-6 h-6 rounded-full"
+					>
+						{#if status === 'ok'}
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 24 24"
+								fill="currentColor"
+								class="size-6 text-green-500"
+							>
+								<path
+									fill-rule="evenodd"
+									d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z"
+									clip-rule="evenodd"
+								/>
+							</svg>
+						{:else if status === 'pending'}
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 24 24"
+								fill="currentColor"
+								class="size-6 text-blue-500 animate-spin"
+							>
+								<path
+									fill-rule="evenodd"
+									d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm0 8.625a1.125 1.125 0 1 0 0 2.25 1.125 1.125 0 0 0 0-2.25ZM15.375 12a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0ZM7.5 10.875a1.125 1.125 0 1 0 0 2.25 1.125 1.125 0 0 0 0-2.25Z"
+									clip-rule="evenodd"
+								/>
+							</svg>
+						{:else}
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 24 24"
+								fill="currentColor"
+								class="size-6 text-red-500"
+							>
+								<path
+									fill-rule="evenodd"
+									d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-1.72 6.97a.75.75 0 1 0-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06L12 13.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L13.06 12l1.72-1.72a.75.75 0 1 0-1.06-1.06L12 10.94l-1.72-1.72Z"
+									clip-rule="evenodd"
+								/>
+							</svg>
+						{/if}
+					</span>
+				</svelte:fragment>
+				{#if body}
+					<p>{body}</p>
+				{/if}
+			</TimelineItem>
+		{/each}
+	</Timeline>
 </Modal>
 
 {#await generatePreview()}
