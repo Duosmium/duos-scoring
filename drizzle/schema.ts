@@ -121,7 +121,7 @@ export const Event = scoring.table('Event', {
 	locked: boolean('locked').default(false).notNull(),
 	medals: smallint('medals'),
 	auditedUserId: uuid('auditedUserId').references(() => User.id, {
-		onDelete: 'cascade'
+		onDelete: 'set null'
 	}),
 	auditedAt: timestamp('auditedAt', {
 		precision: 3,
