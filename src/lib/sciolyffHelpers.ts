@@ -108,8 +108,14 @@ export function generateSciolyFF(
 	} as const;
 	const sciolyffRep = {
 		Tournament: {
-			name: tournament.name,
-			'short name': tournament.shortName ?? undefined,
+			name:
+				tournament.level === 'INVITATIONAL' || tournament.level === 'REGIONAL'
+					? tournament.name
+					: undefined,
+			'short name':
+				tournament.level === 'INVITATIONAL' || tournament.level === 'REGIONAL'
+					? (tournament.shortName ?? undefined)
+					: undefined,
 			location: tournament.location,
 			state: tournament.state,
 			level: levelLookup[tournament.level],
