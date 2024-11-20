@@ -323,7 +323,7 @@
 							['Results uploaded!', '', 'ok'],
 							[
 								'Building website...',
-								`This may take a while.\nLast status: ${status}; Last checked: ${new Date().toLocaleTimeString()}`,
+								`This may take up to 3 minutes. Last status: ${status}; Last checked: ${new Date().toLocaleTimeString()}`,
 								'pending'
 							]
 						];
