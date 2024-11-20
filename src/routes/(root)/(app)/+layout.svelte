@@ -10,8 +10,7 @@
 <Navigation user={data.user} session={data.session}>
 	<svelte:fragment slot="links">
 		<NavLi href="/dashboard">My Tournaments</NavLi>
-		<!-- TODO: create tournaments -->
-		<!-- <NavLi href="/new">New Tournament</NavLi> -->
+		<NavLi href="/new">Create Tournament</NavLi>
 	</svelte:fragment>
 </Navigation>
 

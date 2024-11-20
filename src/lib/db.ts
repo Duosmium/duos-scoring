@@ -12,7 +12,6 @@ import * as schema from '$drizzle/schema';
 import { db } from '$drizzle/db';
 import { and, eq, inArray } from 'drizzle-orm';
 import { captureException } from '@sentry/sveltekit';
-// TODO: double check permissions in every function
 
 export async function createOrUpdateUser(userId: string, name: string) {
 	await db

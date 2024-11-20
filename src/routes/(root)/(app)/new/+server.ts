@@ -45,7 +45,9 @@ export const POST = async ({ request, locals }) => {
 		trophies,
 		bids,
 		nOffset,
-		drops
+		drops,
+		approved: false,
+		requestingApproval: false
 	});
 	const memberUpdate = await updateMember(tournament.id, locals.userId, {
 		role: 'TD'
