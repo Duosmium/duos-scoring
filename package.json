@@ -48,6 +48,7 @@
 		"nanoid": "^5.0.7",
 		"nodemailer": "^6.9.15",
 		"octokit": "^4.0.2",
+		"octokit-commit-multiple-files": "^5.0.2",
 		"papaparse": "^5.4.1",
 		"pdfjs-dist": "^4.6.82",
 		"postcss": "^8.4.45",

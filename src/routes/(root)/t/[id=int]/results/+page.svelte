@@ -260,6 +260,7 @@
 		URL.revokeObjectURL(url);
 	}
 
+	let markPrelim = true;
 	let showPublish = false;
 	let showStatus = false;
 	let publishStatus: [string, string, 'ok' | 'pending' | 'error'][] = [];
@@ -274,7 +275,7 @@
 		sendData({
 			path: `/t/${$page.params.id}/results/publish`,
 			method: 'PUT',
-			body: JSON.stringify({ exportHistos }),
+			body: { exportHistos, markPrelim },
 			msgs: {
 				info: 'Uploading results...',
 				success: 'Results uploaded successfully!',
@@ -742,6 +743,7 @@
 	autoclose
 	outsideclose
 	size="xl"
+	classFooter="justify-end"
 >
 	<p class="sticky top-0 success !mt-0">
 		Check the below preview, then hit "Publish" if everything looks correct.
@@ -775,6 +777,10 @@
 		/>
 	{/await}
 	<svelte:fragment slot="footer">
+		<div>
+			<Checkbox bind:checked={exportHistos}>Export Histograms</Checkbox>
+			<Checkbox bind:checked={markPrelim}>Mark as Preliminary</Checkbox>
+		</div>
 		<Button
 			color="blue"
 			disabled={selected.length !== events.length || !data.tournament.approved}
