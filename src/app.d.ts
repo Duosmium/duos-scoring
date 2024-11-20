@@ -59,6 +59,16 @@ declare global {
 		type SlidesBatches = string[][];
 		type ChecklistData = Record<string, string | number | null>;
 	}
+
+	declare module '*as=metadata&image' {
+		const out: { width: number; height: number; src: string };
+		export default out;
+	}
+
+	declare module '*&image' {
+		const out: string;
+		export default out;
+	}
 }
 
 export {};

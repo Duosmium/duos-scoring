@@ -1,8 +1,8 @@
 <script lang="ts">
 	import Image from './Image.svelte';
-	import metadata from './hero.png?as=metadata';
-	import jpeg from './hero.png?w=440;880;550;768;1075&format=jpeg&as=srcset';
-	import webp from './hero.png?w=440;880;550;768;1075&format=webp&as=srcset';
+	import metadata from './hero.png?as=metadata&image';
+	import jpeg from './hero.png?w=440;880;550;768;1075&format=jpeg&as=srcset&image';
+	import webp from './hero.png?w=440;880;550;768;1075&format=webp&as=srcset&image';
 
 	export let title: string;
 </script>
