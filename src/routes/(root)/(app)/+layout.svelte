@@ -14,7 +14,7 @@
 	</svelte:fragment>
 </Navigation>
 
-<main class="px-6 py-12 w-full mx-auto lg:max-w-5xl xl:max-w-7xl">
+<main class="px-6 py-12 w-full mx-auto xl:max-w-7xl">
 	<slot />
 </main>
 

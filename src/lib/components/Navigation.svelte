@@ -33,7 +33,7 @@
 	fluid={true}
 >
 	<div
-		class="mx-auto flex flex-wrap justify-between items-center lg:max-w-5xl xl:max-w-7xl w-full px-6"
+		class="mx-auto flex flex-wrap justify-between items-center xl:max-w-7xl w-full px-6"
 	>
 		<div class="flex justify-between items-center w-full lg:w-fit">
 			<NavBrand href={user && session ? '/dashboard' : '/'}>
@@ -70,7 +70,7 @@
 			on:click={handleClick}
 			hidden={navHidden}
 			divClass="w-full lg:block lg:w-auto"
-			ulClass="flex flex-col p-4 mt-4 lg:flex-row lg:space-x-8 lg:mt-0 lg:text-md lg:font-medium items-baseline"
+			ulClass="flex flex-col p-4 mt-4 lg:flex-row lg:space-x-4 xl:space-x-8 lg:mt-0 lg:text-md lg:font-medium items-baseline"
 			nonActiveClass="md:py-2 md:px-3 lg:p-0 text-gray-700 hover:bg-gray-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent"
 		>
 			<slot name="links" />
