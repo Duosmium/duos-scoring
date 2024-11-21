@@ -8,7 +8,7 @@
 
 	export let rule: string | undefined = undefined;
 	export let numberItem: true | undefined = undefined;
-	export let input: boolean = false;
+	export let numeric: boolean = false;
 
 	export let checkbox: CheckboxValue | undefined = undefined;
 	export let enableFixed: boolean | undefined = undefined;
@@ -17,6 +17,11 @@
 	export let inputValue: number | null = null;
 	export let min: number | undefined = undefined;
 	export let max: number | undefined = undefined;
+
+	$: inputValue &&= Math.min(
+		max ?? Infinity,
+		Math.max(min ?? -Infinity, inputValue)
+	);
 
 	let checklistNumber: number;
 	if (numberItem) {
@@ -36,7 +41,7 @@
 	const notBlank: Writable<boolean> = writable(false);
 	const l = (v: number | null) =>
 		v != null ? Math.max(min ?? -Infinity, Math.min(max ?? Infinity, v)) : v;
-	$: $notBlank = input
+	$: $notBlank = numeric
 		? l(inputValue) !== inputValue
 			? false
 			: inputValue !== null
@@ -84,7 +89,7 @@
 	onMount(() => {
 		if (checklistState.state.has(questionKey)) {
 			saveState = checklistState.state.get(questionKey);
-			if (input) {
+			if (numeric) {
 				inputValue = $saveState as number | null;
 			} else {
 				$checkbox = $saveState as Status;
@@ -95,7 +100,7 @@
 		}
 	});
 
-	$: saveState && ($saveState = input ? inputValue : ($checkbox ?? null));
+	$: saveState && ($saveState = numeric ? inputValue : ($checkbox ?? null));
 </script>
 
 <div class={'p-2 ring-1 ' + highlight}>
@@ -114,7 +119,7 @@
 				{/if}
 			</span>
 			<span class="mb-1 mr-1">
-				{#if !input}
+				{#if !numeric}
 					<Checkbox {enableFixed} parent={$parent} bind:value={checkbox} />
 				{:else}
 					<input
@@ -129,7 +134,7 @@
 			</span>
 		</div>
 		<span class="flex-1">
-			{#if !input}
+			{#if !numeric}
 				<slot />
 			{:else}
 				<label for={id}>

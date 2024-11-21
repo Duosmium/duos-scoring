@@ -20,7 +20,6 @@
 
 	let meetsNear1Rules: CheckboxValue;
 	let near1Dist: number | null;
-
 	let meetsNear2Rules: CheckboxValue;
 	let near2Dist: number | null;
 	let nearBucket: CheckboxValue;
@@ -29,7 +28,6 @@
 
 	let meetsFar1Rules: CheckboxValue;
 	let far1Dist: number | null;
-
 	let meetsFar2Rules: CheckboxValue;
 	let far2Dist: number | null;
 	let farBucket: CheckboxValue;
@@ -55,35 +53,32 @@
 		}
 		return 'gray';
 	};
-	const l = (num: number | null, min: number, max: number, def: number = 0) =>
-		Math.max(min, Math.min(max, num ?? def));
 
-	$: bestNTS =
-		Math.max(
-			0,
-			(2000 - (near1Dist ?? 2000)) * ($meetsNear1Rules === 'False' ? 0.9 : 1),
-			$nearBucket === 'True'
-				? 0
-				: (2000 - (near2Dist ?? 2000)) *
-						($meetsNear2Rules === 'False' ? 0.9 : 1)
-		) * ($impounded === 'False' ? 0.7 : 1);
-	$: bestFTS =
-		Math.max(
-			0,
-			(4000 - (far1Dist ?? 4000)) * ($meetsFar1Rules === 'False' ? 0.9 : 1),
-			$farBucket === 'True'
-				? 0
-				: (4000 - (far2Dist ?? 4000)) * ($meetsFar2Rules === 'False' ? 0.9 : 1)
-		) * ($impounded === 'False' ? 0.7 : 1);
+	$: bestNTS = Math.max(
+		0,
+		(2000 - (near1Dist ?? 2000)) * ($meetsNear1Rules === 'False' ? 0.9 : 1),
+		$nearBucket === 'True'
+			? 0
+			: (2000 - (near2Dist ?? 2000)) * ($meetsNear2Rules === 'False' ? 0.9 : 1)
+	);
+	$: bestNTS *= $impounded === 'False' ? 0.7 : 1;
+	$: bestFTS = Math.max(
+		0,
+		(4000 - (far1Dist ?? 4000)) * ($meetsFar1Rules === 'False' ? 0.9 : 1),
+		$farBucket === 'True'
+			? 0
+			: (4000 - (far2Dist ?? 4000)) * ($meetsFar2Rules === 'False' ? 0.9 : 1)
+	);
+	$: bestFTS *= $impounded === 'False' ? 0.7 : 1;
 	$: logScore = [
-		l(logBasePoints, 0, 30),
-		l(logDataSpansVar, 0, 60),
-		l(logDataPts, 0, 55),
-		l(logLabeled, 0, 40),
-		l(logDistinctTables, 0, 120),
-		l(logDiagram, 0, 45),
-		l(logExCalcs, 0, 50)
-	].reduce((a, b) => a + b, 0);
+		logBasePoints,
+		logDataSpansVar,
+		logDataPts,
+		logLabeled,
+		logDistinctTables,
+		logDiagram,
+		logExCalcs
+	].reduce((a, b) => (a ?? 0) + (b ?? 0), 0) as number;
 	$: bucketScore = [
 		$nearBucket === 'True' && $nearBucketHit === 'True' ? 200 : 0,
 		$nearBucket === 'True' && $nearBucketInside === 'True' ? 300 : 0,
@@ -124,12 +119,7 @@
 	</Section>
 
 	<Section title="Construction Parameters">
-		<Question
-			linkChildren={true}
-			bind:checkbox={meetsParams}
-			rule="3."
-			numberItem
-		>
+		<Question linkChildren bind:checkbox={meetsParams} rule="3." numberItem>
 			<strong>Were all construction parameters met?</strong>
 			(If any construction violations are not corrected during the competition period,
 			circle F. teams may still be permitted to compete but will be ranked behind
@@ -207,12 +197,7 @@
 			'The projectile contacts with the inside bottom surface of the bucket.'
 	}}
 	<Section title="Near Target: Launch 1">
-		<Question
-			linkChildren={true}
-			bind:checkbox={meetsNear1Rules}
-			rule="5."
-			numberItem
-		>
+		<Question linkChildren bind:checkbox={meetsNear1Rules} rule="5." numberItem>
 			<strong>Were all competition parameters met for this launch?</strong>
 
 			<svelte:fragment slot="children">
@@ -220,22 +205,12 @@
 				<Question rule="5.c.">{rules['5.c.']}</Question>
 			</svelte:fragment>
 		</Question>
-		<Question
-			bind:inputValue={near1Dist}
-			input={true}
-			rule="7.b."
-			numberItem
-			min={0}
-			max={2000}>{rules.dist}</Question
+		<Question bind:inputValue={near1Dist} numeric rule="7.b." numberItem min={0}
+			>{rules.dist}</Question
 		>
 	</Section>
 	<Section title="Near Target: Launch 2">
-		<Question
-			linkChildren={true}
-			bind:checkbox={meetsNear2Rules}
-			rule="5."
-			numberItem
-		>
+		<Question linkChildren bind:checkbox={meetsNear2Rules} rule="5." numberItem>
 			<strong>Were all competition parameters met for this launch?</strong>
 
 			<svelte:fragment slot="children">
@@ -243,13 +218,8 @@
 				<Question rule="5.c.">{rules['5.c.']}</Question>
 			</svelte:fragment>
 		</Question>
-		<Question
-			bind:inputValue={near2Dist}
-			input={true}
-			rule="7.b."
-			numberItem
-			min={0}
-			max={2000}>{rules.dist}</Question
+		<Question bind:inputValue={near2Dist} numeric rule="7.b." numberItem min={0}
+			>{rules.dist}</Question
 		>
 		<Question
 			bind:checkbox={nearBucket}
@@ -271,12 +241,7 @@
 		</Question>
 	</Section>
 	<Section title="Far Target: Launch 1">
-		<Question
-			linkChildren={true}
-			bind:checkbox={meetsFar1Rules}
-			rule="5."
-			numberItem
-		>
+		<Question linkChildren bind:checkbox={meetsFar1Rules} rule="5." numberItem>
 			<strong>Were all competition parameters met for this launch?</strong>
 
 			<svelte:fragment slot="children">
@@ -284,22 +249,12 @@
 				<Question rule="5.c.">{rules['5.c.']}</Question>
 			</svelte:fragment>
 		</Question>
-		<Question
-			bind:inputValue={far1Dist}
-			input={true}
-			rule="7.b."
-			numberItem
-			min={0}
-			max={4000}>{rules.dist}</Question
+		<Question bind:inputValue={far1Dist} numeric rule="7.b." numberItem min={0}
+			>{rules.dist}</Question
 		>
 	</Section>
 	<Section title="Far Target: Launch 2">
-		<Question
-			linkChildren={true}
-			bind:checkbox={meetsFar2Rules}
-			rule="5."
-			numberItem
-		>
+		<Question linkChildren bind:checkbox={meetsFar2Rules} rule="5." numberItem>
 			<strong>Were all competition parameters met for this launch?</strong>
 
 			<svelte:fragment slot="children">
@@ -307,13 +262,8 @@
 				<Question rule="5.c.">{rules['5.c.']}</Question>
 			</svelte:fragment>
 		</Question>
-		<Question
-			bind:inputValue={far2Dist}
-			input={true}
-			rule="7.b."
-			numberItem
-			min={0}
-			max={4000}>{rules.dist}</Question
+		<Question bind:inputValue={far2Dist} numeric rule="7.b." numberItem min={0}
+			>{rules.dist}</Question
 		>
 		<Question
 			bind:checkbox={farBucket}
@@ -338,7 +288,7 @@
 	<Section title="Log Score">
 		<Question
 			bind:inputValue={logBasePoints}
-			input={true}
+			numeric
 			numberItem
 			rule="7.d.i."
 			min={0}
@@ -348,7 +298,7 @@
 		>
 		<Question
 			bind:inputValue={logDataSpansVar}
-			input={true}
+			numeric
 			numberItem
 			rule="7.d.ii."
 			min={0}
@@ -358,7 +308,7 @@
 		>
 		<Question
 			bind:inputValue={logDataPts}
-			input={true}
+			numeric
 			numberItem
 			rule="7.d.iii."
 			min={0}
@@ -368,7 +318,7 @@
 		>
 		<Question
 			bind:inputValue={logLabeled}
-			input={true}
+			numeric
 			numberItem
 			rule="7.d.iv."
 			min={0}
@@ -378,7 +328,7 @@
 		>
 		<Question
 			bind:inputValue={logDistinctTables}
-			input={true}
+			numeric
 			numberItem
 			rule="7.d.v."
 			min={0}
@@ -388,7 +338,7 @@
 		>
 		<Question
 			bind:inputValue={logDiagram}
-			input={true}
+			numeric
 			numberItem
 			rule="7.d.vi."
 			min={0}
@@ -397,7 +347,7 @@
 		>
 		<Question
 			bind:inputValue={logExCalcs}
-			input={true}
+			numeric
 			numberItem
 			rule="7.d.vii."
 			min={0}
@@ -406,5 +356,5 @@
 		>
 	</Section>
 
-	<Disqualified numberItem {status} bind:checked={dqed} />
+	<Disqualified {status} bind:checked={dqed} />
 </Checklist>
