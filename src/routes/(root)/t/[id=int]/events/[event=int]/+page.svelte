@@ -742,6 +742,7 @@
 		<TableHeadCell class="pl-2 pr-4">Suffix</TableHeadCell>
 		{#if ChecklistComponent}
 			<TableHeadCell class="pl-0 pr-4">Checklist</TableHeadCell>
+			<TableHeadCell class="pl-0 pr-4">Missing Fields</TableHeadCell>
 		{/if}
 		<TableHeadCell class="px-0">Raw Score</TableHeadCell>
 		<TableHeadCell class="px-0">Tier</TableHeadCell>
@@ -779,6 +780,7 @@
 					Checklist
 				</Button>
 			</TableBodyCell>
+			<TableBodyCell class="pl-0 pr-4"></TableBodyCell>
 		{/if}
 		<TableBodyCell class="p-0">
 			<Input
