@@ -63,7 +63,11 @@
 		) {
 			return 'red';
 		}
-		if (checkboxValue === 'Fixed') {
+		if (
+			checkboxValue === 'Fixed' ||
+			(inputValue != null &&
+				(max != null ? inputValue < max : min != null && inputValue > min))
+		) {
 			return 'yellow';
 		}
 		if (inputValue != null || checkboxValue === 'True') {
