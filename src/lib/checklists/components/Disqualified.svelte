@@ -4,7 +4,7 @@
 	import { Status, type CheckboxValue } from './Checkbox.svelte';
 
 	export let status: ScoreStatus;
-	export let checklistItem: number;
+	export let numberItem: true | undefined = undefined;
 
 	let checkbox: CheckboxValue;
 	export let checked: boolean = status === 'DISQUALIFICATION';
@@ -23,7 +23,7 @@
 </script>
 
 <div class="my-8">
-	<Question {checklistItem} input={false} {highlightFunction} bind:checkbox>
+	<Question {numberItem} input={false} {highlightFunction} bind:checkbox>
 		The team is disqualified. (Notify the team and their coach as soon as
 		possible.)
 	</Question>

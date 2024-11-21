@@ -7,7 +7,7 @@
 	import type { ChecklistState } from './Checklist.svelte';
 
 	export let rule: string | undefined = undefined;
-	export let checklistItem: number | undefined = undefined;
+	export let numberItem: true | undefined = undefined;
 	export let input: boolean = false;
 
 	export let checkbox: CheckboxValue | undefined = undefined;
@@ -17,6 +17,11 @@
 	export let inputValue: number | null = null;
 	export let min: number | undefined = undefined;
 	export let max: number | undefined = undefined;
+
+	let checklistNumber: number;
+	if (numberItem) {
+		checklistNumber = (getContext('checklistNumbering') as () => number)();
+	}
 
 	const id = nanoid(5);
 
@@ -71,7 +76,9 @@
 
 	$: highlight = COLORS[highlightFunction(inputValue, $checkbox)];
 
-	const questionKey = (getContext('questionCounter') as () => number)().toString();
+	const questionKey = (
+		getContext('questionCounter') as () => number
+	)().toString();
 	const checklistState: ChecklistState = getContext('checklistState');
 	let saveState: Writable<string | number | null> | undefined;
 	onMount(() => {
@@ -88,16 +95,16 @@
 		}
 	});
 
-	$: saveState && ($saveState = input ? inputValue : $checkbox ?? null);
+	$: saveState && ($saveState = input ? inputValue : ($checkbox ?? null));
 </script>
 
 <div class={'p-2 ring-1 ' + highlight}>
 	<span class="flex flex-col sm:flex-row items-start sm:items-baseline">
 		<div class="flex flex-row items-center mr-2">
 			<span class="mb-1 mr-1">
-				{#if checklistItem}
+				{#if numberItem}
 					<strong class="mr-0.5">
-						{checklistItem}.
+						{checklistNumber}.
 					</strong>
 				{/if}
 				{#if rule}
@@ -110,7 +117,14 @@
 				{#if !input}
 					<Checkbox {enableFixed} parent={$parent} bind:value={checkbox} />
 				{:else}
-					<input {id} class="mx-2" type="number" {min} {max} bind:value={inputValue} />
+					<input
+						{id}
+						class="mx-2"
+						type="number"
+						{min}
+						{max}
+						bind:value={inputValue}
+					/>
 				{/if}
 			</span>
 		</div>

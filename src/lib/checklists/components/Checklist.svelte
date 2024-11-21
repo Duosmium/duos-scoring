@@ -78,6 +78,11 @@
 	setContext('questionCounter', () => {
 		return counter++;
 	});
+
+	let checklistNumbering = 1;
+	setContext('checklistNumbering', () => {
+		return checklistNumbering++;
+	});
 </script>
 
 <div

@@ -117,7 +117,7 @@
 	bind:checklistData
 >
 	<Section title="Check In">
-		<Question bind:checkbox={hasDevice} rule="7.g." checklistItem={1}
+		<Question bind:checkbox={hasDevice} rule="7.g." numberItem
 			>Team operates safely & has a device within spec before the end of the
 			allotted competition period.</Question
 		>
@@ -128,7 +128,7 @@
 			linkChildren={true}
 			bind:checkbox={meetsParams}
 			rule="3."
-			checklistItem={2}
+			numberItem
 		>
 			<strong>Were all construction parameters met?</strong>
 			(If any construction violations are not corrected during the competition period,
@@ -175,7 +175,7 @@
 			</svelte:fragment>
 		</Question>
 
-		<Question bind:checkbox={impounded} rule="2.b." checklistItem={3}
+		<Question bind:checkbox={impounded} rule="2.b." numberItem
 			><strong
 				>Team impounds one launch device with the mass(es) detached, design log,
 				and any projectiles.</strong
@@ -211,7 +211,7 @@
 			linkChildren={true}
 			bind:checkbox={meetsNear1Rules}
 			rule="5."
-			checklistItem={4}
+			numberItem
 		>
 			<strong>Were all competition parameters met for this launch?</strong>
 
@@ -224,7 +224,7 @@
 			bind:inputValue={near1Dist}
 			input={true}
 			rule="7.b."
-			checklistItem={5}
+			numberItem
 			min={0}
 			max={2000}>{rules.dist}</Question
 		>
@@ -234,7 +234,7 @@
 			linkChildren={true}
 			bind:checkbox={meetsNear2Rules}
 			rule="5."
-			checklistItem={6}
+			numberItem
 		>
 			<strong>Were all competition parameters met for this launch?</strong>
 
@@ -247,7 +247,7 @@
 			bind:inputValue={near2Dist}
 			input={true}
 			rule="7.b."
-			checklistItem={7}
+			numberItem
 			min={0}
 			max={2000}>{rules.dist}</Question
 		>
@@ -255,19 +255,17 @@
 			bind:checkbox={nearBucket}
 			highlightFunction={bucketColor}
 			rule="5."
-			checklistItem={8}
+			numberItem
 		>
 			{rules.bucket}
 
 			<svelte:fragment slot="summary">Bucket shot parameters:</svelte:fragment>
 			<svelte:fragment slot="children">
-				<Question bind:checkbox={nearBucketHit} rule="7.e." checklistItem={9}
+				<Question bind:checkbox={nearBucketHit} rule="7.e." numberItem
 					>{rules['7.e.1']}</Question
 				>
-				<Question
-					bind:checkbox={nearBucketInside}
-					rule="7.e."
-					checklistItem={10}>{rules['7.e.2']}</Question
+				<Question bind:checkbox={nearBucketInside} rule="7.e." numberItem
+					>{rules['7.e.2']}</Question
 				>
 			</svelte:fragment>
 		</Question>
@@ -277,7 +275,7 @@
 			linkChildren={true}
 			bind:checkbox={meetsFar1Rules}
 			rule="5."
-			checklistItem={11}
+			numberItem
 		>
 			<strong>Were all competition parameters met for this launch?</strong>
 
@@ -290,7 +288,7 @@
 			bind:inputValue={far1Dist}
 			input={true}
 			rule="7.b."
-			checklistItem={12}
+			numberItem
 			min={0}
 			max={4000}>{rules.dist}</Question
 		>
@@ -300,7 +298,7 @@
 			linkChildren={true}
 			bind:checkbox={meetsFar2Rules}
 			rule="5."
-			checklistItem={13}
+			numberItem
 		>
 			<strong>Were all competition parameters met for this launch?</strong>
 
@@ -313,7 +311,7 @@
 			bind:inputValue={far2Dist}
 			input={true}
 			rule="7.b."
-			checklistItem={14}
+			numberItem
 			min={0}
 			max={4000}>{rules.dist}</Question
 		>
@@ -321,16 +319,16 @@
 			bind:checkbox={farBucket}
 			highlightFunction={bucketColor}
 			rule="5."
-			checklistItem={15}
+			numberItem
 		>
 			{rules.bucket}
 
 			<svelte:fragment slot="summary">Bucket shot parameters:</svelte:fragment>
 			<svelte:fragment slot="children">
-				<Question bind:checkbox={farBucketHit} rule="7.e." checklistItem={16}
+				<Question bind:checkbox={farBucketHit} rule="7.e." numberItem
 					>{rules['7.e.1']}</Question
 				>
-				<Question bind:checkbox={farBucketInside} rule="7.e." checklistItem={17}
+				<Question bind:checkbox={farBucketInside} rule="7.e." numberItem
 					>{rules['7.e.2']}</Question
 				>
 			</svelte:fragment>
@@ -341,7 +339,7 @@
 		<Question
 			bind:inputValue={logBasePoints}
 			input={true}
-			checklistItem={18}
+			numberItem
 			rule="7.d.i."
 			min={0}
 			max={30}
@@ -351,7 +349,7 @@
 		<Question
 			bind:inputValue={logDataSpansVar}
 			input={true}
-			checklistItem={19}
+			numberItem
 			rule="7.d.ii."
 			min={0}
 			max={60}
@@ -361,7 +359,7 @@
 		<Question
 			bind:inputValue={logDataPts}
 			input={true}
-			checklistItem={20}
+			numberItem
 			rule="7.d.iii."
 			min={0}
 			max={55}
@@ -371,7 +369,7 @@
 		<Question
 			bind:inputValue={logLabeled}
 			input={true}
-			checklistItem={21}
+			numberItem
 			rule="7.d.iv."
 			min={0}
 			max={40}
@@ -381,7 +379,7 @@
 		<Question
 			bind:inputValue={logDistinctTables}
 			input={true}
-			checklistItem={22}
+			numberItem
 			rule="7.d.v."
 			min={0}
 			max={120}
@@ -391,7 +389,7 @@
 		<Question
 			bind:inputValue={logDiagram}
 			input={true}
-			checklistItem={23}
+			numberItem
 			rule="7.d.vi."
 			min={0}
 			max={45}
@@ -400,7 +398,7 @@
 		<Question
 			bind:inputValue={logExCalcs}
 			input={true}
-			checklistItem={24}
+			numberItem
 			rule="7.d.vii."
 			min={0}
 			max={50}
@@ -408,5 +406,5 @@
 		>
 	</Section>
 
-	<Disqualified checklistItem={25} {status} bind:checked={dqed} />
+	<Disqualified numberItem {status} bind:checked={dqed} />
 </Checklist>
