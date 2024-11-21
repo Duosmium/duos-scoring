@@ -12,6 +12,10 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 		return new Response('invalid payload', { status: 400 });
 	}
 
+	payload.startDate &&= new Date(payload.startDate);
+	payload.endDate &&= new Date(payload.endDate);
+	payload.awardsDate &&= new Date(payload.awardsDate);
+
 	// don't allow approval from this endpoint
 	payload.approved = undefined;
 
