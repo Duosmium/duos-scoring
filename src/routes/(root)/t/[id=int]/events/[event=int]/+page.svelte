@@ -753,7 +753,8 @@
 	<svelte:fragment slot="item" let:item={team}>
 		{@const disableScores =
 			team.score.status.new === 'NOSHOW' ||
-			team.score.status.new === 'PARTICIPATION'}
+			team.score.status.new === 'PARTICIPATION' ||
+			ChecklistComponent != undefined}
 		<TableBodyCell class="px-2">{team.number}</TableBodyCell>
 		<TableBodyCell class="px-2"
 			>{team.abbreviation ??
