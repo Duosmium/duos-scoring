@@ -76,15 +76,16 @@ export async function createInvites(
 				role: i.role
 			}))
 		);
-		await db.insert(schema._InviteEvents).values(
-			invites.flatMap(
-				(i) =>
-					i.events?.map((e) => ({
-						A: e,
-						B: i.link
-					})) ?? []
-			)
+		const inviteEvents = invites.flatMap(
+			(i) =>
+				i.events?.map((e) => ({
+					A: e,
+					B: i.link
+				})) ?? []
 		);
+		if (inviteEvents.length !== 0) {
+			await db.insert(schema._InviteEvents).values(inviteEvents);
+		}
 	} catch (e) {
 		console.error(e);
 		captureException(e);
@@ -196,7 +197,7 @@ export async function updateMember(
 					data.events!.map((e) => ({
 						A: e,
 						B: role.id
-					})) ?? []
+					}))
 				);
 			});
 		}
