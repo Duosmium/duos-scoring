@@ -98,15 +98,17 @@
 	$: status = (
 		dqed
 			? 'DISQUALIFICATION'
-			: score > 0 || $hasDevice !== 'False'
-				? 'COMPETED'
-				: 'NOSHOW'
+			: $hasDevice === 'False' || score < 0
+				? 'PARTICIPATION'
+				: $hasDevice === 'Blank'
+					? 'NOSHOW'
+					: 'COMPETED'
 	) as ScoreStatus;
 </script>
 
 <Checklist
 	event="Air Trajectory B/C"
-	year={2024}
+	year={2025}
 	{score}
 	{tier}
 	{status}
