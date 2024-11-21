@@ -38,10 +38,9 @@
 				success: `Tournaments ${action}d!`,
 				error: `Failed to ${action} tournaments!`
 			}
-		}).then(() => {
-			selectedPending = [];
-			selectedApproved = [];
 		});
+		selectedPending = [];
+		selectedApproved = [];
 	}
 
 	function fmtDate(date: Date): string {

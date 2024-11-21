@@ -34,9 +34,9 @@
 				error: 'Failed to delete tracks!'
 			}
 		}).then(() => {
-			tracks = tracks.filter((t) => !ids.includes(t.id.toString()));
 			selected = [];
 		});
+		tracks = tracks.filter((t) => !ids.includes(t.id.toString()));
 	}
 
 	let showAddTrack = false;

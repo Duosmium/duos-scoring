@@ -515,7 +515,11 @@
 				{
 					id: checklistTeam.score.id?.toString(),
 					teamId: checklistTeam.id.toString(),
-					checklist: checklistData
+					checklist: checklistData,
+					rawScore: checklistTeam.score.rawScore.new,
+					tier: checklistTeam.score.tier.new,
+					tiebreak: checklistTeam.score.tiebreak.new,
+					status: checklistTeam.score.status.new
 				}
 			],
 			msgs: {
@@ -524,10 +528,7 @@
 				error: 'Failed to save checklist!'
 			}
 		});
-		modifiedTeams = modifiedTeams.map((t) => ({
-			...t,
-			checklist: data.scores.find((s) => s.teamId === t.id)?.checklist
-		}));
+		modifiedTeams = generateModifiedTeams(data);
 	}
 
 	function handleKeypress(e: KeyboardEvent) {
@@ -767,7 +768,7 @@
 		{#if ChecklistComponent}
 			<TableBodyCell class="pl-0 pr-4">
 				<Button
-					disabled={locked || disableScores}
+					disabled={locked}
 					color="alternative"
 					class="border-none p-1 text-primary-600 hover:underline dark:text-primary-500"
 					on:click={() => {

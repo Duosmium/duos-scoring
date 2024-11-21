@@ -105,9 +105,9 @@
 				error: 'Failed to delete teams!'
 			}
 		}).then(() => {
-			teams = teams.filter((t) => !ids.includes(t.id.toString()));
 			selected = [];
 		});
+		teams = teams.filter((t) => !ids.includes(t.id.toString()));
 	}
 
 	let showAddTeam = false;

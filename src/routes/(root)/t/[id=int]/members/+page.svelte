@@ -60,13 +60,12 @@
 				success: `${thing[0].toLocaleUpperCase() + thing.slice(1)} deleted!`,
 				error: `Failed to delete ${thing}!`
 			}
-		}).then(() => {
-			if (thing === 'members') {
-				members = members.filter((m) => !ids.members?.includes(m.user.id));
-			} else {
-				invites = invites.filter((i) => !ids.invites?.includes(i.link));
-			}
 		});
+		if (thing === 'members') {
+			members = members.filter((m) => !ids.members?.includes(m.user.id));
+		} else {
+			invites = invites.filter((i) => !ids.invites?.includes(i.link));
+		}
 	}
 
 	const emailRegex =
