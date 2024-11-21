@@ -18,6 +18,8 @@
 	export let min: number | undefined = undefined;
 	export let max: number | undefined = undefined;
 
+	export let blankOk: boolean = false;
+
 	$: inputValue &&= Math.min(
 		max ?? Infinity,
 		Math.max(min ?? -Infinity, inputValue)
@@ -41,11 +43,8 @@
 	const notBlank: Writable<boolean> = writable(false);
 	const l = (v: number | null) =>
 		v != null ? Math.max(min ?? -Infinity, Math.min(max ?? Infinity, v)) : v;
-	$: $notBlank = numeric
-		? l(inputValue) !== inputValue
-			? false
-			: inputValue !== null
-		: $checkbox !== Status.Blank;
+	$: $notBlank =
+		blankOk || (numeric ? inputValue !== null : $checkbox !== Status.Blank);
 
 	const sectionStatus: SectionStatus = getContext('sectionParent');
 	if (sectionStatus && !parent) {

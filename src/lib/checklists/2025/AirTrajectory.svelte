@@ -44,12 +44,9 @@
 
 	let dqed: boolean;
 
-	const bucketColor = (_: number | null, status: Status | undefined) => {
+	const bucketColor = (_: any, status: Status | undefined) => {
 		if (status === 'True') {
 			return 'green';
-		}
-		if (status === 'False') {
-			return 'yellow';
 		}
 		return 'gray';
 	};
@@ -218,8 +215,13 @@
 				<Question rule="5.c.">{rules['5.c.']}</Question>
 			</svelte:fragment>
 		</Question>
-		<Question bind:inputValue={near2Dist} numeric rule="7.b." numberItem min={0}
-			>{rules.dist}</Question
+		<Question
+			bind:inputValue={near2Dist}
+			numeric
+			rule="7.b."
+			numberItem
+			min={0}
+			blankOk={$nearBucket === 'True'}>{rules.dist}</Question
 		>
 		<Question
 			bind:checkbox={nearBucket}
@@ -231,11 +233,17 @@
 
 			<svelte:fragment slot="summary">Bucket shot parameters:</svelte:fragment>
 			<svelte:fragment slot="children">
-				<Question bind:checkbox={nearBucketHit} rule="7.e." numberItem
-					>{rules['7.e.1']}</Question
+				<Question
+					bind:checkbox={nearBucketHit}
+					rule="7.e."
+					numberItem
+					blankOk={$nearBucket === 'False'}>{rules['7.e.1']}</Question
 				>
-				<Question bind:checkbox={nearBucketInside} rule="7.e." numberItem
-					>{rules['7.e.2']}</Question
+				<Question
+					bind:checkbox={nearBucketInside}
+					rule="7.e."
+					numberItem
+					blankOk={$nearBucket === 'False'}>{rules['7.e.2']}</Question
 				>
 			</svelte:fragment>
 		</Question>
@@ -262,8 +270,13 @@
 				<Question rule="5.c.">{rules['5.c.']}</Question>
 			</svelte:fragment>
 		</Question>
-		<Question bind:inputValue={far2Dist} numeric rule="7.b." numberItem min={0}
-			>{rules.dist}</Question
+		<Question
+			bind:inputValue={far2Dist}
+			numeric
+			rule="7.b."
+			numberItem
+			min={0}
+			blankOk={$farBucket === 'True'}>{rules.dist}</Question
 		>
 		<Question
 			bind:checkbox={farBucket}
@@ -275,11 +288,17 @@
 
 			<svelte:fragment slot="summary">Bucket shot parameters:</svelte:fragment>
 			<svelte:fragment slot="children">
-				<Question bind:checkbox={farBucketHit} rule="7.e." numberItem
-					>{rules['7.e.1']}</Question
+				<Question
+					bind:checkbox={farBucketHit}
+					rule="7.e."
+					numberItem
+					blankOk={$farBucket === 'False'}>{rules['7.e.1']}</Question
 				>
-				<Question bind:checkbox={farBucketInside} rule="7.e." numberItem
-					>{rules['7.e.2']}</Question
+				<Question
+					bind:checkbox={farBucketInside}
+					rule="7.e."
+					numberItem
+					blankOk={$farBucket === 'False'}>{rules['7.e.2']}</Question
 				>
 			</svelte:fragment>
 		</Question>
