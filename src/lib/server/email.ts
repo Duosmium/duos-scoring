@@ -1,4 +1,5 @@
 import { PRIVATE_SMTP_PASS, PRIVATE_SMTP_USER } from '$env/static/private';
+import { captureException } from '@sentry/sveltekit';
 import { error } from '@sveltejs/kit';
 
 import nodemailer from 'nodemailer';
@@ -41,8 +42,8 @@ export async function sendInvite(
 		});
 	} catch (err) {
 		console.error(err);
+		captureException(err);
 		error(500, 'Failed to send email!');
-		return false;
 	}
 	return true;
 }

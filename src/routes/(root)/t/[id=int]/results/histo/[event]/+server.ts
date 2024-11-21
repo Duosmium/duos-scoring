@@ -3,6 +3,7 @@ import { checkScoremasterPerms } from '$lib/server/utils';
 import chromium from '@sparticuz/chromium';
 import puppeteer from 'puppeteer-core';
 import cookie from 'cookie';
+import { captureException } from '@sentry/sveltekit';
 
 export const GET: RequestHandler = async ({ params, locals, request }) => {
 	await checkScoremasterPerms(locals.user, params.id);
@@ -76,6 +77,8 @@ export const GET: RequestHandler = async ({ params, locals, request }) => {
 			}
 		});
 	} catch (error) {
+		console.error(error);
+		captureException(error);
 		return new Response(
 			JSON.stringify(
 				{
