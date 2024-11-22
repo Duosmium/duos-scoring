@@ -106,6 +106,7 @@
 	{status}
 	{teamNumber}
 	{teamName}
+	{...$$restProps}
 	bind:checklistData
 >
 	<Section title="Check In">

@@ -17,6 +17,8 @@
 <script lang="ts">
 	import { get, writable, type Writable } from 'svelte/store';
 
+	export let readonly = false;
+
 	export let enableFixed = false;
 	const status: Writable<Status> = writable<Status>(Status.Blank);
 
@@ -60,42 +62,54 @@
 	};
 </script>
 
-<span class="flex flex-row items-center justify-center space-x-2">
+<span
+	class="flex flex-row items-center justify-center space-x-2"
+	class:readonly
+>
 	<button
 		on:click={() => {
+			if (readonly) return;
 			if ($status === Status.True) {
 				$status = Status.Blank;
 			} else {
 				$status = Status.True;
 			}
 		}}
-		class:circled={$status === Status.True}>T</button
+		class:circled={$status === Status.True}
+		disabled={readonly}>T</button
 	>
 	{#if enableFixed}
 		<button
 			on:click={() => {
+				if (readonly) return;
 				if ($status === Status.Fixed) {
 					$status = Status.Blank;
 				} else {
 					$status = Status.Fixed;
 				}
 			}}
-			class:circled={$status === Status.Fixed}>X</button
+			class:circled={$status === Status.Fixed}
+			disabled={readonly}>X</button
 		>
 	{/if}
 	<button
 		on:click={() => {
+			if (readonly) return;
 			if ($status === Status.False) {
 				$status = Status.Blank;
 			} else {
 				$status = Status.False;
 			}
 		}}
-		class:circled={$status === Status.False}>F</button
+		class:circled={$status === Status.False}
+		disabled={readonly}>F</button
 	>
 </span>
 
 <style lang="postcss">
+	button:disabled {
+		cursor: default;
+	}
 	button {
 		@apply rounded-full w-8 h-8 p-1.5 grid place-content-center;
 	}

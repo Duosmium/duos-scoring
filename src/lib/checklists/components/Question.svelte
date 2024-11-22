@@ -20,6 +20,8 @@
 
 	export let blankOk: boolean = false;
 
+	const readonly: boolean = getContext('readonly');
+
 	$: inputValue &&= Math.min(
 		max ?? Infinity,
 		Math.max(min ?? -Infinity, inputValue)
@@ -123,7 +125,12 @@
 			</span>
 			<span class="mb-1 mr-1">
 				{#if !numeric}
-					<Checkbox {enableFixed} parent={$parent} bind:value={checkbox} />
+					<Checkbox
+						{enableFixed}
+						parent={$parent}
+						bind:value={checkbox}
+						{readonly}
+					/>
 				{:else}
 					<input
 						{id}
@@ -132,6 +139,7 @@
 						{min}
 						{max}
 						bind:value={inputValue}
+						disabled={readonly}
 					/>
 				{/if}
 			</span>
@@ -157,3 +165,9 @@
 		</details>
 	{/if}
 </div>
+
+<style>
+	input[type='number']:disabled {
+		cursor: default;
+	}
+</style>

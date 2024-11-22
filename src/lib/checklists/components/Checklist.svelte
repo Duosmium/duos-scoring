@@ -24,6 +24,9 @@
 	export let tier: number;
 	export let status: ScoreStatus;
 
+	export let readonly: boolean = false;
+	setContext('readonly', readonly);
+
 	let studentNamesValue = '';
 	let studentNamesState: Writable<string> | undefined;
 	$: if (studentNamesState) $studentNamesState = studentNamesValue;
@@ -106,7 +109,7 @@
 		</p>
 		<label>
 			<span class="font-semibold">Student Names:</span>
-			<input type="text" bind:value={studentNamesValue} />
+			<input type="text" bind:value={studentNamesValue} disabled={readonly} />
 		</label>
 
 		<slot />
@@ -114,6 +117,9 @@
 </div>
 
 <style lang="postcss">
+	input[type='text']:disabled {
+		cursor: default;
+	}
 	label {
 		display: block;
 	}
@@ -136,10 +142,7 @@
 	:global(.dark) * :global(input[type='number']) {
 		@apply border-slate-200;
 	}
-	* :global(input[disabled]) {
-		background-color: #eee;
-		cursor: not-allowed;
-	}
+
 	* :global(input[inputmode='numeric']),
 	* :global(input[type='number']) {
 		width: 80px;
