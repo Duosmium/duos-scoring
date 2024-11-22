@@ -20,6 +20,7 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 	if (!event) return new Response('invalid event', { status: 404 });
 
 	const payload: {
+		enableChecklist?: boolean;
 		highScoring?: 'true' | 'false';
 		medals?: number;
 		locked?: boolean;
@@ -36,6 +37,11 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 		return new Response('invalid medals', { status: 400 });
 	if (payload.locked != undefined && typeof payload.locked !== 'boolean')
 		return new Response('invalid locked', { status: 400 });
+	if (
+		payload.enableChecklist != undefined &&
+		typeof payload.enableChecklist !== 'boolean'
+	)
+		return new Response('invalid enableChecklist', { status: 400 });
 	if (
 		payload.locked === true &&
 		event.locked === false &&
@@ -76,6 +82,7 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 			highScoring: payload.highScoring
 				? payload.highScoring === 'true'
 				: undefined,
+			enableChecklist: payload.enableChecklist ?? undefined,
 			medals: payload.medals ?? undefined,
 			locked: payload.locked ?? undefined
 		});

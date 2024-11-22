@@ -41,6 +41,7 @@ export const PATCH: RequestHandler = async ({ request, locals, params }) => {
 		name?: string;
 		trialStatus?: TrialStatus;
 		highScoring?: 'true' | 'false';
+		enableChecklist?: boolean;
 		medals?: number;
 	} = await request.json();
 	if (!payload.event || typeof payload.event !== 'string')
@@ -54,17 +55,20 @@ export const PATCH: RequestHandler = async ({ request, locals, params }) => {
 		return new Response('invalid status', { status: 400 });
 	if (payload.highScoring && !['true', 'false'].includes(payload.highScoring))
 		return new Response('invalid highScoring', { status: 400 });
+	if (payload.enableChecklist && typeof payload.enableChecklist !== 'boolean')
+		return new Response('invalid enableChecklist', { status: 400 });
 	if (payload.medals && typeof payload.medals !== 'number')
 		return new Response('invalid medals', { status: 400 });
 
 	const eventId = BigInt(payload.event);
 	const status = await updateEvent(eventId, {
-		name: payload.name,
-		trialStatus: payload.trialStatus,
+		name: payload.name ?? undefined,
+		trialStatus: payload.trialStatus ?? undefined,
 		highScoring: payload.highScoring
 			? payload.highScoring === 'true'
 			: undefined,
-		medals: payload.medals
+		enableChecklist: payload.enableChecklist ?? undefined,
+		medals: payload.medals ?? undefined
 	});
 
 	if (!status) {
@@ -80,6 +84,7 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 		name?: string;
 		trialStatus?: TrialStatus;
 		highScoring?: 'true' | 'false';
+		enableChecklist?: boolean;
 		medals?: number;
 	} = await request.json();
 	if (!payload.name || typeof payload.name !== 'string')
@@ -91,6 +96,8 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 		return new Response('invalid status', { status: 400 });
 	if (!payload.highScoring || !['true', 'false'].includes(payload.highScoring))
 		return new Response('invalid highScoring', { status: 400 });
+	if (payload.enableChecklist && typeof payload.enableChecklist !== 'boolean')
+		return new Response('invalid enableChecklist', { status: 400 });
 	if (payload.medals && typeof payload.medals !== 'number')
 		return new Response('invalid medals', { status: 400 });
 
@@ -99,6 +106,7 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 			name: payload.name,
 			trialStatus: payload.trialStatus,
 			highScoring: payload.highScoring === 'true',
+			enableChecklist: payload.enableChecklist ?? false,
 			medals: payload.medals
 		}
 	]);

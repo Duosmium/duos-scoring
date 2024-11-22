@@ -120,6 +120,7 @@ export const Event = scoring.table('Event', {
 	highScoring: boolean('highScoring').default(true).notNull(),
 	locked: boolean('locked').default(false).notNull(),
 	medals: smallint('medals'),
+	enableChecklist: boolean('enableChecklist').default(false).notNull(),
 	auditedUserId: uuid('auditedUserId').references(() => User.id, {
 		onDelete: 'set null'
 	}),

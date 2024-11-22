@@ -346,16 +346,20 @@
 	let showEditEvent = false;
 	let editHighScoring = 'true';
 	let editEventMedals = '';
+	let editEnableChecklist = false;
 	function openEditEvent() {
 		showEditEvent = true;
 		editHighScoring = data.event.highScoring ? 'true' : 'false';
 		editEventMedals = data.event.medals?.toString() || '';
+		editEnableChecklist = data.event.enableChecklist;
 	}
 	function editEvent() {
 		sendData({
 			method: 'PATCH',
 			body: {
 				highScoring: editHighScoring,
+				enableChecklist:
+					ChecklistComponent == undefined ? undefined : editEnableChecklist,
 				medals: parseInt(editEventMedals) || undefined
 			},
 			msgs: {
@@ -723,7 +727,9 @@
 						>Audit</Button
 					>
 				{/if}
-				<Button color="alternative" on:click={openEditEvent}>Settings</Button>
+				{#if !data.event.audited}
+					<Button color="alternative" on:click={openEditEvent}>Settings</Button>
+				{/if}
 			</ButtonGroup>
 		{/if}
 		<Button
@@ -740,7 +746,7 @@
 		<TableHeadCell class="px-2">#</TableHeadCell>
 		<TableHeadCell class="px-2">School</TableHeadCell>
 		<TableHeadCell class="pl-2 pr-4">Suffix</TableHeadCell>
-		{#if ChecklistComponent}
+		{#if ChecklistComponent && data.event.enableChecklist}
 			<TableHeadCell class="pl-0 pr-4">Checklist</TableHeadCell>
 			<TableHeadCell class="pl-0 pr-4">Missing Fields</TableHeadCell>
 		{/if}
@@ -755,7 +761,7 @@
 		{@const disableScores =
 			team.score.status.new === 'NOSHOW' ||
 			team.score.status.new === 'PARTICIPATION' ||
-			ChecklistComponent != undefined}
+			(ChecklistComponent != undefined && data.event.enableChecklist)}
 		<TableBodyCell class="px-2">{team.number}</TableBodyCell>
 		<TableBodyCell class="px-2"
 			>{team.abbreviation ??
@@ -767,7 +773,7 @@
 				? team.suffix.slice(0, 20) + (team.suffix.length > 20 ? '…' : '')
 				: ''}
 		</TableBodyCell>
-		{#if ChecklistComponent}
+		{#if ChecklistComponent && data.event.enableChecklist}
 			<TableBodyCell class="pl-0 pr-4">
 				<Button
 					disabled={locked}
@@ -1123,6 +1129,13 @@
 			bind:value={editHighScoring}
 		/>
 	</Label>
+	{#if ChecklistComponent}
+		<Checkbox
+			disabled={locked || data.event.audited}
+			class="mt-2"
+			bind:checked={editEnableChecklist}>Enable Digital Checklists</Checkbox
+		>
+	{/if}
 	<Label>
 		Medals (Optional)
 		<Input class="mt-2" type="text" required bind:value={editEventMedals} />

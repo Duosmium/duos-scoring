@@ -15,13 +15,15 @@
 		Tooltip,
 		P,
 		List,
-		Li
+		Li,
+		Checkbox
 	} from 'flowbite-svelte';
 	import type { TrialStatus } from '$drizzle/types';
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 
+	import checklists from '$lib/checklists/checklists';
 	import currentEvents from '$lib/data/currentEvents';
 	import { sendData } from '../helpers';
 
@@ -47,7 +49,7 @@
 		const ids = selected.map((ev) => ev.id.toString());
 		events = events.filter((ev) => !ids.includes(ev.id.toString()));
 		sendData({
-			method: 'PATCH',
+			method: 'DELETE',
 			body: {
 				events: ids
 			},
@@ -111,12 +113,14 @@
 	let addEventName = '';
 	let addEventTrialStatus = 'SCORING';
 	let addHighScoring = 'true';
+	let addEnableChecklist = false;
 	let addEventMedals = '';
 	function openAddEvent() {
 		showAddEvent = true;
 		addEventName = '';
 		addEventTrialStatus = 'SCORING';
 		addHighScoring = 'true';
+		addEnableChecklist = false;
 		addEventMedals = '';
 	}
 	function addEvent() {
@@ -127,6 +131,7 @@
 				name: addEventName,
 				trialStatus: addEventTrialStatus,
 				highScoring: addHighScoring,
+				enableChecklist: addEnableChecklist,
 				medals: parseInt(addEventMedals) || undefined
 			},
 			msgs: {
@@ -141,6 +146,7 @@
 	let editEventName = '';
 	let editEventTrialStatus = 'SCORING';
 	let editHighScoring = 'true';
+	let editEnableChecklist = false;
 	let editEventMedals = '';
 	let editEventId: bigint;
 	function openEditEvent(event: bigint) {
@@ -151,6 +157,7 @@
 		editEventName = ev.name;
 		editEventTrialStatus = ev.trialStatus;
 		editHighScoring = ev.highScoring ? 'true' : 'false';
+		editEnableChecklist = ev.enableChecklist;
 		editEventMedals = ev.medals?.toString() || '';
 	}
 	function editEvent() {
@@ -161,6 +168,7 @@
 						name: editEventName,
 						trialStatus: editEventTrialStatus as any,
 						highScoring: editHighScoring === 'true',
+						enableChecklist: editEnableChecklist,
 						medals: parseInt(editEventMedals) || null
 					}
 				: ev
@@ -173,6 +181,7 @@
 				name: editEventName,
 				trialStatus: editEventTrialStatus,
 				highScoring: editHighScoring,
+				enableChecklist: editEnableChecklist,
 				medals: parseInt(editEventMedals) || undefined
 			},
 			msgs: {
@@ -366,6 +375,11 @@
 			bind:value={addHighScoring}
 		/>
 	</Label>
+	{#if checklists[data.tournament.year]?.[addEventName] != undefined}
+		<Checkbox class="mt-2" bind:checked={addEnableChecklist}
+			>Enable Digital Checklists</Checkbox
+		>
+	{/if}
 	<Label>
 		Number of Medals (Optional, overrides tournament level setting)
 		<Input class="mt-2" type="text" required bind:value={addEventMedals} />
@@ -433,6 +447,11 @@
 			bind:value={editHighScoring}
 		/>
 	</Label>
+	{#if checklists[data.tournament.year]?.[editEventName] != undefined}
+		<Checkbox class="mt-2" bind:checked={editEnableChecklist}
+			>Enable Digital Checklists</Checkbox
+		>
+	{/if}
 	<Label>
 		Medals (Optional)
 		<Input class="mt-2" type="text" required bind:value={editEventMedals} />

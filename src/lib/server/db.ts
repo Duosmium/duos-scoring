@@ -253,6 +253,7 @@ export async function addEvents(
 		name: string;
 		trialStatus?: TrialStatus;
 		highScoring?: boolean;
+		enableChecklist?: boolean;
 		medals?: number;
 	}[]
 ) {
@@ -299,6 +300,7 @@ export async function updateEvent(
 		medals?: number;
 		locked?: boolean;
 		auditedUserId?: string | null;
+		enableChecklist?: boolean;
 	}
 ) {
 	try {
