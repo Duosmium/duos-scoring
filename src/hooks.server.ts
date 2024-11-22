@@ -1,7 +1,8 @@
 import {
 	PUBLIC_SUPABASE_URL,
 	PUBLIC_SUPABASE_ANON_KEY,
-	PUBLIC_SENTRY_DSN
+	PUBLIC_SENTRY_DSN,
+	PUBLIC_SENTRY_ENV
 } from '$env/static/public';
 import { createServerClient } from '@supabase/ssr';
 
@@ -17,7 +18,8 @@ import { sequence } from '@sveltejs/kit/hooks';
 
 Sentry.init({
 	dsn: PUBLIC_SENTRY_DSN,
-	tracesSampleRate: 1.0
+	tracesSampleRate: 1.0,
+	environment: PUBLIC_SENTRY_ENV || 'production'
 });
 
 export const handleError = Sentry.handleErrorWithSentry();
