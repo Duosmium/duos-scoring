@@ -17,5 +17,4 @@
 	checklistData={browser
 		? JSON.parse(localStorage.getItem('checklist') || '{}')
 		: {}}
-	readonly
 />
