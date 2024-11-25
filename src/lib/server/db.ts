@@ -633,6 +633,25 @@ export async function getEventScores(eventId: bigint) {
 	return scores;
 }
 
+export async function getScoreByChecklistId(checklistId: string) {
+	const score = await db.query.Score.findFirst({
+		where: (i, { eq }) => eq(i.checklistUuid, checklistId),
+		with: {
+			event: {
+				with: {
+					tournament: true
+				}
+			},
+			team: true
+		}
+	});
+
+	if (score == undefined || score.checklist == null) {
+		return false;
+	}
+	return score;
+}
+
 export async function updateScores(scores: Partial<Score> & { id: bigint }[]) {
 	try {
 		await Promise.all(

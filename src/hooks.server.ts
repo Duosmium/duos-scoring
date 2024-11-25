@@ -80,6 +80,11 @@ const handler: Handle = async ({ event, resolve }) => {
 		return await resolve(event);
 	}
 
+	// don't redirect when handling student checklist access
+	if (event.url.pathname.startsWith('/checklists/')) {
+		return await resolve(event);
+	}
+
 	// get the current session or try logging in with a passed supabase code
 	const returned = await event.locals.safeGetSession();
 	const supabaseUser = returned.user;

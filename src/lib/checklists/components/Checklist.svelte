@@ -12,6 +12,8 @@
 
 	import { setContext } from 'svelte';
 	import { get, writable, type Writable } from 'svelte/store';
+	import Section from './Section.svelte';
+	import QrCode from './QrCode.svelte';
 
 	export let event: string;
 	export let year: number;
@@ -19,6 +21,7 @@
 	export let teamNumber: number;
 	export let teamName: string;
 	export let checklistData: DbJson.ChecklistData;
+	export let checklistUrl: string | undefined = undefined;
 
 	export let score: number;
 	export let tier: number;
@@ -113,6 +116,13 @@
 		</label>
 
 		<slot />
+
+		{#if checklistUrl}
+			<Section title="Student Access" noIcon>
+				<p>Scan the QR code below to access this checklist.</p>
+				<QrCode class="block mx-auto mt-4 mb-24" url={checklistUrl} />
+			</Section>
+		{/if}
 	</div>
 </div>
 

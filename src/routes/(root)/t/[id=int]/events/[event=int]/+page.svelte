@@ -140,7 +140,8 @@
 							new: string | null;
 							dirty: boolean;
 						},
-						checklist: undefined
+						checklist: undefined,
+						checklistUuid: undefined
 					};
 			return {
 				...t,
@@ -498,6 +499,7 @@
 	let checklistScore: number;
 	let checklistTier: number;
 	let checklistStatus: ScoreStatus;
+	let checklistUuid: string | undefined;
 	$: {
 		if (checklistTeam) {
 			checklistTeam.score.rawScore.new = checklistScore;
@@ -510,6 +512,7 @@
 		if (!ChecklistComponent) return;
 		checklistTeam = team;
 		checklistData = team.score.checklist ?? undefined;
+		checklistUuid = team.score.checklistUuid;
 		showChecklist = true;
 	}
 	async function saveChecklist() {
@@ -1174,7 +1177,15 @@
 		bind:score={checklistScore}
 		bind:tier={checklistTier}
 		bind:status={checklistStatus}
+		checklistUrl={checklistUuid
+			? `https://scoring.duosmium.org/checklists/${checklistUuid}`
+			: undefined}
 	/>
+	{#if checklistUuid == undefined}
+		<p class="text-center !mb-24 text-lg text-slate-800 dark:text-slate-200">
+			Save this checklist to generate a student access code.
+		</p>
+	{/if}
 </Modal>
 
 <style lang="postcss">

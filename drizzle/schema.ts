@@ -163,7 +163,8 @@ export const Score = scoring.table(
 		tiebreak: real('tiebreak'),
 		status: ScoreStatus('status').notNull(),
 		notes: text('notes'),
-		checklist: jsonb('checklist').$type<DbJson.ChecklistData>()
+		checklist: jsonb('checklist').$type<DbJson.ChecklistData>(),
+		checklistUuid: uuid('checklistUuid').defaultRandom().notNull()
 	},
 	(table) => {
 		return {

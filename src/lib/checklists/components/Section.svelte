@@ -12,6 +12,8 @@
 
 	export let title: string;
 
+	export let noIcon = false;
+
 	const children: Writable<boolean>[] = [];
 	const sectionStatus = {
 		addChild: (childStatus: Writable<boolean>) => {
@@ -34,13 +36,16 @@
 <details open>
 	<summary class="mt-8 mb-6 cursor-pointer flex flex-row items-center">
 		<h3 class="m-0 mr-3 inline">{title}</h3>
-		{#if done}
-			<CheckCircleOutline class="w-8 h-8 text-green-500 dark:text-green-400" />
-		{:else}
-			<ExclamationCircleOutline
-				class="w-8 h-8 text-red-600 dark:text-red-500"
-			/>
-		{/if}
+		{#if !noIcon}
+			{#if done}
+				<CheckCircleOutline
+					class="w-8 h-8 text-green-500 dark:text-green-400"
+				/>
+			{:else}
+				<ExclamationCircleOutline
+					class="w-8 h-8 text-red-600 dark:text-red-500"
+				/>
+			{/if}{/if}
 	</summary>
 
 	<slot />
