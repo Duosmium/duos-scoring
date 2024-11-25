@@ -16,7 +16,7 @@
 		P,
 		Select
 	} from 'flowbite-svelte';
-	import { divisions, levels, states, inviStates } from '$lib/consts';
+	import { divisions, levels, stateOrgs, states } from '$lib/data/consts';
 	import type { Tournament } from '$drizzle/types';
 	import { page } from '$app/stores';
 	import { sendData } from './helpers';
@@ -286,9 +286,7 @@
 			State:
 			<Select
 				name="state"
-				items={editTournamentData.level === 'INVITATIONAL'
-					? inviStates
-					: states}
+				items={editTournamentData.level === 'INVITATIONAL' ? states : stateOrgs}
 				bind:value={editTournamentData.state}
 				required
 			/>

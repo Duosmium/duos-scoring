@@ -13,7 +13,7 @@
 
 	import type { Tournament } from '$drizzle/types';
 	import type { Snapshot } from './$types';
-	import { divisions, levels, states, inviStates } from '$lib/consts';
+	import { divisions, levels, stateOrgs, states } from '$lib/data/consts';
 	import { seasonYear, shortName } from '$lib/sciolyffHelpers';
 	import { addToastMessage, clearToasts } from '$lib/components/Toasts.svelte';
 	import { setContext, tick } from 'svelte';
@@ -60,7 +60,7 @@
 			fields.shortName = 'Nationals';
 		}
 		if (fields.level === 'STATE') {
-			fields.name = `${states.find((s) => s.value === fields.state)?.name} Science Olympiad State Tournament`;
+			fields.name = `${stateOrgs.find((s) => s.value === fields.state)?.name} Science Olympiad State Tournament`;
 			fields.shortName = `${fields.state} States`;
 		}
 
@@ -143,7 +143,7 @@
 				dirty.state = true;
 				commit();
 			}}
-			items={fields.level === 'INVITATIONAL' ? inviStates : states}
+			items={fields.level === 'INVITATIONAL' ? states : stateOrgs}
 			bind:value={fields.state}
 		/>
 		{#if dirty.state && !fields.state}

@@ -1,4 +1,4 @@
-export const inviStates = [
+export const states = [
 	{ value: 'AL', name: 'Alabama' },
 	{ value: 'AK', name: 'Alaska' },
 	{ value: 'AZ', name: 'Arizona' },
@@ -51,7 +51,7 @@ export const inviStates = [
 	{ value: 'WI', name: 'Wisconsin' },
 	{ value: 'WY', name: 'Wyoming' }
 ];
-export const states = [
+export const stateOrgs = [
 	{ value: 'AL', name: 'Alabama' },
 	{ value: 'AK', name: 'Alaska' },
 	{ value: 'AZ', name: 'Arizona' },
