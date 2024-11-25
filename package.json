@@ -14,7 +14,6 @@
 	"devDependencies": {
 		"@popperjs/core": "^2.11.8",
 		"@sentry/sveltekit": "^8.29.0",
-		"@shortcm/qr-image": "^9.0.4",
 		"@sparticuz/chromium": "^127.0.0",
 		"@supabase/ssr": "^0.5.1",
 		"@supabase/supabase-js": "^2.45.3",
@@ -27,6 +26,7 @@
 		"@types/js-yaml": "^4.0.9",
 		"@types/nodemailer": "^6.4.15",
 		"@types/papaparse": "^5.3.14",
+		"@types/qrcode": "^1.5.5",
 		"@typescript-eslint/eslint-plugin": "^8.5.0",
 		"@typescript-eslint/parser": "^8.5.0",
 		"@zip.js/zip.js": "^2.7.52",
@@ -57,6 +57,7 @@
 		"prettier": "^3.3.3",
 		"prettier-plugin-svelte": "^3.2.6",
 		"puppeteer-core": "^23.3.0",
+		"qrcode": "^1.5.4",
 		"sass": "^1.78.0",
 		"sciolyff": "^0.16.0",
 		"slugify": "^1.6.6",

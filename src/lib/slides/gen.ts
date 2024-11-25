@@ -1,5 +1,5 @@
 import { jsPDF, type OutlineItem } from 'jspdf';
-import { getPNG } from '@shortcm/qr-image/lib/png';
+import QRCode from 'qrcode';
 import Interpreter from 'sciolyff/interpreter';
 import type { SciOlyFF, Team, Event, Track } from 'sciolyff/interpreter/types';
 
@@ -266,10 +266,9 @@ export async function generatePdf(
 		});
 
 		// add QR code
-		const qr = await getPNG(url, {
-			logo: await (await (await fetch(logos['bg'])).blob()).arrayBuffer(),
-			ec_level: 'L',
-			size: 10
+		const qr = await QRCode.toDataURL(url, {
+			errorCorrectionLevel: 'L',
+			scale: 10
 		});
 		const sideLength = 16 - dividerOffset - 1;
 		doc.addImage(
