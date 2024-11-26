@@ -1182,7 +1182,9 @@
 			: undefined}
 	/>
 	{#if checklistUuid == undefined}
-		<p class="text-center !mb-24 text-lg text-slate-800 dark:text-slate-200">
+		<p
+			class="text-center text-lg text-slate-800 dark:text-slate-200 !-mt-20 !mb-28"
+		>
 			Save this checklist to generate a student access code.
 		</p>
 	{/if}

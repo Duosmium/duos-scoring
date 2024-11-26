@@ -97,7 +97,7 @@
 	Score: {score} | Tier: {tier} | Status: {status}
 </div>
 
-<div class="max-w-screen-lg mx-auto">
+<div class="max-w-screen-lg mx-auto pb-20">
 	<h1>{event}</h1>
 	<h2>Team Checklist - {year}</h2>
 
@@ -120,7 +120,7 @@
 		{#if checklistUrl}
 			<Section title="Student Access" noIcon>
 				<p>Scan the QR code below to access this checklist.</p>
-				<QrCode class="block mx-auto mt-4 mb-24" url={checklistUrl} />
+				<QrCode class="block mx-auto mt-4 mb-12" url={checklistUrl} />
 			</Section>
 		{/if}
 	</div>
