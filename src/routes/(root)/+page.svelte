@@ -259,6 +259,6 @@
 
 <style lang="postcss">
 	.features li {
-		@apply rounded-md shadow-md m-2 font-medium bg-indigo-800 text-slate-100 text-lg p-5;
+		@apply rounded-md shadow-md m-2 font-medium bg-indigo-800 text-slate-100 text-lg p-5 text-center;
 	}
 </style>
