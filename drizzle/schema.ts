@@ -92,26 +92,15 @@ export const TrialStatus = scoring.enum('TrialStatus', [
 ]);
 export const UserRole = scoring.enum('UserRole', ['TD', 'SM', 'ES']);
 
-export const Slides = scoring.table(
-	'Slides',
-	{
-		tournamentId: bigint('tournamentId', { mode: 'bigint' })
-			.notNull()
-			.references(() => Tournament.id, { onDelete: 'cascade' }),
-		channelId: text('channelId'),
-		settings: jsonb('settings').$type<DbJson.SlidesSettings>(),
-		batches: jsonb('batches').$type<DbJson.SlidesBatches>(),
-		done: boolean('done').default(false).notNull()
-	},
-	(table) => {
-		return {
-			tournamentId_key: uniqueIndex('Slides_tournamentId_key').using(
-				'btree',
-				table.tournamentId
-			)
-		};
-	}
-);
+export const Slides = scoring.table('Slides', {
+	tournamentId: bigint('tournamentId', { mode: 'bigint' })
+		.primaryKey()
+		.references(() => Tournament.id, { onDelete: 'cascade' }),
+	channelId: text('channelId'),
+	settings: jsonb('settings').$type<DbJson.SlidesSettings>(),
+	batches: jsonb('batches').$type<DbJson.SlidesBatches>(),
+	done: boolean('done').default(false).notNull()
+});
 
 export const Event = scoring.table(
 	'Event',
@@ -142,19 +131,28 @@ export const Event = scoring.table(
 	},
 	(table) => {
 		return {
-			tournamentId_idx: index().using('btree', table.tournamentId)
+			tournamentId_idx: index().using('btree', table.tournamentId),
+			auditedUserId_idx: index().using('btree', table.auditedUserId)
 		};
 	}
 );
 
-export const Invite = scoring.table('Invite', {
-	link: text('link').primaryKey().notNull(),
-	email: text('email'),
-	tournamentId: bigint('tournamentId', { mode: 'bigint' })
-		.notNull()
-		.references(() => Tournament.id, { onDelete: 'cascade' }),
-	role: UserRole('role').default('ES').notNull()
-});
+export const Invite = scoring.table(
+	'Invite',
+	{
+		link: text('link').primaryKey().notNull(),
+		email: text('email'),
+		tournamentId: bigint('tournamentId', { mode: 'bigint' })
+			.notNull()
+			.references(() => Tournament.id, { onDelete: 'cascade' }),
+		role: UserRole('role').default('ES').notNull()
+	},
+	(table) => {
+		return {
+			tournamentId_idx: index().using('btree', table.tournamentId)
+		};
+	}
+);
 
 export const Score = scoring.table(
 	'Score',
@@ -203,7 +201,9 @@ export const Role = scoring.table(
 		return {
 			userId_tournamentId_key: uniqueIndex(
 				'Role_userId_tournamentId_key'
-			).using('btree', table.userId, table.tournamentId)
+			).using('btree', table.userId, table.tournamentId),
+			userId_idx: index().using('btree', table.userId),
+			tournamentId_idx: index().using('btree', table.tournamentId)
 		};
 	}
 );
@@ -232,7 +232,8 @@ export const Team = scoring.table(
 			tournamentId_number_key: uniqueIndex(
 				'Team_tournamentId_number_key'
 			).using('btree', table.tournamentId, table.number),
-			tournamentId_idx: index().using('btree', table.tournamentId)
+			tournamentId_idx: index().using('btree', table.tournamentId),
+			trackId_idx: index().using('btree', table.trackId)
 		};
 	}
 );
