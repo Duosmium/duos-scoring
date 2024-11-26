@@ -1,5 +1,5 @@
 <script lang="ts">
-	import checklists from '$lib/checklists/checklists.js';
+	import checklists from '$lib/checklists';
 	import Head from '$lib/components/Head.svelte';
 
 	export let data;

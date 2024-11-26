@@ -23,7 +23,7 @@
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 
-	import checklists from '$lib/checklists/checklists';
+	import checklists from '$lib/checklists';
 	import currentEvents from '$lib/data/currentEvents';
 	import { sendData } from '../helpers';
 

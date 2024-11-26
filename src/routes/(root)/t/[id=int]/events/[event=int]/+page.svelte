@@ -25,7 +25,7 @@
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import SelectableTable from '$lib/components/SelectableTable.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
-	import checklists from '$lib/checklists/checklists';
+	import checklists from '$lib/checklists';
 	import { sendData } from '../../helpers';
 
 	export let data: PageData;
