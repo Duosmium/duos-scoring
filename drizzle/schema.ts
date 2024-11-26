@@ -113,31 +113,39 @@ export const Slides = scoring.table(
 	}
 );
 
-export const Event = scoring.table('Event', {
-	id: bigserial('id', { mode: 'bigint' }).primaryKey().notNull(),
-	name: text('name').notNull(),
-	trialStatus: TrialStatus('trialStatus').default('SCORING').notNull(),
-	highScoring: boolean('highScoring').default(true).notNull(),
-	locked: boolean('locked').default(false).notNull(),
-	medals: smallint('medals'),
-	enableChecklist: boolean('enableChecklist').default(false).notNull(),
-	auditedUserId: uuid('auditedUserId').references(() => User.id, {
-		onDelete: 'set null'
-	}),
-	auditedAt: timestamp('auditedAt', {
-		precision: 3,
-		withTimezone: true,
-		mode: 'date'
-	}),
-	tournamentId: bigint('tournamentId', { mode: 'bigint' })
-		.notNull()
-		.references(() => Tournament.id, { onDelete: 'cascade' }),
-	lastExportedAt: timestamp('lastExportedAt', {
-		precision: 3,
-		withTimezone: true,
-		mode: 'date'
-	})
-});
+export const Event = scoring.table(
+	'Event',
+	{
+		id: bigserial('id', { mode: 'bigint' }).primaryKey().notNull(),
+		name: text('name').notNull(),
+		trialStatus: TrialStatus('trialStatus').default('SCORING').notNull(),
+		highScoring: boolean('highScoring').default(true).notNull(),
+		locked: boolean('locked').default(false).notNull(),
+		medals: smallint('medals'),
+		enableChecklist: boolean('enableChecklist').default(false).notNull(),
+		auditedUserId: uuid('auditedUserId').references(() => User.id, {
+			onDelete: 'set null'
+		}),
+		auditedAt: timestamp('auditedAt', {
+			precision: 3,
+			withTimezone: true,
+			mode: 'date'
+		}),
+		tournamentId: bigint('tournamentId', { mode: 'bigint' })
+			.notNull()
+			.references(() => Tournament.id, { onDelete: 'cascade' }),
+		lastExportedAt: timestamp('lastExportedAt', {
+			precision: 3,
+			withTimezone: true,
+			mode: 'date'
+		})
+	},
+	(table) => {
+		return {
+			tournamentId_idx: index().using('btree', table.tournamentId)
+		};
+	}
+);
 
 export const Invite = scoring.table('Invite', {
 	link: text('link').primaryKey().notNull(),
@@ -172,7 +180,9 @@ export const Score = scoring.table(
 				'btree',
 				table.eventId,
 				table.teamId
-			)
+			),
+			eventId_idx: index().using('btree', table.eventId),
+			teamId_idx: index().using('btree', table.teamId)
 		};
 	}
 );
@@ -221,7 +231,8 @@ export const Team = scoring.table(
 		return {
 			tournamentId_number_key: uniqueIndex(
 				'Team_tournamentId_number_key'
-			).using('btree', table.tournamentId, table.number)
+			).using('btree', table.tournamentId, table.number),
+			tournamentId_idx: index().using('btree', table.tournamentId)
 		};
 	}
 );
@@ -248,15 +259,23 @@ export const Tournament = scoring.table('Tournament', {
 	requestingApproval: boolean('requestingApproval').default(false).notNull()
 });
 
-export const Track = scoring.table('Track', {
-	id: bigserial('id', { mode: 'bigint' }).primaryKey().notNull(),
-	name: text('name').notNull(),
-	medals: smallint('medals'),
-	trophies: smallint('trophies'),
-	tournamentId: bigint('tournamentId', { mode: 'bigint' })
-		.notNull()
-		.references(() => Tournament.id, { onDelete: 'cascade' })
-});
+export const Track = scoring.table(
+	'Track',
+	{
+		id: bigserial('id', { mode: 'bigint' }).primaryKey().notNull(),
+		name: text('name').notNull(),
+		medals: smallint('medals'),
+		trophies: smallint('trophies'),
+		tournamentId: bigint('tournamentId', { mode: 'bigint' })
+			.notNull()
+			.references(() => Tournament.id, { onDelete: 'cascade' })
+	},
+	(table) => {
+		return {
+			tournamentId_idx: index().using('btree', table.tournamentId)
+		};
+	}
+);
 
 export const User = scoring.table('User', {
 	id: uuid('id').primaryKey().notNull(),
@@ -280,6 +299,7 @@ export const _ESEventRoles = scoring.table(
 				table.A,
 				table.B
 			),
+			A_idx: index().using('btree', table.A),
 			B_idx: index().using('btree', table.B)
 		};
 	}
@@ -305,6 +325,7 @@ export const _InviteEvents = scoring.table(
 				table.A,
 				table.B
 			),
+			A_idx: index().using('btree', table.A),
 			B_idx: index().using('btree', table.B)
 		};
 	}

@@ -36,6 +36,13 @@
       "when": 1732568223482,
       "tag": "0004_add-checklistuuid",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1732605164017,
+      "tag": "0005_add-indices",
+      "breakpoints": true
     }
   ]
 }
