@@ -175,7 +175,11 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 			}
 			return acc;
 		},
-		[[], [], []] as [Omit<Score, 'id'>[], Score[], bigint[]]
+		[[], [], []] as [
+			Omit<Score, 'id' | 'checklistUuid'>[],
+			Omit<Score, 'checklistUuid'>[],
+			bigint[]
+		]
 	);
 
 	const addSuccess = await addScores(newScores);

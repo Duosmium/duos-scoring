@@ -671,14 +671,20 @@ export async function updateScores(scores: Partial<Score> & { id: bigint }[]) {
 	return true;
 }
 
-export async function addScores(scores: Omit<Score, 'id'>[]) {
+export async function addScores(scores: Omit<Score, 'id' | 'checklistUuid'>[]) {
 	if (scores.length === 0) {
 		return true;
 	}
 	try {
 		await db
 			.insert(schema.Score)
-			.values(scores.map((s) => ({ ...s, checklist: s.checklist ?? null })));
+			.values(
+				scores.map((s) => ({
+					...s,
+					checklist: s.checklist ?? null,
+					checklistUuid: undefined
+				}))
+			);
 	} catch (e) {
 		console.error(e);
 		captureException(e);
