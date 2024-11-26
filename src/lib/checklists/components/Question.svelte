@@ -12,7 +12,8 @@
 
 	export let checkbox: CheckboxValue | undefined = undefined;
 	export let enableFixed: boolean | undefined = undefined;
-	export let linkChildren: boolean = false;
+	export let linkChildren = false;
+	export let noInput = false;
 
 	export let inputValue: number | null = null;
 	export let min: number | undefined = undefined;
@@ -109,42 +110,46 @@
 </script>
 
 <div class={'p-2 ring-1 ' + highlight}>
-	<span class="flex flex-col sm:flex-row items-start sm:items-baseline">
+	<div class="flex flex-col sm:flex-row items-start sm:items-baseline">
 		<div class="flex flex-row items-center mr-2">
-			<span class="mb-1 mr-1">
-				{#if numberItem}
-					<strong class="mr-0.5">
-						{checklistNumber}.
-					</strong>
-				{/if}
-				{#if rule}
-					<strong class="font-medium">
-						Rule {rule}
-					</strong>
-				{/if}
-			</span>
-			<span class="mb-1 mr-1">
-				{#if !numeric}
-					<Checkbox
-						{enableFixed}
-						parent={$parent}
-						bind:value={checkbox}
-						{readonly}
-					/>
-				{:else}
-					<input
-						{id}
-						class="mx-2"
-						type="number"
-						{min}
-						{max}
-						bind:value={inputValue}
-						disabled={readonly}
-					/>
-				{/if}
-			</span>
+			{#if rule || numberItem}
+				<span class="mb-1 mr-1">
+					{#if numberItem}
+						<strong class="mr-0.5">
+							{checklistNumber}.
+						</strong>
+					{/if}
+					{#if rule}
+						<strong class="font-medium">
+							Rule {rule}
+						</strong>
+					{/if}
+				</span>
+			{/if}
+			{#if !noInput}
+				<span class="mb-1 mr-1">
+					{#if !numeric}
+						<Checkbox
+							{enableFixed}
+							parent={$parent}
+							bind:value={checkbox}
+							{readonly}
+						/>
+					{:else}
+						<input
+							{id}
+							class="mx-2"
+							type="number"
+							{min}
+							{max}
+							bind:value={inputValue}
+							disabled={readonly}
+						/>
+					{/if}
+				</span>
+			{/if}
 		</div>
-		<span class="flex-1">
+		<div class="flex-1">
 			{#if !numeric}
 				<slot />
 			{:else}
@@ -152,8 +157,8 @@
 					<slot />
 				</label>
 			{/if}
-		</span>
-	</span>
+		</div>
+	</div>
 
 	{#if $$slots.children}
 		<details class="mt-2" open>
