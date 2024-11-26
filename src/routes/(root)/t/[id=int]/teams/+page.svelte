@@ -16,7 +16,8 @@
 		List,
 		Li,
 		P,
-		Alert
+		Alert,
+		Radio
 	} from 'flowbite-svelte';
 	import papaparse from 'papaparse';
 	import type { Team } from '$drizzle/types';
@@ -24,6 +25,9 @@
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 	import { sendData } from '../helpers';
 	import { states } from '$lib/data/consts';
+	import { ExclamationCircleSolid } from 'flowbite-svelte-icons';
+	import { distance } from 'fastest-levenshtein';
+	import { normalize } from './shared';
 
 	export let data: PageData;
 
@@ -31,6 +35,32 @@
 		(a, s) => a.set(s.name.toLowerCase(), s.value),
 		new Map<string, string>()
 	);
+
+	function canonicalize<T>(
+		teams: {
+			state: string;
+			school: string;
+			city: string | null;
+			id: T;
+		}[]
+	) {
+		return new Map(
+			teams.flatMap<[T, [string, string, string][]]>((t) => {
+				const matched = data.canonicalNames.flatMap<
+					[string, string, string] | true
+				>(([n, original, city, state]) =>
+					state === t.state && original === t.school && city === (t.city ?? '')
+						? [true]
+						: state === t.state && distance(n, normalize(t.school)) <= 2
+							? [[original, city, state]]
+							: []
+				);
+				return matched.length > 0 && matched.some((m) => m === true)
+					? []
+					: [[t.id, matched as [string, string, string][]]];
+			})
+		);
+	}
 
 	$: tracks = [{ value: '', name: 'None' }].concat(
 		data.tracks.map((track) => ({
@@ -41,6 +71,8 @@
 
 	let selected: typeof teams = [];
 	$: teams = data.teams;
+
+	$: nonCanonicalTeams = canonicalize(teams);
 
 	let showConfirmDelete = false;
 	function confirmDelete() {
@@ -96,10 +128,10 @@
 
 		const sendTeamData = {
 			number: parseInt(editTeamData.number as any),
-			school: editTeamData.school,
-			abbreviation: editTeamData.abbreviation || null,
-			suffix: editTeamData.suffix || null,
-			city: editTeamData.city || null,
+			school: editTeamData.school?.trim(),
+			abbreviation: editTeamData.abbreviation?.trim() || null,
+			suffix: editTeamData.suffix?.trim() || null,
+			city: editTeamData.city?.trim() || null,
 			state: editTeamData.state,
 			trackId: editTeamData.trackId || null,
 			exhibition: editTeamData.exhibition,
@@ -126,14 +158,15 @@
 	let importGenerateNumbers = true;
 	$: nextNumber = teams.reduce((acc, t) => Math.max(acc, t.number), 0) + 1;
 	let parsedImportTeams: {
-		Number: string;
-		School: string;
-		Abbreviation: string;
-		Suffix: string;
-		City: string;
-		State: string;
-		Track: string;
-		Exhibition: string;
+		Number: string | undefined;
+		School: string | undefined;
+		Abbreviation: string | undefined;
+		Suffix: string | undefined;
+		City: string | undefined;
+		State: string | undefined;
+		Track: string | undefined;
+		Exhibition: string | undefined;
+		__canonical: [string, string, string][] | undefined;
 	}[] = [];
 	let parsedError = '';
 	$: {
@@ -142,6 +175,7 @@
 			.data as any;
 		const missingFields: Set<string> = new Set();
 		const invalidStates: Set<string> = new Set();
+		const invalidTracks: Set<string> = new Set();
 		// TODO: validate numbers, suffix, exhibition; canonicalization
 		parsedImportTeams.forEach((t) => {
 			if (!importGenerateNumbers && !t.Number) {
@@ -154,10 +188,18 @@
 				missingFields.add('State');
 			}
 			if (
+				t.State &&
 				!stateLookup.has(t.State.toLowerCase()) &&
 				![...stateLookup.values()].includes(t.State)
 			) {
 				invalidStates.add(t.State);
+			}
+			if (
+				data.tournament.enableTracks &&
+				t.Track &&
+				!tracks.some((track) => track.name === t.Track)
+			) {
+				invalidTracks.add(t.Track);
 			}
 		});
 		if (missingFields.size > 0) {
@@ -166,16 +208,39 @@
 		if (invalidStates.size > 0) {
 			parsedError = `Invalid states: ${[...invalidStates].join(', ')}\n`;
 		}
+		if (invalidTracks.size > 0) {
+			parsedError = `Invalid tracks: ${[...invalidTracks].join(', ')}\n`;
+		}
 		if (!parsedError) {
-			parsedImportTeams.forEach((t, i) => {
+			parsedImportTeams.forEach(async (t, i) => {
 				if (importGenerateNumbers) {
 					t.Number = (nextNumber + i).toString();
 				} else {
-					t.Number = parseInt(/\d+/.exec(t.Number)?.[0] ?? '').toString();
+					t.Number = parseInt(/\d+/.exec(t.Number!)?.[0] ?? '').toString();
 				}
-				if (stateLookup.has(t.State.toLowerCase())) {
-					t.State = stateLookup.get(t.State.toLowerCase()) ?? t.State;
+				if (stateLookup.has(t.State!.toLowerCase())) {
+					t.State = stateLookup.get(t.State!.toLowerCase()) ?? t.State;
 				}
+
+				t.School &&= t.School.trim();
+				t.Abbreviation &&= t.Abbreviation.trim();
+				t.Suffix &&= t.Suffix.trim();
+				t.City &&= t.City.trim();
+				t.State &&= t.State.trim();
+				t.Exhibition &&= ['n', 'f', 'no', 'false', 'none'].includes(
+					t.Exhibition.trim().toLowerCase()
+				)
+					? ''
+					: 'true';
+
+				t.__canonical = canonicalize([
+					{
+						state: t.State ?? '',
+						school: t.School ?? '',
+						city: t.City ?? '',
+						id: 0
+					}
+				]).get(0);
 			});
 		}
 	}
@@ -187,7 +252,7 @@
 		sendData({
 			method: 'PUT',
 			body: parsedImportTeams.map((t) => ({
-				number: parseInt(t.Number),
+				number: parseInt(t.Number!),
 				school: t.School,
 				abbreviation: t.Abbreviation || null,
 				suffix: t.Suffix || null,
@@ -205,6 +270,39 @@
 			}
 		}).then(() => {
 			importTeamsData = '';
+		});
+	}
+
+	let showCanonicalization = false;
+	let canonicalSelection: Record<string, number> = {};
+	function openCanonicalization() {
+		canonicalSelection = {};
+		showCanonicalization = true;
+	}
+	function saveCanonicalizations() {
+		const data = Object.entries(canonicalSelection).flatMap(([id, idx]) => {
+			const selected = nonCanonicalTeams.get(BigInt(id))?.[idx];
+			if (!selected) return [];
+			return [
+				{
+					id,
+					data: {
+						school: selected[0],
+						city: selected[1] || null,
+						state: selected[2]
+					}
+				}
+			];
+		});
+		sendData({
+			method: 'PATCH',
+			body: data,
+			multiple: true,
+			msgs: {
+				info: 'Fixing canonicalizations...',
+				success: 'Canonicalizations fixed!',
+				error: 'Failed to fix canonicalizations!'
+			}
 		});
 	}
 </script>
@@ -247,13 +345,20 @@
 	</svelte:fragment>
 	<svelte:fragment slot="item" let:item={team}>
 		<TableBodyCell class="py-0 px-2">{team.number}</TableBodyCell>
-		<TableBodyCell class="py-0 px-2"
-			>{team.abbreviation ??
-				team.school.slice(0, 45) +
-					(team.school.length > 45 ? '…' : '')}{team.suffix
-				? ' ' + team.suffix.slice(0, 38) + (team.suffix.length > 38 ? '…' : '')
-				: ''}</TableBodyCell
-		>
+		<TableBodyCell class="py-0 px-2">
+			{team.abbreviation ??
+				team.school.slice(0, 45) + (team.school.length > 45 ? '…' : '')}
+			{team.suffix
+				? team.suffix.slice(0, 38) + (team.suffix.length > 38 ? '…' : '')
+				: ''}{#if nonCanonicalTeams?.has(team.id)}<button
+					on:click={openCanonicalization}
+					><ExclamationCircleSolid
+						size="sm"
+						class="text-yellow-400 ml-1 inline align-text-top"
+					/></button
+				>
+			{/if}
+		</TableBodyCell>
 		<TableBodyCell class="py-0 px-2"
 			>{team.city ? team.city + ', ' : ''}{team.state}</TableBodyCell
 		>
@@ -486,6 +591,17 @@
 					><span class="dark:text-orange-300 text-orange-700"
 						>{team.Exhibition ? ' [Exhib.]' : ''}</span
 					>
+					{#if team.__canonical}
+						<span class="dark:text-yellow-300 text-yellow-500">
+							{#if team.__canonical.length === 0}
+								Warning: School not found in database.
+							{:else}
+								Did you mean: {team.__canonical
+									.map(([n, c, s]) => `${n}: ${c ? c + ', ' : ''}${s}`)
+									.join('; ')}
+							{/if}
+						</span>
+					{/if}
 				</li>
 			{/each}
 		</ol>
@@ -500,6 +616,74 @@
 			disabled={parsedError.length !== 0}
 			on:click={importTeams}>Save</Button
 		>
+		<Button color="alternative">Cancel</Button>
+	</svelte:fragment>
+</Modal>
+
+<Modal
+	title="Canonicalization Warnings"
+	size="lg"
+	bind:open={showCanonicalization}
+	autoclose
+	outsideclose
+	classFooter="justify-end"
+>
+	<p>
+		Schools that have not appeared in Duosmium Results are listed below. This
+		could be because of an error in data entry, or simply because this is the
+		first time a school is competing.
+	</p>
+	<p>
+		Similar schools are suggested; if a suggestion is a match, please select and
+		fix the issue below. We prefer the more specific entry with the city, if
+		possible.
+	</p>
+	<p>
+		If there are no suggestions, double check the school name and city. If
+		everything is correct, you can safely ignore these warnings.
+	</p>
+	<ul class="list-disc pl-4 space-y-4 text-slate-800 dark:text-slate-200">
+		{#each teams as team}
+			{#if nonCanonicalTeams.has(team.id)}
+				<li>
+					<span class="font-bold">Team {team.number}:</span>
+					<span class="text-orange-700 dark:text-orange-200"
+						>{team.school},
+						{team.city ? team.city + ', ' : ''}{team.state}</span
+					>
+					not found,
+					{#if (nonCanonicalTeams.get(team.id)?.length ?? 0) > 0}
+						did you mean:
+						<ul class="ml-4">
+							{#each nonCanonicalTeams.get(team.id) ?? [] as match, i}
+								<li class="mt-1">
+									<Radio
+										name="T{team.id}"
+										value={i}
+										bind:group={canonicalSelection[team.id.toString()]}
+										class="text-green-700 dark:text-green-200 text-base"
+									>
+										{match[0]}, {match[1] ? match[1] + ', ' : ''}{match[2]}
+									</Radio>
+								</li>
+							{/each}
+						</ul>
+					{:else}
+						are you sure this is the correct name?
+					{/if}
+				</li>
+			{/if}
+		{/each}
+	</ul>
+	<svelte:fragment slot="footer">
+		{@const numSelected = Object.entries(canonicalSelection).length}
+		{#if numSelected > 0}
+			<Button color="green" on:click={saveCanonicalizations}
+				>Save {numSelected} canonicalization{numSelected === 1
+					? ''
+					: 's'}</Button
+			>
+		{/if}
 		<Button color="alternative">Cancel</Button>
 	</svelte:fragment>
 </Modal>
