@@ -24,6 +24,7 @@
 	import papaparse from 'papaparse';
 	import type { UserRole } from '$drizzle/types';
 	import { sendData } from '../helpers';
+	import { distance } from 'fastest-levenshtein';
 
 	export let data: PageData;
 
@@ -68,36 +69,59 @@
 		}
 	}
 
+	function matchEvent(match: string) {
+		match = match.toLowerCase().replace(/\s+/g, ' ');
+		return (
+			match &&
+			data.events.reduce(
+				(acc, e) => {
+					const event = e.name.toLowerCase().replace(/\s+/g, ' ');
+					const dist = distance(event, match);
+					if (dist <= acc[1]) {
+						return [e.name, dist] as [string, number];
+					}
+					if (match.length >= 5 && event.startsWith(match)) {
+						return [e.name, 0] as [string, number];
+					}
+					return acc;
+				},
+				[undefined, Math.min(match.length - 3, 5)] as [
+					string | undefined,
+					number
+				]
+			)[0]
+		);
+	}
 	const emailRegex =
-		/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+		/(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/;
 	let showInviteMembers = false;
 	let inviteMembersData = '';
 	let parsedInvites: { email: string; events: string[]; role: UserRole }[];
 	let parsedError = '';
-	$: events = new Map(data.events.map((e) => [e.name.toLowerCase(), e]));
+	$: events = new Map(data.events.map((e) => [e.name, e]));
 	$: {
 		parsedInvites = [
 			...(
 				papaparse.parse(inviteMembersData, {
 					header: false,
 					skipEmptyLines: 'greedy',
-					transform: (v) => v.trim()
+					transform: (v) => {
+						v = v.trim();
+						return emailRegex.exec(v)?.[0] || matchEvent(v) || v;
+					}
 				}).data as string[][]
 			)
 				.reduce((acc, row) => {
 					row = row.filter((d) => d !== '');
 					const userEvents = acc.get(row[0])?.events || new Set<string>();
 					let role: UserRole = 'ES';
-					row
-						.slice(1)
-						.map((d) => events.get(d.toLowerCase())?.name ?? d)
-						.forEach((e) => {
-							if ([...roleNames.keys()].includes(e.toUpperCase())) {
-								role = e.toUpperCase() as UserRole;
-								return;
-							}
-							userEvents.add(e);
-						});
+					row.slice(1).forEach((e) => {
+						if ([...roleNames.keys()].includes(e.toUpperCase())) {
+							role = e.toUpperCase() as UserRole;
+							return;
+						}
+						userEvents.add(e);
+					});
 					acc.set(row[0], { events: userEvents, role });
 					return acc;
 				}, new Map<string, { events: Set<string>; role: UserRole }>())
@@ -108,17 +132,25 @@
 			role
 		}));
 		parsedError = '';
-		parsedInvites.forEach((t) => {
+		parsedInvites = parsedInvites.filter((t, i) => {
 			if (!emailRegex.test(t.email)) {
-				parsedError += `Invalid email '${t.email}'\n`;
+				if (i !== 0) {
+					parsedError += `Invalid email '${t.email}'\n`;
+				}
+				return false;
 			}
 			if (t.events.length !== 0) {
-				t.events.forEach((e) => {
-					if (!events.has(e.toLowerCase())) {
-						parsedError += `Invalid event '${e}'\n`;
-					}
-				});
+				return t.events
+					.map((e) => {
+						if (!events.has(e)) {
+							parsedError += `Invalid event '${e}'\n`;
+							return false;
+						}
+						return true;
+					})
+					.every((e) => e);
 			}
+			return true;
 		});
 	}
 	function openInviteMembers() {
@@ -130,9 +162,7 @@
 			method: 'PUT',
 			body: parsedInvites.slice(0, 15).map((i) => ({
 				email: i.email,
-				events: i.events.map((name) =>
-					events.get(name.toLowerCase())?.id.toString()
-				),
+				events: i.events.map((name) => events.get(name)?.id.toString()),
 				role: i.role
 			})),
 			msgs: {
@@ -374,7 +404,8 @@
 		<List tag="ul" class="space-y-1 my-2">
 			<Li
 				><code class="dark:text-red-300 text-red-700">Email</code>
-				<i>(Required)</i>: An invite link will be sent to this email
+				<i>(Required, first column)</i>: An invite link will be sent to this
+				email
 			</Li>
 			<Li
 				><code class="dark:text-blue-300 text-blue-700">Tournament Role</code>
@@ -431,7 +462,7 @@
 
 <Modal title="Edit Member" bind:open={showEditMember} autoclose outsideclose>
 	<Heading tag="h2" class="text-2xl">Events</Heading>
-	{#each events.values() as event}
+	{#each data.events as event}
 		<Checkbox
 			class="mr-2 mt-2"
 			checked={editMemberData.events.includes(event.id)}
@@ -470,7 +501,7 @@
 
 <Modal title="Edit Invite" bind:open={showEditInvite} autoclose outsideclose>
 	<Heading tag="h2" class="text-2xl">Events</Heading>
-	{#each events.values() as event}
+	{#each data.events as event}
 		<Checkbox
 			class="mt-2 mr-2"
 			checked={editInviteData.events.includes(event.id)}
