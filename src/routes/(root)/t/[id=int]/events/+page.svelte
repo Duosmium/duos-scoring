@@ -201,15 +201,15 @@
 <div class="w-full flex justify-between flex-wrap mb-2">
 	<Heading tag="h2" class="w-fit">Events</Heading>
 	<span class="space-x-4">
-		<Button color="green" on:click={openAddEvent}>Add Event</Button>
 		{#if events.length === 0 && data.tournament.division !== 'A'}
 			<Button
-				color="green"
+				color="blue"
 				on:click={() => {
 					showAddAll = true;
 				}}>Add All Events</Button
 			>
 		{/if}
+		<Button color="green" on:click={openAddEvent}>Add Event</Button>
 	</span>
 </div>
 {#if selected.length > 0}

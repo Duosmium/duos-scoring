@@ -362,7 +362,7 @@
 <div class="w-full flex justify-between flex-wrap mb-2">
 	<Heading tag="h2" class="w-fit">Teams</Heading>
 	<span class="space-x-4">
-		<Button color="green" on:click={openImportTeams}>Import Teams</Button>
+		<Button color="blue" on:click={openImportTeams}>Import Teams</Button>
 		<Button color="green" on:click={openAddTeam}>Add Team</Button>
 	</span>
 </div>
