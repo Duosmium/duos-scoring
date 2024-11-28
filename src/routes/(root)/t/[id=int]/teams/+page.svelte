@@ -166,13 +166,27 @@
 		State: string | undefined;
 		Track: string | undefined;
 		Exhibition: string | undefined;
-		__canonical: [string, string, string][] | undefined;
 	}[] = [];
 	let parsedError = '';
 	$: {
 		parsedError = '';
-		parsedImportTeams = papaparse.parse(importTeamsData, { header: true })
-			.data as any;
+		parsedImportTeams = papaparse.parse(importTeamsData, {
+			header: true,
+			transformHeader: (h) =>
+				[
+					['number', 'Number'],
+					['#', 'Number'],
+					['school', 'School'],
+					['abbrev', 'Abbreviation'],
+					['suffix', 'Suffix'],
+					['team', 'Suffix'],
+					['city', 'City'],
+					['state', 'State'],
+					['track', 'Track'],
+					['exhibition', 'Exhibition']
+				].find((m) => h.toLowerCase().includes(m[0]))?.[1] ?? h,
+			transform: (d) => d.trim()
+		}).data as any;
 		const missingFields: Set<string> = new Set();
 		const invalidStates: Set<string> = new Set();
 		const invalidTracks: Set<string> = new Set();
@@ -213,7 +227,7 @@
 		}
 		if (!parsedError) {
 			parsedImportTeams.forEach(async (t, i) => {
-				if (importGenerateNumbers) {
+				if (importGenerateNumbers && !t.Number) {
 					t.Number = (nextNumber + i).toString();
 				} else {
 					t.Number = parseInt(/\d+/.exec(t.Number!)?.[0] ?? '').toString();
@@ -222,25 +236,11 @@
 					t.State = stateLookup.get(t.State!.toLowerCase()) ?? t.State;
 				}
 
-				t.School &&= t.School.trim();
-				t.Abbreviation &&= t.Abbreviation.trim();
-				t.Suffix &&= t.Suffix.trim();
-				t.City &&= t.City.trim();
-				t.State &&= t.State.trim();
 				t.Exhibition &&= ['n', 'f', 'no', 'false', 'none'].includes(
 					t.Exhibition.trim().toLowerCase()
 				)
 					? ''
 					: 'true';
-
-				t.__canonical = canonicalize([
-					{
-						state: t.State ?? '',
-						school: t.School ?? '',
-						city: t.City ?? '',
-						id: 0
-					}
-				]).get(0);
 			});
 		}
 	}
@@ -591,17 +591,6 @@
 					><span class="dark:text-orange-300 text-orange-700"
 						>{team.Exhibition ? ' [Exhib.]' : ''}</span
 					>
-					{#if team.__canonical}
-						<span class="dark:text-yellow-300 text-yellow-500">
-							{#if team.__canonical.length === 0}
-								Warning: School not found in database.
-							{:else}
-								Did you mean: {team.__canonical
-									.map(([n, c, s]) => `${n}: ${c ? c + ', ' : ''}${s}`)
-									.join('; ')}
-							{/if}
-						</span>
-					{/if}
 				</li>
 			{/each}
 		</ol>
