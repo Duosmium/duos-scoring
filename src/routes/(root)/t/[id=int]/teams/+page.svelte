@@ -73,6 +73,22 @@
 	$: teams = data.teams;
 
 	$: nonCanonicalTeams = canonicalize(teams);
+	$: schools = new Map(
+		[
+			...new Set(teams.map((t) => `${t.school}|${t.city ?? ''}|${t.state}`))
+		].map(
+			(s, i) =>
+				[
+					i,
+					teams.flatMap((t) =>
+						s === `${t.school}|${t.city ?? ''}|${t.state}` ? [t.id] : []
+					)
+				] as const
+		)
+	);
+	$: teamSchools = new Map(
+		[...schools.entries()].flatMap(([i, ids]) => ids.map((id) => [id, i]))
+	);
 
 	let showConfirmDelete = false;
 	function confirmDelete() {
@@ -118,13 +134,36 @@
 
 	let showEditTeam = false;
 	let editTeamData: Partial<Omit<Team, 'trackId'> & { trackId?: string }> = {};
+	let editTeamObject: (typeof teams)[0] | undefined;
 	function openEditTeam(team: bigint) {
 		showEditTeam = true;
-		const teamData = teams.find((t) => t.id === team);
-		editTeamData = { ...teamData, trackId: teamData?.trackId?.toString() };
+		editTeamObject = teams.find((t) => t.id === team);
+		editTeamData = {
+			...editTeamObject,
+			trackId: editTeamObject?.trackId?.toString()
+		};
 	}
 	function editTeam() {
 		// TODO: validation, canonicalization
+
+		const otherTeams =
+			schools
+				.get(teamSchools.get(editTeamData.id ?? BigInt(-1)) ?? -1)
+				?.flatMap((id) =>
+					id !== editTeamData.id
+						? [
+								{
+									id: id.toString(),
+									data: {
+										school: editTeamData.school?.trim(),
+										abbreviation: editTeamData.abbreviation?.trim() || null,
+										city: editTeamData.city?.trim() || null,
+										state: editTeamData.state
+									}
+								}
+							]
+						: []
+				) ?? [];
 
 		const sendTeamData = {
 			number: parseInt(editTeamData.number as any),
@@ -141,10 +180,14 @@
 		};
 		sendData({
 			method: 'PATCH',
-			body: {
-				id: editTeamData.id?.toString(),
-				data: sendTeamData
-			},
+			body: [
+				...otherTeams,
+				{
+					id: editTeamData.id?.toString(),
+					data: sendTeamData
+				}
+			],
+			multiple: true,
 			msgs: {
 				info: 'Updating team...',
 				success: 'Team updated!',
@@ -274,26 +317,30 @@
 	}
 
 	let showCanonicalization = false;
-	let canonicalSelection: Record<string, number> = {};
+	let canonicalSelection: Record<number, number> = {};
 	function openCanonicalization() {
 		canonicalSelection = {};
 		showCanonicalization = true;
 	}
 	function saveCanonicalizations() {
-		const data = Object.entries(canonicalSelection).flatMap(([id, idx]) => {
-			const selected = nonCanonicalTeams.get(BigInt(id))?.[idx];
-			if (!selected) return [];
-			return [
-				{
-					id,
-					data: {
-						school: selected[0],
-						city: selected[1] || null,
-						state: selected[2]
-					}
-				}
-			];
-		});
+		const data = Object.entries(canonicalSelection).flatMap(
+			([schoolIdx, entryIdx]) => {
+				return schools.get(parseInt(schoolIdx))?.flatMap((id) => {
+					const selected = nonCanonicalTeams.get(BigInt(id))?.[entryIdx];
+					if (!selected) return [];
+					return [
+						{
+							id,
+							data: {
+								school: selected[0],
+								city: selected[1] || null,
+								state: selected[2]
+							}
+						}
+					];
+				});
+			}
+		);
 		sendData({
 			method: 'PATCH',
 			body: data,
@@ -649,7 +696,9 @@
 									<Radio
 										name="T{team.id}"
 										value={i}
-										bind:group={canonicalSelection[team.id.toString()]}
+										bind:group={canonicalSelection[
+											teamSchools.get(team.id) ?? -1
+										]}
 										class="text-green-700 dark:text-green-200 text-base"
 									>
 										{match[0]}, {match[1] ? match[1] + ', ' : ''}{match[2]}
