@@ -100,8 +100,7 @@
 
 	let invalid = false;
 	$: tick().then(() => {
-		invalid =
-			fields && browser && document.querySelectorAll('.note').length > 0;
+		invalid = fields && browser && document.querySelectorAll('.err').length > 0;
 	});
 </script>
 
@@ -147,7 +146,7 @@
 			bind:value={fields.state}
 		/>
 		{#if dirty.state && !fields.state}
-			<p class="note">State is required!</p>
+			<p class="err">State is required!</p>
 		{/if}
 	</Step>
 	<Step
@@ -177,7 +176,16 @@
 				: 'Local County Regional Tournament'}
 		/>
 		{#if dirty.name && !fields.name}
-			<p class="note">Name is required!</p>
+			<p class="err">Name is required!</p>
+		{/if}
+		{#if dirty.name && fields.level === 'INVITATIONAL' && !fields.name?.endsWith('Science Olympiad Invitational')}
+			<p class="warn">Name should end in 'Science Olympiad Invitational'!</p>
+		{/if}
+		{#if dirty.name && fields.level === 'REGIONAL' && !fields.name?.endsWith('Regional Tournament')}
+			<p class="warn">Name should end in 'Regional Tournament'!</p>
+		{/if}
+		{#if dirty.name && /^\d{2,4}/.test(fields.name ?? '')}
+			<p class="warn">Name should not start with the year!</p>
 		{/if}
 	</Step>
 	<Step
@@ -198,13 +206,13 @@
 			bind:value={fields.shortName}
 		/>
 		{#if (fields.shortName?.length ?? 0) > (fields.name?.length ?? 0)}
-			<p class="note">Your short name should be shorter than the full name!</p>
+			<p class="err">Your short name should be shorter than the full name!</p>
 		{/if}
 	</Step>
 	<Step {step} title="Tournament Location">
 		<p>
-			This is typically the name of the host school or university. For virtual
-			tournaments, put "Online".
+			This is typically the name of the school or university physically hosting
+			the tournament. For virtual tournaments, put "Online".
 		</p>
 		<Input
 			on:change={() => {
@@ -215,7 +223,7 @@
 			bind:value={fields.location}
 		/>
 		{#if dirty.location && !fields.location}
-			<p class="note">Location is required!</p>
+			<p class="err">Location is required!</p>
 		{/if}
 	</Step>
 	<Step {step} title="Division">
@@ -232,7 +240,7 @@
 			bind:value={fields.division}
 		/>
 		{#if dirty.division && !fields.division}
-			<p class="note">Division is required!</p>
+			<p class="err">Division is required!</p>
 		{/if}
 	</Step>
 	<Step {step} fieldCount={2} title="When does your tournament start and end?">
@@ -259,10 +267,10 @@
 			/>
 		</div>
 		{#if (fields.startDate ?? 0) > (fields.endDate ?? Infinity)}
-			<p class="note">Tournament should start before it ends!</p>
+			<p class="err">Tournament should start before it ends!</p>
 		{/if}
 		{#if (dirty.startDate && !fields.startDate) || (dirty.endDate && !fields.endDate)}
-			<p class="note">Dates are required!</p>
+			<p class="err">Dates are required!</p>
 		{/if}
 	</Step>
 	<Step {step} title="What day is your awards ceremony?">
@@ -275,10 +283,10 @@
 			bind:value={fields.awardsDate}
 		/>
 		{#if (fields.endDate ?? 0) > (fields.awardsDate ?? Infinity)}
-			<p class="note">Awards should come after the tournament ends!</p>
+			<p class="err">Awards should come after the tournament ends!</p>
 		{/if}
 		{#if dirty.awardsDate && !fields.awardsDate}
-			<p class="note">Dates are required!</p>
+			<p class="err">Dates are required!</p>
 		{/if}
 	</Step>
 	<Step {step} title="Season Year">
@@ -292,7 +300,7 @@
 			bind:value={fields.year}
 		/>
 		{#if dirty.year && !fields.year}
-			<p class="note">Season year is required!</p>
+			<p class="err">Season year is required!</p>
 		{/if}
 	</Step>
 	<Step
@@ -313,7 +321,7 @@
 			/>
 		</div>
 		{#if dirty.bids && !fields.bids}
-			<p class="note">Bids are required!</p>
+			<p class="err">Bids are required!</p>
 		{/if}
 	</Step>
 	<Step
@@ -402,7 +410,10 @@
 </Timeline>
 
 <style lang="postcss">
-	.note {
+	.err {
 		@apply text-sm text-red-700 dark:text-red-400;
+	}
+	.warn {
+		@apply text-sm text-blue-700 dark:text-blue-400;
 	}
 </style>

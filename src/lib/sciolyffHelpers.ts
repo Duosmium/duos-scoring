@@ -21,12 +21,10 @@ export function shortName(name?: string): string | undefined {
 	return subs
 		.reduce(
 			(name, sub) =>
-				name
-					.toLowerCase()
-					.replace(
-						new RegExp(`(\\s+|^)${sub[0].toLowerCase()}(\\s+|$)`),
-						sub[1] ? ' ' + sub[1] + ' ' : ' '
-					),
+				name.replace(
+					new RegExp(`(\\s+|^)${sub[0].toLowerCase()}(\\s+|$)`, 'gi'),
+					sub[1] ? ' ' + sub[1] + ' ' : ' '
+				),
 			name
 		)
 		.split(/\s+/)
