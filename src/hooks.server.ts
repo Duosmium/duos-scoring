@@ -18,7 +18,7 @@ import { sequence } from '@sveltejs/kit/hooks';
 
 Sentry.init({
 	dsn: PUBLIC_SENTRY_DSN,
-	tracesSampleRate: 1.0,
+	tracesSampleRate: 0.5,
 	environment: PUBLIC_SENTRY_ENV || 'production'
 });
 
