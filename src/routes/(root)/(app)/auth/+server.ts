@@ -13,9 +13,6 @@ export const GET: RequestHandler = async ({ url, locals: { supabase } }) => {
 
 	const redirectTo = new URL('https://scoring.duosmium.org');
 	redirectTo.pathname = next;
-	redirectTo.searchParams.delete('token_hash');
-	redirectTo.searchParams.delete('type');
-	redirectTo.searchParams.delete('next');
 
 	if (token_hash && type) {
 		const { error } = await supabase.auth.verifyOtp({ type, token_hash });
