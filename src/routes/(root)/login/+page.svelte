@@ -77,9 +77,7 @@
 						password,
 						options: {
 							data: { name: name.trim() },
-							emailRedirectTo: invite
-								? `https://scoring.duosmium.org/invite/${invite}`
-								: 'https://scoring.duosmium.org/dashboard'
+							emailRedirectTo: invite ? `/invite/${invite}` : '/dashboard'
 						}
 					});
 					if (error) throw error;
@@ -88,7 +86,7 @@
 				}
 				case 'forgot_pass': {
 					const { error } = await supabase.auth.resetPasswordForEmail(email, {
-						redirectTo: 'https://scoring.duosmium.org/login?reset'
+						redirectTo: '/login?reset'
 					});
 					if (error) throw error;
 					successMessage = 'Check your email for a password reset link!';
