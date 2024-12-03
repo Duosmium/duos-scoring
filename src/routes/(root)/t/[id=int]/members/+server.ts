@@ -6,7 +6,8 @@ import {
 	updateInvite,
 	getEvents,
 	getInvites,
-	getRoles
+	getRoles,
+	getInvite
 } from '$lib/server/db';
 import type { RequestHandler } from './$types';
 import { checkIsDirector } from '$lib/server/utils';
@@ -300,5 +301,31 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
 	) {
 		return new Response('failed to send invites', { status: 500 });
 	}
+	return new Response('ok');
+};
+
+export const POST: RequestHandler = async ({ request, params, locals }) => {
+	await checkIsDirector(locals.user, params.id);
+
+	const payload: string = await request.json();
+	if (typeof payload !== 'string') {
+		return new Response('invalid invite', { status: 400 });
+	}
+
+	const invite = await getInvite(payload);
+	if (!invite || !invite.email) {
+		return new Response('invalid invite', { status: 400 });
+	}
+	const status = await sendInvite(
+		invite.email,
+		invite.link,
+		`${locals.tournament?.year} ${locals.tournament?.shortName} ${locals.tournament?.division}`,
+		invite.events.map((e) => e.name)
+	);
+
+	if (!status) {
+		return new Response('failed to send invite', { status: 500 });
+	}
+
 	return new Response('ok');
 };

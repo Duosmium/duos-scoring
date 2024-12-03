@@ -251,6 +251,18 @@
 		});
 	}
 
+	function resendEmail(id: string) {
+		sendData({
+			method: 'POST',
+			body: id,
+			msgs: {
+				info: 'Resending email...',
+				success: 'Email sent!',
+				error: `Failed to send email for invite ${id}!`
+			}
+		});
+	}
+
 	function copyInvite(inviteId: string) {
 		return () => {
 			const url = new URL($page.url);
@@ -336,7 +348,7 @@
 		<TableHeadCell class="px-2">Invited As</TableHeadCell>
 		<TableHeadCell class="px-2">Events</TableHeadCell>
 		<TableHeadCell class="px-2">
-			<span class="sr-only"> Edit </span>
+			<span class="sr-only">Options</span>
 		</TableHeadCell>
 	</svelte:fragment>
 	<svelte:fragment slot="item" let:item={invite}>
@@ -353,10 +365,19 @@
 				.sort((a, b) => a.localeCompare(b))
 				.join(', ')}</TableBodyCell
 		>
-		<TableBodyCell class="py-0 px-2">
+		<TableBodyCell class="py-0 px-2 text-right">
 			<Button
 				color="alternative"
-				class="border-none p-1 font-medium text-primary-600 hover:underline dark:text-primary-500"
+				class="border-none p-1 font-medium text-slate-600 hover:underline dark:text-slate-400"
+				on:click={() => {
+					resendEmail(invite.id);
+				}}
+			>
+				Resend Email
+			</Button>
+			<Button
+				color="alternative"
+				class="border-none p-1 mx-4 font-medium text-primary-600 hover:underline dark:text-primary-500"
 				on:click={() => {
 					openEditInvite(invite.id);
 				}}
