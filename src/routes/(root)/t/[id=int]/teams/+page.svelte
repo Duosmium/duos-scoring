@@ -325,20 +325,22 @@
 	function saveCanonicalizations() {
 		const data = Object.entries(canonicalSelection).flatMap(
 			([schoolIdx, entryIdx]) => {
-				return schools.get(parseInt(schoolIdx))?.flatMap((id) => {
-					const selected = nonCanonicalTeams.get(BigInt(id))?.[entryIdx];
-					if (!selected) return [];
-					return [
-						{
-							id,
-							data: {
-								school: selected[0],
-								city: selected[1] || null,
-								state: selected[2]
+				return (
+					schools.get(parseInt(schoolIdx))?.flatMap((id) => {
+						const selected = nonCanonicalTeams.get(BigInt(id))?.[entryIdx];
+						if (!selected) return [];
+						return [
+							{
+								id: id.toString(),
+								data: {
+									school: selected[0],
+									city: selected[1] || null,
+									state: selected[2]
+								}
 							}
-						}
-					];
-				});
+						];
+					}) ?? []
+				);
 			}
 		);
 		sendData({
