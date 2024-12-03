@@ -69,6 +69,14 @@ declare global {
 		const out: string;
 		export default out;
 	}
+
+	type SerializableJson =
+		| string
+		| number
+		| boolean
+		| null
+		| { [property: string]: Json | undefined }
+		| Json[];
 }
 
 export {};

@@ -6,7 +6,7 @@ import { get } from 'svelte/store';
 export async function sendData(opts: {
 	path?: string;
 	method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-	body: any;
+	body: SerializableJson;
 	multiple?: boolean;
 	msgs?: {
 		info?: string;
