@@ -20,12 +20,13 @@
 
 	export let teamNumber: number;
 	export let teamName: string;
-	export let checklistData: DbJson.ChecklistData;
+	export let checklistData: DbJson.ChecklistData | undefined;
 	export let checklistUrl: string | undefined = undefined;
 
 	export let score: number;
 	export let tier: number;
 	export let status: ScoreStatus;
+	export let tiebreak: number[];
 
 	export let readonly: boolean = false;
 	setContext('readonly', readonly);
@@ -49,7 +50,7 @@
 
 	// TODO: changeme
 	if (checklistData) {
-		Object.entries(checklistData).forEach(([key, value]) => {
+		Object.entries(checklistData.state).forEach(([key, value]) => {
 			let store = writable(value);
 			state.set(key, store);
 			store.subscribe(onChange);
@@ -76,9 +77,15 @@
 	});
 	state = state;
 
-	$: checklistData = Object.fromEntries(
-		[...state.entries()].map(([k, v]) => [k, get(v)])
-	);
+	$: checklistData = {
+		state: Object.fromEntries(
+			[...state.entries()].map(([k, v]) => [k, get(v)])
+		),
+		score,
+		tier,
+		status,
+		tiebreak
+	};
 
 	let counter = 0;
 	setContext('questionCounter', () => {

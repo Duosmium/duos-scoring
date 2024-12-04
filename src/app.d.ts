@@ -2,6 +2,7 @@
 // for information about these interfaces
 import type { SupabaseClient, Session, User } from '@supabase/supabase-js';
 import type { getTournamentInfo, getUserInfo } from '$lib/server/db';
+import type { ScoreStatus } from '$drizzle/types';
 
 declare global {
 	namespace App {
@@ -57,7 +58,13 @@ declare global {
 			qrCode: boolean;
 		}
 		type SlidesBatches = string[][];
-		type ChecklistData = Record<string, string | number | null>;
+		type ChecklistData = {
+			state: Record<string, string | number | null>;
+			score: number;
+			tier: number;
+			status: ScoreStatus;
+			tiebreak: number[];
+		};
 	}
 
 	declare module '*as=metadata&image' {

@@ -371,13 +371,15 @@
 		});
 	}
 
-	async function saveScores() {
+	async function saveScores(teams: bigint[] = []) {
 		if (locked) return;
 		const body = modifiedTeams
-			.filter((t) =>
-				(['rawScore', 'tier', 'tiebreak', 'status', 'notes'] as const).some(
-					(a) => t.score[a].dirty
-				)
+			.filter(
+				(t) =>
+					teams.includes(t.id) ||
+					(['rawScore', 'tier', 'tiebreak', 'status', 'notes'] as const).some(
+						(a) => t.score[a].dirty
+					)
 			)
 			.map((t) => ({
 				id: t.score.id?.toString(),
@@ -386,7 +388,8 @@
 				tier: t.score.tier.dirty ? t.score.tier.new : undefined,
 				tiebreak: t.score.tiebreak.dirty ? t.score.tiebreak.new : undefined,
 				status: t.score.status.dirty ? t.score.status.new : undefined,
-				notes: t.score.notes.dirty ? t.score.notes.new : undefined
+				notes: t.score.notes.dirty ? t.score.notes.new : undefined,
+				checklist: t.score.checklist
 			}));
 
 		modifiedTeams = modifiedTeams.map((t) => ({
@@ -496,15 +499,13 @@
 	let checklistTeam: (typeof modifiedTeams)[0];
 	let checklistData: DbJson.ChecklistData | undefined;
 	let showChecklist = false;
-	let checklistScore: number;
-	let checklistTier: number;
-	let checklistStatus: ScoreStatus;
 	let checklistUuid: string | undefined;
 	$: {
-		if (checklistTeam) {
-			checklistTeam.score.rawScore.new = checklistScore;
-			checklistTeam.score.tier.new = checklistTier;
-			checklistTeam.score.status.new = checklistStatus;
+		if (checklistTeam && checklistData) {
+			checklistTeam.score.checklist = checklistData;
+			checklistTeam.score.rawScore.new = checklistData.score;
+			checklistTeam.score.tier.new = checklistData.tier;
+			checklistTeam.score.status.new = checklistData.status;
 			modifiedTeams = modifiedTeams;
 		}
 	}
@@ -514,28 +515,6 @@
 		checklistData = team.score.checklist ?? undefined;
 		checklistUuid = team.score.checklistUuid;
 		showChecklist = true;
-	}
-	async function saveChecklist() {
-		await sendData({
-			method: 'PUT',
-			body: [
-				{
-					id: checklistTeam.score.id?.toString(),
-					teamId: checklistTeam.id.toString(),
-					checklist: checklistData,
-					rawScore: checklistTeam.score.rawScore.new,
-					tier: checklistTeam.score.tier.new,
-					tiebreak: checklistTeam.score.tiebreak.new,
-					status: checklistTeam.score.status.new
-				}
-			],
-			msgs: {
-				info: 'Saving checklist...',
-				success: 'Checklist saved!',
-				error: 'Failed to save checklist!'
-			}
-		});
-		modifiedTeams = generateModifiedTeams(data);
 	}
 
 	function handleKeypress(e: KeyboardEvent) {
@@ -552,6 +531,37 @@
 	}
 
 	// Reactive updates intentionally at the end to run last
+	$: {
+		// break checklist ties
+		if (ChecklistComponent && data.event.enableChecklist) {
+			modifiedTeams = modifiedTeams.map((t, _, s) => {
+				if (t.score.checklist && t.score.checklist.tiebreak.length > 0) {
+					const tiedTeams = s.filter(
+						(x) =>
+							x.score.rawScore.new === t.score.rawScore.new &&
+							x.score.tier.new === t.score.tier.new &&
+							x.score.status.new === 'COMPETED'
+					);
+					if (tiedTeams.length <= 1) {
+						t.score.tiebreak.new = null;
+						return t;
+					}
+
+					const sortedTiedTeams = tiedTeams.sort(
+						(a, b) =>
+							a.score.checklist?.tiebreak
+								?.map((x, i) => x - (b.score.checklist?.tiebreak?.[i] ?? 0))
+								?.find((x) => x !== 0) ?? 0
+					);
+					const tiebreak =
+						sortedTiedTeams.findIndex((x) => x.id === t.id) / 10 || null;
+					t.score.tiebreak.new = tiebreak;
+				}
+
+				return t;
+			});
+		}
+	}
 	$: {
 		// update rankings when things change
 		modifiedTeams = modifiedTeams
@@ -704,8 +714,12 @@
 				}}>Import</Button
 			>
 			<ButtonGroup>
-				<Button disabled={clean || locked} on:click={saveScores} color="green"
-					>Save</Button
+				<Button
+					disabled={clean || locked}
+					on:click={() => {
+						saveScores();
+					}}
+					color="green">Save</Button
 				>
 				<Button
 					disabled={clean || locked}
@@ -751,7 +765,7 @@
 		<TableHeadCell class="pl-2 pr-4">Suffix</TableHeadCell>
 		{#if ChecklistComponent && data.event.enableChecklist}
 			<TableHeadCell class="pl-0 pr-4">Checklist</TableHeadCell>
-			<TableHeadCell class="pl-0 pr-4">Missing Fields</TableHeadCell>
+			<TableHeadCell class="pl-0 pr-4">Incomplete</TableHeadCell>
 		{/if}
 		<TableHeadCell class="px-0">Raw Score</TableHeadCell>
 		<TableHeadCell class="px-0">Tier</TableHeadCell>
@@ -763,8 +777,9 @@
 	<svelte:fragment slot="item" let:item={team}>
 		{@const disableScores =
 			team.score.status.new === 'NOSHOW' ||
-			team.score.status.new === 'PARTICIPATION' ||
-			(ChecklistComponent != undefined && data.event.enableChecklist)}
+			team.score.status.new === 'PARTICIPATION'}
+		{@const checklistsEnabled =
+			ChecklistComponent != undefined && data.event.enableChecklist}
 		<TableBodyCell class="px-2">{team.number}</TableBodyCell>
 		<TableBodyCell class="px-2"
 			>{team.abbreviation ??
@@ -793,11 +808,11 @@
 		{/if}
 		<TableBodyCell class="p-0">
 			<Input
-				disabled={locked || disableScores}
+				disabled={locked || disableScores || checklistsEnabled}
 				class={`rounded-none !bg-transparent p-2 w-24 ${
 					team.score.rawScore.dirty
 						? 'border-2 !border-orange-500'
-						: locked || disableScores
+						: locked || disableScores || checklistsEnabled
 							? 'border-0'
 							: 'border-x-0 border-t-0 border-b-1 dark:border-b-slate-500 border-b-slate-400'
 				} ${locked ? 'disabled:cursor-text' : 'disabled:cursor-not-allowed'} disabled:opacity-100`}
@@ -810,11 +825,11 @@
 		</TableBodyCell>
 		<TableBodyCell class="p-0">
 			<Input
-				disabled={locked || disableScores}
+				disabled={locked || disableScores || checklistsEnabled}
 				class={`rounded-none !bg-transparent p-2 w-12 ${
 					team.score.tier.dirty
 						? 'border-2 !border-orange-500'
-						: locked || disableScores
+						: locked || disableScores || checklistsEnabled
 							? 'border-0'
 							: 'border-x-0 border-t-0 border-b-1 dark:border-b-slate-500 border-b-slate-400'
 				} ${locked ? 'disabled:cursor-text' : 'disabled:cursor-not-allowed'} disabled:opacity-100`}
@@ -1165,7 +1180,9 @@
 	title="Checklists"
 	size="xl"
 	bind:open={showChecklist}
-	on:close={saveChecklist}
+	on:close={() => {
+		saveScores([checklistTeam.id]);
+	}}
 	outsideclose
 >
 	<svelte:component
@@ -1174,9 +1191,6 @@
 		teamName={checklistTeam.school +
 			(checklistTeam.suffix ? ' ' + checklistTeam.suffix : '')}
 		bind:checklistData
-		bind:score={checklistScore}
-		bind:tier={checklistTier}
-		bind:status={checklistStatus}
 		checklistUrl={checklistUuid
 			? `https://scoring.duosmium.org/checklists/${checklistUuid}`
 			: undefined}

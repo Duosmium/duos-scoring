@@ -10,9 +10,10 @@
 	export let teamName: string;
 	export let checklistData: DbJson.ChecklistData;
 
-	export let score: number;
-	export let tier: number;
-	export let status: ScoreStatus;
+	let score: number;
+	let tier: number;
+	let status: ScoreStatus;
+	let tiebreak: number[];
 
 	let hasDevice: CheckboxValue;
 	let meetsParams: CheckboxValue;
@@ -43,20 +44,22 @@
 		return 'gray';
 	};
 
-	$: bestNTS = Math.max(
-		0,
-		(2000 - (near1Dist ?? 2000)) * ($meetsNear1Rules === 'False' ? 0.9 : 1),
+	$: nts1 =
+		(2000 - (near1Dist ?? 2000)) * ($meetsNear1Rules === 'False' ? 0.9 : 1);
+	$: nts2 =
 		$nearBucket === 'True'
 			? 0
-			: (2000 - (near2Dist ?? 2000)) * ($meetsNear2Rules === 'False' ? 0.9 : 1)
-	);
-	$: bestFTS = Math.max(
-		0,
-		(4000 - (far1Dist ?? 4000)) * ($meetsFar1Rules === 'False' ? 0.9 : 1),
+			: (2000 - (near2Dist ?? 2000)) * ($meetsNear2Rules === 'False' ? 0.9 : 1);
+	$: bestNTS = Math.max(0, nts1, nts2);
+
+	$: fts1 =
+		(4000 - (far1Dist ?? 4000)) * ($meetsFar1Rules === 'False' ? 0.9 : 1);
+	$: fts2 =
 		$farBucket === 'True'
 			? 0
-			: (4000 - (far2Dist ?? 4000)) * ($meetsFar2Rules === 'False' ? 0.9 : 1)
-	);
+			: (4000 - (far2Dist ?? 4000)) * ($meetsFar2Rules === 'False' ? 0.9 : 1);
+	$: bestFTS = Math.max(0, fts1, fts2);
+
 	$: bucketScore = [
 		$nearBucket === 'True' && $nearBucketHit === 'True' ? 200 : 0,
 		$nearBucket === 'True' && $nearBucketInside === 'True' ? 300 : 0,
@@ -76,6 +79,12 @@
 					? 'PARTICIPATION'
 					: 'COMPETED'
 	) as ScoreStatus;
+	$: tiebreak = [
+		bestNTS + bestFTS,
+		Math.max(bestNTS, bestFTS),
+		Math.max(0, Math.min(fts1, fts2)),
+		Math.max(0, Math.min(nts1, nts2))
+	];
 </script>
 
 <Checklist
@@ -86,6 +95,7 @@
 	{status}
 	{teamNumber}
 	{teamName}
+	{tiebreak}
 	{...$$restProps}
 	bind:checklistData
 >
@@ -154,22 +164,25 @@
 			'Team places their device at a location they select in the launch area.',
 		'5.c.':
 			'No part of the launch device extends outside of the launch area' +
-			'before or after a shot. Any part of the launching device extending beyond' +
-			'the launch area during the launching action returns to and remains in the' +
-			'launch area immediately after the launch without assistance of the' +
-			'competitors.',
+			' before or after a shot. Any part of the launching device extending beyond' +
+			' the launch area during the launching action returns to and remains in the' +
+			' launch area immediately after the launch without assistance of the' +
+			' competitors.',
 		'5.d.':
 			'When triggering the device, competitors do not touch the device or' +
-			'triggering mechanism, except for the #2 pencil.',
-		dist:
+			' triggering mechanism, except for the #2 pencil.',
+		nDist:
 			'Straight line distance, in mm, from the center of the initial impact of the' +
-			'projectile to the center of the target. If projectile does not impact the' +
-			'elevated surface, put 2000.',
+			' projectile to the center of the target. If projectile does not impact the' +
+			' elevated surface, put 2000.',
+		fDist:
+			'Straight line distance, in mm, from the center of the initial impact of the' +
+			' projectile to the center of the target.',
 		bucket:
 			'For Launch 2 only: If Launch 1 at a target lands within 500mm, a bucket shot may be ' +
-			'requested in place of the second shot. If this is a bucket shot, circle T and fill out ' +
-			'the items below and leave 7.b. blank. Otherwise, leave the items below blank and fill ' +
-			'out 7.b.',
+			' requested in place of the second shot. If this is a bucket shot, circle T and fill out ' +
+			' the items below and leave 7.b. blank. Otherwise, leave the items below blank and fill ' +
+			' out 7.b.',
 		'7.d.1': 'The projectile hits the bucket at first impact.',
 		'7.d.2':
 			'The projectile contacts with the inside bottom surface of the bucket.'
@@ -185,7 +198,7 @@
 			</svelte:fragment>
 		</Question>
 		<Question bind:inputValue={near1Dist} numeric rule="7.b." numberItem min={0}
-			>{rules.dist}</Question
+			>{rules.nDist}</Question
 		>
 	</Section>
 	<Section title="Near Target: Launch 2">
@@ -204,7 +217,7 @@
 			rule="7.b."
 			numberItem
 			min={0}
-			blankOk={$nearBucket === 'True'}>{rules.dist}</Question
+			blankOk={$nearBucket === 'True'}>{rules.nDist}</Question
 		>
 		<Question
 			bind:checkbox={nearBucket}
@@ -242,7 +255,7 @@
 			</svelte:fragment>
 		</Question>
 		<Question bind:inputValue={far1Dist} numeric rule="7.b." numberItem min={0}
-			>{rules.dist}</Question
+			>{rules.fDist}</Question
 		>
 	</Section>
 	<Section title="Far Target: Launch 2">
@@ -261,7 +274,7 @@
 			rule="7.b."
 			numberItem
 			min={0}
-			blankOk={$farBucket === 'True'}>{rules.dist}</Question
+			blankOk={$farBucket === 'True'}>{rules.fDist}</Question
 		>
 		<Question
 			bind:checkbox={farBucket}

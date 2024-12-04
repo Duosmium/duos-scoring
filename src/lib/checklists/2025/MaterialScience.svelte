@@ -64,6 +64,7 @@
 	{teamNumber}
 	{teamName}
 	{...$$restProps}
+	tiebreak={[]}
 	bind:checklistData
 >
 	<Section title="Design Log (DL)">
