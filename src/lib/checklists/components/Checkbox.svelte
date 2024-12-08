@@ -51,6 +51,9 @@
 		}
 	});
 
+	export let childValues: Status[] = [];
+	$: childValues = children.map(get);
+
 	export const value: CheckboxValue = {
 		subscribe: status.subscribe,
 		set: status.set,

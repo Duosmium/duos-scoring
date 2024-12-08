@@ -13,6 +13,7 @@
 	export let checkbox: CheckboxValue | undefined = undefined;
 	export let enableFixed: boolean | undefined = undefined;
 	export let linkChildren = false;
+	export let childValues: Status[] = [];
 	export let noInput = false;
 
 	export let inputValue: number | null = null;
@@ -130,6 +131,7 @@
 				<span class="mb-1 mr-1">
 					{#if !numeric}
 						<Checkbox
+							bind:childValues
 							{enableFixed}
 							parent={$parent}
 							bind:value={checkbox}

@@ -70,15 +70,13 @@
 	$: score =
 		$hasDevice === 'False' || dqed ? 0 : bestNTS + bestFTS + bucketScore;
 	$: tier = $impounded === 'False' ? 3 : $meetsParams === 'False' ? 2 : 1;
-	$: status = (
-		dqed
-			? 'DISQUALIFICATION'
-			: $hasDevice === 'Blank'
-				? 'NOSHOW'
-				: $hasDevice === 'False' || score <= 0
-					? 'PARTICIPATION'
-					: 'COMPETED'
-	) as ScoreStatus;
+	$: status = dqed
+		? 'DISQUALIFICATION'
+		: $hasDevice === 'Blank'
+			? 'NOSHOW'
+			: $hasDevice === 'False' || score <= 0
+				? 'PARTICIPATION'
+				: 'COMPETED';
 	$: tiebreak = [
 		bestNTS + bestFTS,
 		Math.max(bestNTS, bestFTS),

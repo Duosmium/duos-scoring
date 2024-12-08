@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { ScoreStatus } from '$drizzle/types';
-	import { get } from 'svelte/store';
-	import { Status, type CheckboxValue } from '../components/Checkbox.svelte';
+	import type { CheckboxValue } from '../components/Checkbox.svelte';
 	import Checklist from '../components/Checklist.svelte';
 	import Disqualified from '../components/Disqualified.svelte';
 	import Question from '../components/Question.svelte';
@@ -50,9 +49,7 @@
 
 	$: score = dl + pt + wt + la;
 	$: tier = 1;
-	$: status = (
-		dqed ? 'DISQUALIFICATION' : score <= 0 ? 'NOSHOW' : 'COMPETED'
-	) as ScoreStatus;
+	$: status = dqed ? 'DISQUALIFICATION' : score <= 0 ? 'NOSHOW' : 'COMPETED';
 </script>
 
 <Checklist
