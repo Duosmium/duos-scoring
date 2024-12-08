@@ -110,7 +110,7 @@ export const PUT = async ({ request, locals, params }) => {
 			branch: 'main',
 			changes: [
 				{
-					message: '[skip ci] Upload Results',
+					message: 'Upload Results',
 					files
 				}
 			]
