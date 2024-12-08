@@ -146,7 +146,7 @@
 			return {
 				...t,
 				score,
-				ranking: null as unknown as number | keyof typeof statusOrder
+				ranking: -1 as number | (typeof statusLookup)[keyof typeof statusLookup]
 			};
 		});
 	}
@@ -563,57 +563,48 @@
 		}
 	}
 	$: {
+		const compare = (
+			a: (typeof modifiedTeams)[0] | undefined,
+			b: (typeof modifiedTeams)[0] | undefined
+		) =>
+			a && b
+				? statusOrder[a.score.status.new] - statusOrder[b.score.status.new] ||
+					(a.score.tier.new ?? 1) - (b.score.tier.new ?? 1) ||
+					(data.event.highScoring
+						? (b.score.rawScore.new ?? 0) - (a.score.rawScore.new ?? 0)
+						: (a.score.rawScore.new ?? Infinity) -
+							(b.score.rawScore.new ?? Infinity)) ||
+					(b.score.tiebreak.new ?? 0) - (a.score.tiebreak.new ?? 0)
+				: a
+					? -1
+					: b
+						? 1
+						: 0;
+
 		// update rankings when things change
-		modifiedTeams = modifiedTeams
-			.map((t) => ({
-				...t,
-				ranking:
-					t.score.status.new === 'COMPETED'
-						? t.score.rawScore.new != null
-							? t.score.rawScore.new +
-								((t.score.tiebreak.new || 0) -
-									1000000 * (t.score.tier.new || 1)) *
-									(data.event.highScoring ? 1 : -1)
-							: 'PARTICIPATION'
-						: t.score.status.new
-			}))
-			.sort((a, b) =>
-				typeof a.ranking === 'number' && typeof b.ranking === 'number'
-					? (b.ranking - a.ranking) * (data.event.highScoring ? 1 : -1)
-					: typeof a.ranking === 'string' && typeof b.ranking === 'string'
-						? statusOrder[a.ranking] - statusOrder[b.ranking]
-						: typeof a.ranking === 'number'
-							? -1
-							: 1
-			)
-			.map((t, i, s) => {
-				// check ties
-				if (
-					typeof t.ranking === 'number' &&
-					(t.ranking === s[i - 1]?.ranking || t.ranking === s[i + 1]?.ranking)
-				) {
-					if (t.score.notes.new && t.score.notes.new !== 'TIE') {
-						t.score.notes.new =
-							'TIE; ' +
-							t.score.notes.new.replace('TIE; ', '').replace('TIE', '');
-					} else {
-						t.score.notes.new = 'TIE';
-					}
-				} else {
+		modifiedTeams = modifiedTeams.sort(compare).map((t, i, s) => {
+			// check ties
+			if (compare(t, s[i - 1]) === 0 || compare(t, s[i + 1]) === 0) {
+				if (t.score.notes.new && t.score.notes.new !== 'TIE') {
 					t.score.notes.new =
-						t.score.notes.new?.replace('TIE; ', '').replace('TIE', '') || null;
+						'TIE; ' + t.score.notes.new.replace('TIE; ', '').replace('TIE', '');
+				} else {
+					t.score.notes.new = 'TIE';
 				}
-				return t;
-			})
-			.map((t, i, s) => ({
-				...t,
-				ranking:
-					typeof t.ranking === 'string'
-						? statusLookup[t.ranking]
-						: (t.score.notes.new?.includes('TIE')
-								? s.findIndex((x) => x.ranking === t.ranking)
-								: i) + 1 // do index searching for ties
-			}));
+			} else {
+				t.score.notes.new =
+					t.score.notes.new?.replace('TIE; ', '').replace('TIE', '') || null;
+			}
+
+			t.ranking =
+				t.score.status.new !== 'COMPETED'
+					? statusLookup[t.score.status.new]
+					: compare(t, s[i - 1]) === 0
+						? s[i - 1].ranking
+						: i + 1;
+
+			return t;
+		});
 	}
 	$: {
 		// update sorting when things change
