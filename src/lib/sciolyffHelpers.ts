@@ -30,7 +30,7 @@ export function shortName(name?: string): string | undefined {
 		.split(/\s+/)
 		.filter((w) => w.length > 0)
 		.map((w) =>
-			['at', 'of', 'and'].includes(w)
+			['at', 'of', 'and', 'the'].includes(w)
 				? w
 				: w.charAt(0).toUpperCase() + w.slice(1)
 		)
