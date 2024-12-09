@@ -25,8 +25,8 @@
 	let cm60: CheckboxValue;
 	let cm80: CheckboxValue;
 	let cm100: CheckboxValue;
-	let writtenScore: number;
-	let labScore: number;
+	let writtenScore: number | null;
+	let labScore: number | null;
 
 	let dqed: boolean;
 
@@ -45,8 +45,8 @@
 					0
 				)
 			: 0;
-	$: wt = (writtenScore / highestWritten) * 50;
-	$: la = (labScore / highestLab) * 32;
+	$: wt = ((writtenScore ?? 0) / highestWritten) * 50;
+	$: la = ((labScore ?? 0) / highestLab) * 32;
 
 	$: score = dl + pt + wt + la;
 	$: tier = 1;

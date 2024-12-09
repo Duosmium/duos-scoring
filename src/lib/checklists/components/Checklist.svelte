@@ -40,16 +40,7 @@
 
 	let state: ChecklistState['state'] = new Map();
 
-	const onChange = () => {
-		state = state;
-		if (!browser) return;
-		localStorage.setItem(
-			'checklist',
-			JSON.stringify(
-				Object.fromEntries([...state.entries()].map(([k, v]) => [k, get(v)]))
-			)
-		);
-	};
+	const onChange = () => {};
 
 	// TODO: changeme
 	if (checklistData) {
@@ -104,7 +95,7 @@
 <div
 	class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-slate-300 dark:bg-slate-700 z-40 rounded-lg p-4 flex items-center space-x-4"
 >
-	Score: {score} | Tier: {tier} | Status: {status}
+	Score: {Math.round(score * 1000) / 1000} | Tier: {tier} | Status: {status}
 </div>
 
 <div class="max-w-screen-lg mx-auto pb-20">

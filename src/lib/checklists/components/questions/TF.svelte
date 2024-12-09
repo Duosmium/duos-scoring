@@ -14,7 +14,7 @@
 	export let noInput = false;
 
 	export let blankOk = false;
-	$: blank = $checkbox === Status.Blank;
+	$: blank = !noInput && ($checkbox == null || $checkbox === Status.Blank);
 
 	$: value = $checkbox;
 
@@ -42,7 +42,7 @@
 	};
 
 	onMount(() => {
-		$checkbox = value;
+		if (checkbox) $checkbox = value;
 	});
 </script>
 

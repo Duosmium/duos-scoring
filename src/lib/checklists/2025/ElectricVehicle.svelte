@@ -17,12 +17,22 @@
 	let tiebreak: number[];
 	let dqed: boolean;
 
+	const failedHighlight = (value: Status | undefined) => {
+		if (value === Status.False) {
+			return 'green';
+		}
+		if (value === Status.True) {
+			return 'red';
+		}
+		return 'gray';
+	};
+
 	let impounded: CheckboxValue;
 	let batteryOk: CheckboxValue;
-	let constParams1: Status[];
-	let constParams2: Status[];
-	let compParams1: Status[];
-	let compParams2: Status[];
+	let constParams1: Status[] = [];
+	let constParams2: Status[] = [];
+	let compParams1: Status[] = [];
+	let compParams2: Status[] = [];
 	let runTime1: number | null;
 	let runTime2: number | null;
 	let distance1: number | null;
@@ -155,7 +165,12 @@
 			to the nearest 0.1 cm, from the Vehicle Measurement Point to the Target Point,
 			measured to the nearest 0.1 cm.
 		</Number>
-		<TF bind:checkbox={failed1} rule="6.o." numberItem>
+		<TF
+			highlightFunction={failedHighlight}
+			bind:checkbox={failed1}
+			rule="6.o."
+			numberItem
+		>
 			<strong>Failed Run:</strong> any run where Vehicle starts before ES is ready,
 			its distance or time cannot be measured, team pushes the Vehicle down track,
 			the Vehicle travels in the wrong direction from the Start Point, or any run
@@ -191,7 +206,12 @@
 			to the nearest 0.1 cm, from the Vehicle Measurement Point to the Target Point,
 			measured to the nearest 0.1 cm.
 		</Number>
-		<TF bind:checkbox={failed2} rule="6.o." numberItem>
+		<TF
+			highlightFunction={failedHighlight}
+			bind:checkbox={failed2}
+			rule="6.o."
+			numberItem
+		>
 			<strong>Failed Run:</strong> any run where Vehicle starts before ES is ready,
 			its distance or time cannot be measured, team pushes the Vehicle down track,
 			the Vehicle travels in the wrong direction from the Start Point, or any run
