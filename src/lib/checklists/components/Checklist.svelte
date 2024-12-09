@@ -1,7 +1,10 @@
 <script context="module" lang="ts">
 	export interface ChecklistState {
-		state: Map<string, Writable<string | number | null>>;
-		addState: (key: string, item: Writable<string | number | null>) => void;
+		state: Map<string, Writable<string | number | null | undefined>>;
+		addState: (
+			key: string,
+			item: Writable<string | number | null | undefined>
+		) => void;
 	}
 </script>
 

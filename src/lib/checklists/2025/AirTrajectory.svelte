@@ -3,7 +3,8 @@
 	import { Status, type CheckboxValue } from '../components/Checkbox.svelte';
 	import Checklist from '../components/Checklist.svelte';
 	import Disqualified from '../components/Disqualified.svelte';
-	import Question from '../components/Question.svelte';
+	import TF from '../components/questions/TF.svelte';
+	import Number from '../components/questions/Number.svelte';
 	import Section from '../components/Section.svelte';
 
 	export let teamNumber: number;
@@ -37,7 +38,7 @@
 
 	let dqed: boolean;
 
-	const bucketColor = (_: any, status: Status | undefined) => {
+	const bucketColor = (status: Status | undefined) => {
 		if (status === 'True') {
 			return 'green';
 		}
@@ -98,62 +99,62 @@
 	bind:checklistData
 >
 	<Section title="Check In">
-		<Question bind:checkbox={hasDevice} rule="7.g." numberItem
-			>Team operates safely.</Question
+		<TF bind:checkbox={hasDevice} rule="7.g." numberItem
+			>Team operates safely.</TF
 		>
 	</Section>
 
 	<Section title="Construction Parameters">
-		<Question linkChildren bind:checkbox={meetsParams} rule="3." numberItem>
+		<TF linkChildren bind:checkbox={meetsParams} rule="3." numberItem>
 			<strong
 				>DEVICE MEETS ALL CONSTRUCTION PARAMETERS AT THE TIME OF FIRST LAUNCH.</strong
 			>
 
 			<svelte:fragment slot="children">
-				<Question rule="3.a."
+				<TF rule="3.a."
 					>When ready-to-launch, the launch device, projectiles, stabilizing
 					weights, and all other device components fit in a 75.0 cm (B) or 85.0
 					cm (C) per side cube. The #2 pencil, supplied by the ES, may extend
-					beyond these dimensions.</Question
+					beyond these dimensions.</TF
 				>
-				<Question rule="3.b."
+				<TF rule="3.b."
 					>Launch force is entirely supplied by gravitational potential energy
-					from a falling mass ≤ 5.0 kg (B) or 3.5 kg (C).</Question
+					from a falling mass ≤ 5.0 kg (B) or 3.5 kg (C).</TF
 				>
-				<Question rule="3.d."
+				<TF rule="3.d."
 					>The gravitational potential energy is converted to air pressure or
-					air movement, which is then used to launch the projectile.</Question
+					air movement, which is then used to launch the projectile.</TF
 				>
-				<Question rule="3.e."
+				<TF rule="3.e."
 					>All device air chambers start each launch at ambient air pressure and
-					automatically return to ambient air pressure.</Question
+					automatically return to ambient air pressure.</TF
 				>
-				<Question rule="3.f."
+				<TF rule="3.f."
 					>The device is triggered with an unsharpened #2 pencil to actuate a
 					release mech. for the falling mass and does not contribute significant
-					energy to launch.</Question
+					energy to launch.</TF
 				>
-				<Question rule="3.g."
+				<TF rule="3.g."
 					>Teams prepare a spherical projectile for launch greater than 1 in.
-					and less than 3 in. in diameter, which does not damage the floor.</Question
+					and less than 3 in. in diameter, which does not damage the floor.</TF
 				>
-				<Question rule="3.h."
+				<TF rule="3.h."
 					>The launch device is designed and operated in such a way to not
-					damage or alter the floor.</Question
+					damage or alter the floor.</TF
 				>
-				<Question rule="3.i."
+				<TF rule="3.i."
 					>Electrical components are not part of the device or triggering
 					device, with the exception of electronic sighting devices removed
-					before launch.</Question
+					before launch.</TF
 				>
 			</svelte:fragment>
-		</Question>
+		</TF>
 
-		<Question bind:checkbox={impounded} rule="2.b." numberItem
+		<TF bind:checkbox={impounded} rule="2.b." numberItem
 			><strong
 				>Team impounds one launch device with the mass(es) detached,
 				projectiles, calibration (if prep.)</strong
-			></Question
+			></TF
 		>
 	</Section>
 
@@ -186,38 +187,37 @@
 			'The projectile contacts with the inside bottom surface of the bucket.'
 	}}
 	<Section title="Near Target: Launch 1">
-		<Question linkChildren bind:checkbox={meetsNear1Rules} rule="5." numberItem>
+		<TF linkChildren bind:checkbox={meetsNear1Rules} rule="5." numberItem>
 			<strong>DEVICE MEETS ALL COMPETITION RULES FOR THIS LAUNCH</strong>
 
 			<svelte:fragment slot="children">
-				<Question rule="5.b.">{rules['5.b.']}</Question>
-				<Question rule="5.c.">{rules['5.c.']}</Question>
-				<Question rule="5.d.">{rules['5.d.']}</Question>
+				<TF rule="5.b.">{rules['5.b.']}</TF>
+				<TF rule="5.c.">{rules['5.c.']}</TF>
+				<TF rule="5.d.">{rules['5.d.']}</TF>
 			</svelte:fragment>
-		</Question>
-		<Question bind:inputValue={near1Dist} numeric rule="7.b." numberItem min={0}
-			>{rules.nDist}</Question
+		</TF>
+		<Number bind:value={near1Dist} rule="7.b." numberItem min={0}
+			>{rules.nDist}</Number
 		>
 	</Section>
 	<Section title="Near Target: Launch 2">
-		<Question linkChildren bind:checkbox={meetsNear2Rules} rule="5." numberItem>
+		<TF linkChildren bind:checkbox={meetsNear2Rules} rule="5." numberItem>
 			<strong>DEVICE MEETS ALL COMPETITION RULES FOR THIS LAUNCH</strong>
 
 			<svelte:fragment slot="children">
-				<Question rule="5.b.">{rules['5.b.']}</Question>
-				<Question rule="5.c.">{rules['5.c.']}</Question>
-				<Question rule="5.d.">{rules['5.d.']}</Question>
+				<TF rule="5.b.">{rules['5.b.']}</TF>
+				<TF rule="5.c.">{rules['5.c.']}</TF>
+				<TF rule="5.d.">{rules['5.d.']}</TF>
 			</svelte:fragment>
-		</Question>
-		<Question
-			bind:inputValue={near2Dist}
-			numeric
+		</TF>
+		<Number
+			bind:value={near2Dist}
 			rule="7.b."
 			numberItem
 			min={0}
-			blankOk={$nearBucket === 'True'}>{rules.nDist}</Question
+			blankOk={$nearBucket === 'True'}>{rules.nDist}</Number
 		>
-		<Question
+		<TF
 			bind:checkbox={nearBucket}
 			highlightFunction={bucketColor}
 			rule="5.g."
@@ -227,54 +227,53 @@
 
 			<svelte:fragment slot="summary">Bucket shot parameters:</svelte:fragment>
 			<svelte:fragment slot="children">
-				<Question
+				<TF
 					bind:checkbox={nearBucketHit}
 					rule="7.d."
 					numberItem
-					blankOk={$nearBucket === 'False'}>{rules['7.d.1']}</Question
+					blankOk={$nearBucket === 'False'}>{rules['7.d.1']}</TF
 				>
-				<Question
+				<TF
 					bind:checkbox={nearBucketInside}
 					rule="7.d."
 					numberItem
-					blankOk={$nearBucket === 'False'}>{rules['7.d.2']}</Question
+					blankOk={$nearBucket === 'False'}>{rules['7.d.2']}</TF
 				>
 			</svelte:fragment>
-		</Question>
+		</TF>
 	</Section>
 	<Section title="Far Target: Launch 1">
-		<Question linkChildren bind:checkbox={meetsFar1Rules} rule="5." numberItem>
+		<TF linkChildren bind:checkbox={meetsFar1Rules} rule="5." numberItem>
 			<strong>DEVICE MEETS ALL COMPETITION RULES FOR THIS LAUNCH</strong>
 
 			<svelte:fragment slot="children">
-				<Question rule="5.b.">{rules['5.b.']}</Question>
-				<Question rule="5.c.">{rules['5.c.']}</Question>
-				<Question rule="5.d.">{rules['5.d.']}</Question>
+				<TF rule="5.b.">{rules['5.b.']}</TF>
+				<TF rule="5.c.">{rules['5.c.']}</TF>
+				<TF rule="5.d.">{rules['5.d.']}</TF>
 			</svelte:fragment>
-		</Question>
-		<Question bind:inputValue={far1Dist} numeric rule="7.b." numberItem min={0}
-			>{rules.fDist}</Question
+		</TF>
+		<Number bind:value={far1Dist} rule="7.b." numberItem min={0}
+			>{rules.fDist}</Number
 		>
 	</Section>
 	<Section title="Far Target: Launch 2">
-		<Question linkChildren bind:checkbox={meetsFar2Rules} rule="5." numberItem>
+		<TF linkChildren bind:checkbox={meetsFar2Rules} rule="5." numberItem>
 			<strong>DEVICE MEETS ALL COMPETITION RULES FOR THIS LAUNCH</strong>
 
 			<svelte:fragment slot="children">
-				<Question rule="5.b.">{rules['5.b.']}</Question>
-				<Question rule="5.c.">{rules['5.c.']}</Question>
-				<Question rule="5.d.">{rules['5.d.']}</Question>
+				<TF rule="5.b.">{rules['5.b.']}</TF>
+				<TF rule="5.c.">{rules['5.c.']}</TF>
+				<TF rule="5.d.">{rules['5.d.']}</TF>
 			</svelte:fragment>
-		</Question>
-		<Question
-			bind:inputValue={far2Dist}
-			numeric
+		</TF>
+		<Number
+			bind:value={far2Dist}
 			rule="7.b."
 			numberItem
 			min={0}
-			blankOk={$farBucket === 'True'}>{rules.fDist}</Question
+			blankOk={$farBucket === 'True'}>{rules.fDist}</Number
 		>
-		<Question
+		<TF
 			bind:checkbox={farBucket}
 			highlightFunction={bucketColor}
 			rule="5.g."
@@ -284,20 +283,20 @@
 
 			<svelte:fragment slot="summary">Bucket shot parameters:</svelte:fragment>
 			<svelte:fragment slot="children">
-				<Question
+				<TF
 					bind:checkbox={farBucketHit}
 					rule="7.d."
 					numberItem
-					blankOk={$farBucket === 'False'}>{rules['7.d.1']}</Question
+					blankOk={$farBucket === 'False'}>{rules['7.d.1']}</TF
 				>
-				<Question
+				<TF
 					bind:checkbox={farBucketInside}
 					rule="7.d."
 					numberItem
-					blankOk={$farBucket === 'False'}>{rules['7.d.2']}</Question
+					blankOk={$farBucket === 'False'}>{rules['7.d.2']}</TF
 				>
 			</svelte:fragment>
-		</Question>
+		</TF>
 	</Section>
 
 	<Disqualified {status} bind:checked={dqed} />

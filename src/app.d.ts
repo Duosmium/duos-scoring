@@ -59,7 +59,7 @@ declare global {
 		}
 		type SlidesBatches = string[][];
 		type ChecklistData = {
-			state: Record<string, string | number | null>;
+			state: Record<string, string | number | null | undefined>;
 			score: number;
 			tier: number;
 			status: ScoreStatus;

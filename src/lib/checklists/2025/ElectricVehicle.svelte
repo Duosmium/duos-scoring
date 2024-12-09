@@ -3,7 +3,8 @@
 	import { type CheckboxValue, Status } from '../components/Checkbox.svelte';
 	import Checklist from '../components/Checklist.svelte';
 	import Disqualified from '../components/Disqualified.svelte';
-	import Question from '../components/Question.svelte';
+	import Number from '../components/questions/Number.svelte';
+	import TF from '../components/questions/TF.svelte';
 	import Section from '../components/Section.svelte';
 
 	export let teamNumber: number;
@@ -74,14 +75,14 @@
 	bind:checklistData
 >
 	<Section title="Check In">
-		<Question bind:checkbox={impounded} rule="2.a." numberItem>
+		<TF bind:checkbox={impounded} rule="2.a." numberItem>
 			Team impounds one Vehicle (with batteries disconnected), any alignment
 			devices, additional/spare parts and paper/practice logs (if used).
-		</Question>
-		<Question bind:checkbox={batteryOk} rule="3.b." numberItem>
+		</TF>
+		<TF bind:checkbox={batteryOk} rule="3.b." numberItem>
 			Batteries containing lithium or lead acid are not used. (If false, do not
 			run and team receives participation points.)
-		</Question>
+		</TF>
 	</Section>
 
 	{@const constParams = {
@@ -127,87 +128,75 @@
 	}}
 
 	<Section title="Run 1 (8 MINUTES FOR UP TO 2 RUNS)">
-		<Question bind:childValues={constParams1} numberItem linkChildren>
+		<TF bind:childValues={constParams1} numberItem linkChildren>
 			<strong>DEVICE MEETS ALL CONSTRUCTION PARAMETERS</strong>
 
 			<svelte:fragment slot="children">
 				{#each Object.entries(constParams) as [rule, text]}
-					<Question {rule}>{text}</Question>
+					<TF {rule}>{text}</TF>
 				{/each}
 			</svelte:fragment>
-		</Question>
-		<Question bind:childValues={compParams1} numberItem linkChildren>
+		</TF>
+		<TF bind:childValues={compParams1} numberItem linkChildren>
 			<strong>TEAM MEETS ALL COMPETITION PARAMETERS</strong>
 
 			<svelte:fragment slot="children">
 				{#each Object.entries(compParams) as [rule, text]}
-					<Question {rule}>{text}</Question>
+					<TF {rule}>{text}</TF>
 				{/each}
 			</svelte:fragment>
-		</Question>
-		<Question bind:inputValue={runTime1} rule="7.d." numberItem numeric min={0}>
+		</TF>
+		<Number bind:value={runTime1} rule="7.d." numberItem min={0}>
 			<strong>Run Time:</strong> Time (sec.) from when the vehicle moves to when
 			the vehicle stops. Run Time is 0.00 sec. for failed runs.
-		</Question>
-		<Question
-			bind:inputValue={distance1}
-			rule="7.c."
-			numberItem
-			numeric
-			min={0}
-		>
+		</Number>
+		<Number bind:value={distance1} rule="7.c." numberItem min={0}>
 			<strong>Vehicle Distance:</strong> point-to-point distance, in centimeters
 			to the nearest 0.1 cm, from the Vehicle Measurement Point to the Target Point,
 			measured to the nearest 0.1 cm.
-		</Question>
-		<Question bind:checkbox={failed1} rule="6.o." numberItem>
+		</Number>
+		<TF bind:checkbox={failed1} rule="6.o." numberItem>
 			<strong>Failed Run:</strong> any run where Vehicle starts before ES is ready,
 			its distance or time cannot be measured, team pushes the Vehicle down track,
 			the Vehicle travels in the wrong direction from the Start Point, or any run
 			that does not occur in the 8 minutes.
-		</Question>
+		</TF>
 	</Section>
 
 	<Section title="Run 2">
-		<Question bind:childValues={constParams2} numberItem linkChildren>
+		<TF bind:childValues={constParams2} numberItem linkChildren>
 			<strong>DEVICE MEETS ALL CONSTRUCTION PARAMETERS</strong>
 
 			<svelte:fragment slot="children">
 				{#each Object.entries(constParams) as [rule, text]}
-					<Question {rule}>{text}</Question>
+					<TF {rule}>{text}</TF>
 				{/each}
 			</svelte:fragment>
-		</Question>
-		<Question bind:childValues={compParams2} numberItem linkChildren>
+		</TF>
+		<TF bind:childValues={compParams2} numberItem linkChildren>
 			<strong>TEAM MEETS ALL COMPETITION PARAMETERS</strong>
 
 			<svelte:fragment slot="children">
 				{#each Object.entries(compParams) as [rule, text]}
-					<Question {rule}>{text}</Question>
+					<TF {rule}>{text}</TF>
 				{/each}
 			</svelte:fragment>
-		</Question>
-		<Question bind:inputValue={runTime2} rule="7.d." numberItem numeric min={0}>
+		</TF>
+		<Number bind:value={runTime2} rule="7.d." numberItem min={0}>
 			<strong>Run Time:</strong> Time (sec.) from when the vehicle moves to when
 			the vehicle stops. Run Time is 0.00 sec. for failed runs.
-		</Question>
-		<Question
-			bind:inputValue={distance2}
-			rule="7.c."
-			numberItem
-			numeric
-			min={0}
-		>
+		</Number>
+		<Number bind:value={distance2} rule="7.c." numberItem min={0}>
 			<strong>Vehicle Distance:</strong> point-to-point distance, in centimeters
 			to the nearest 0.1 cm, from the Vehicle Measurement Point to the Target Point,
 			measured to the nearest 0.1 cm.
-		</Question>
-		<Question bind:checkbox={failed2} rule="6.o." numberItem>
+		</Number>
+		<TF bind:checkbox={failed2} rule="6.o." numberItem>
 			<strong>Failed Run:</strong> any run where Vehicle starts before ES is ready,
 			its distance or time cannot be measured, team pushes the Vehicle down track,
 			the Vehicle travels in the wrong direction from the Start Point, or any run
 			that does not occur in the 8 minutes.
-		</Question>
+		</TF>
 	</Section>
 
 	<Disqualified {status} bind:checked={dqed} />

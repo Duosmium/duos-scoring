@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { ScoreStatus } from '$drizzle/types';
-	import Question from './Question.svelte';
+	import TF from './questions/TF.svelte';
 	import { Status, type CheckboxValue } from './Checkbox.svelte';
 
 	export let status: ScoreStatus;
@@ -10,7 +10,7 @@
 
 	$: checked = $checkbox === Status.True;
 
-	const highlightFunction = (_: number | null, status: Status | undefined) => {
+	const highlightFunction = (status: Status | undefined) => {
 		if (status === 'True') {
 			return 'red';
 		}
@@ -22,8 +22,8 @@
 </script>
 
 <div class="my-8">
-	<Question numberItem numeric={false} {highlightFunction} bind:checkbox>
+	<TF numberItem {highlightFunction} bind:checkbox>
 		The team is disqualified. (Notify the team and their coach as soon as
 		possible.)
-	</Question>
+	</TF>
 </div>

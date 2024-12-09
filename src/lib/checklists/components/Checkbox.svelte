@@ -9,6 +9,7 @@
 	export interface CheckboxValue {
 		subscribe: (subscription: (value: Status) => void) => () => void;
 		set: (value: Status) => void;
+		update: (fn: (value: Status) => Status) => void;
 		addChild: (childStatus: Writable<Status>) => void;
 		getFixed: () => boolean;
 	}
@@ -57,6 +58,7 @@
 	export const value: CheckboxValue = {
 		subscribe: status.subscribe,
 		set: status.set,
+		update: status.update,
 		addChild: (childStatus: Writable<Status>) => {
 			children.push(childStatus);
 			childStatus.subscribe(onChildUpdate);

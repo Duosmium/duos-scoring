@@ -3,7 +3,8 @@
 	import type { CheckboxValue } from '../components/Checkbox.svelte';
 	import Checklist from '../components/Checklist.svelte';
 	import Disqualified from '../components/Disqualified.svelte';
-	import Question from '../components/Question.svelte';
+	import Number from '../components/questions/Number.svelte';
+	import TF from '../components/questions/TF.svelte';
 	import Section from '../components/Section.svelte';
 
 	export let teamNumber: number;
@@ -54,50 +55,50 @@
 	bind:checklistData
 >
 	<Section title="Check In">
-		<Question bind:checkbox={impounded} rule="2.a." numberItem
+		<TF bind:checkbox={impounded} rule="2.a." numberItem
 			>One elastic cord with a closed metal ring, calibration data (if prep.),
-			and tools (if used) are impounded.</Question
+			and tools (if used) are impounded.</TF
 		>
 	</Section>
 
 	<Section title="Construction Parameters">
-		<Question bind:inputValue={elasticityLength} rule="3.b." numberItem numeric
+		<Number bind:value={elasticityLength} rule="3.b." numberItem
 			><strong>Elasticity Test:</strong> Length of bottom meter of the cord during
-			Elasticity Test (cm).</Question
+			Elasticity Test (cm).</Number
 		>
-		<Question bind:checkbox={elasticityPass} rule="3.b." numberItem
+		<TF bind:checkbox={elasticityPass} rule="3.b." numberItem
 			><strong>Elasticity Test:</strong> The bottom meter of the cord stretches at
 			least 1.25 m when a single 500 g mass is attached to the cord section and returns
 			to approximately original length after mass is removed. “Self-limiting-brake”
-			mechanisms such as separate, parallel, non-elastic strands are not used.</Question
+			mechanisms such as separate, parallel, non-elastic strands are not used.</TF
 		>
 	</Section>
 
 	<Section title="Drops">
-		<Question bind:inputValue={drop1} rule="3.c." numberItem numeric min={0}
+		<Number bind:value={drop1} rule="3.c." numberItem min={0}
 			><strong>Drop Distance #1:</strong> Distance between lowest point of the
 			bottle and surface.
 			<strong>
 				A drop that strikes the landing surface has a distance of 0.5 x drop
 				height.
-			</strong></Question
+			</strong></Number
 		>
-		<Question bind:inputValue={drop2} rule="3.c." numberItem numeric min={0}
+		<Number bind:value={drop2} rule="3.c." numberItem min={0}
 			><strong>Drop Distance #2:</strong> Distance between lowest point of the
 			bottle and surface.
 			<strong>
 				A drop that strikes the landing surface has a distance of 0.5 x drop
 				height.
-			</strong></Question
+			</strong></Number
 		>
-		<Question bind:checkbox={bonusDrop} rule="3.e." numberItem
+		<TF bind:checkbox={bonusDrop} rule="3.e." numberItem
 			><strong>Bonus Drop:</strong> If either Drop Distance is within 30 cm
 			(Regionals) / 20 cm (States) / 10 cm (Nationals), competitors get a bonus
 			drop.
 			<div>
 				The competitors are within a predetermined window at the lowest point
 				and is in the window determined by the ES.
-			</div></Question
+			</div></TF
 		>
 	</Section>
 
