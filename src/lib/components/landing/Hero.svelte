@@ -28,7 +28,7 @@
 		</div>
 		<Image
 			preload={true}
-			alt="a 3d model of a student sitting on the ground next to some plants and a pile of books. their hair floats above them with dna, planets, fruit, and other symbols orbiting around the hair."
+			alt="a screenshot of Duosmium's interface"
 			imageData={{ metadata, jpeg, webp }}
 			className="block md:w-1/2 md:min-w-[440px] mt-6 -mr-20 md:m-0 min-w-[373px]"
 			loading="eager"
