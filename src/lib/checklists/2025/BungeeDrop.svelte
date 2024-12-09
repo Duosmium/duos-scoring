@@ -25,7 +25,7 @@
 	let bonusDrop: CheckboxValue;
 
 	$: score =
-		$impounded === 'False' || dqed
+		$impounded === 'False'
 			? 20000
 			: ((drop1 ?? 10000) + (drop2 ?? 10000)) *
 				($bonusDrop === 'True' ? 0.8 : 1);

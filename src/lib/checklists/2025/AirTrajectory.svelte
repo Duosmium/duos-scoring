@@ -68,8 +68,7 @@
 		$farBucket === 'True' && $farBucketInside === 'True' ? 300 : 0
 	].reduce((a, b) => a + b, 0);
 
-	$: score =
-		$hasDevice === 'False' || dqed ? 0 : bestNTS + bestFTS + bucketScore;
+	$: score = $hasDevice === 'False' ? 0 : bestNTS + bestFTS + bucketScore;
 	$: tier = $impounded === 'False' ? 3 : $meetsParams === 'False' ? 2 : 1;
 	$: status = dqed
 		? 'DISQUALIFICATION'

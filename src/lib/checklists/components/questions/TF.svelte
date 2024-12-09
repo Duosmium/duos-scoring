@@ -2,7 +2,7 @@
 	import Checkbox, { Status, type CheckboxValue } from '../Checkbox.svelte';
 	import { getContext, onMount, setContext } from 'svelte';
 	import { writable, type Writable } from 'svelte/store';
-	import Base from './Base.svelte';
+	import Base, { COLORS } from './Base.svelte';
 
 	export let rule: string | undefined = undefined;
 	export let numberItem: true | undefined = undefined;
@@ -28,7 +28,9 @@
 		setContext('checkboxParent', self);
 	}
 
-	export let highlightFunction = (value: Status | undefined) => {
+	export let highlightFunction = (
+		value: Status | undefined
+	): keyof typeof COLORS => {
 		if (value === 'False') {
 			return 'red';
 		}

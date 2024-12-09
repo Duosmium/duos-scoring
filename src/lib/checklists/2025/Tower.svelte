@@ -24,11 +24,11 @@
 	let bonus: CheckboxValue;
 	let load: number | null;
 
-	$: score = dqed
-		? 0
-		: $testable === 'False'
-			? (mass ?? Infinity)
-			: ((load ?? 0) + ($bonus === 'True' ? 5000 : 0)) / (mass ?? Infinity);
+	$: score =
+		$testable === 'False'
+			? -(mass ?? Infinity)
+			: ((load ?? 0) + ($bonus === 'True' && load === 15000 ? 5000 : 0)) /
+				(mass ?? Infinity);
 	$: tier = $testable === 'False' ? 3 : $meetsParams === 'False' ? 2 : 1;
 	$: status = dqed
 		? 'DISQUALIFICATION'

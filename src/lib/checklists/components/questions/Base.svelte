@@ -1,3 +1,12 @@
+<script context="module">
+	export const COLORS = {
+		green: 'bg-green-100 dark:bg-green-900 ring-green-500',
+		red: 'bg-red-100 dark:bg-red-900 ring-red-500',
+		yellow: 'bg-yellow-100 dark:bg-yellow-900 ring-yellow-500',
+		gray: 'bg-slate-100 dark:bg-slate-800 ring-gray-500'
+	};
+</script>
+
 <script lang="ts" generics="Value extends string | number | null | undefined">
 	import { getContext, onMount } from 'svelte';
 	import { writable, type Writable } from 'svelte/store';
@@ -25,14 +34,6 @@
 	$: $notBlank = blankOk || !blank;
 
 	export let highlightFunction: (value: Value) => keyof typeof COLORS;
-
-	const COLORS = {
-		green: 'bg-green-100 dark:bg-green-900 ring-green-500',
-		red: 'bg-red-100 dark:bg-red-900 ring-red-500',
-		yellow: 'bg-yellow-100 dark:bg-yellow-900 ring-yellow-500',
-		gray: 'bg-slate-100 dark:bg-slate-800 ring-gray-500'
-	};
-
 	$: highlight = COLORS[highlightFunction(value)];
 
 	const questionKey = (

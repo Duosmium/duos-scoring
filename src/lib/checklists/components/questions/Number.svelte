@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { nanoid } from 'nanoid';
 	import { getContext } from 'svelte';
-	import Base from './Base.svelte';
+	import Base, { COLORS } from './Base.svelte';
 
 	export let rule: string | undefined = undefined;
 	export let numberItem: true | undefined = undefined;
@@ -18,7 +18,9 @@
 	$: value &&= Math.min(max ?? Infinity, Math.max(min ?? -Infinity, value));
 	$: blank = value == null || isNaN(value);
 
-	export let highlightFunction = (value: number | null | undefined) => {
+	export let highlightFunction = (
+		value: number | null | undefined
+	): keyof typeof COLORS => {
 		if (
 			value === null ||
 			(value != null && min != null && value < min) ||

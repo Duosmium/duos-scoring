@@ -55,7 +55,7 @@
 
 	$: penalties = $impounded === Status.False ? 5000 : 0;
 
-	$: score = dqed ? Infinity : Math.min(run1, run2) + penalties;
+	$: score = Math.min(run1, run2) + penalties;
 	$: tier = 1;
 	$: status = dqed
 		? 'DISQUALIFICATION'
