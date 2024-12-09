@@ -24,7 +24,10 @@ export const GET: RequestHandler = async ({ url, locals: { supabase } }) => {
 		if (!authError) {
 			return redirect(303, redirectTo);
 		}
-		captureException(authError);
+
+		if (!authError.status || authError.status >= 500) {
+			captureException(authError);
+		}
 		error(authError.status || 500, authError.message);
 	}
 	error(400, 'Missing token or type');
