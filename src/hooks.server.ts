@@ -71,7 +71,11 @@ const handler: Handle = async ({ event, resolve }) => {
 	};
 
 	// don't do any redirects when handling supabase auth stuff
-	if (event.url.pathname.startsWith('/auth')) {
+	if (
+		event.url.pathname.startsWith('/auth') ||
+		(event.url.pathname.startsWith('/login') &&
+			event.url.searchParams.get('reset') !== null)
+	) {
 		return await resolve(event);
 	}
 
