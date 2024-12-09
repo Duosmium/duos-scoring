@@ -584,7 +584,10 @@
 		// update rankings when things change
 		modifiedTeams = modifiedTeams.sort(compare).map((t, i, s) => {
 			// check ties
-			if (compare(t, s[i - 1]) === 0 || compare(t, s[i + 1]) === 0) {
+			if (
+				t.score.status.new === 'COMPETED' &&
+				(compare(t, s[i - 1]) === 0 || compare(t, s[i + 1]) === 0)
+			) {
 				if (t.score.notes.new && t.score.notes.new !== 'TIE') {
 					t.score.notes.new =
 						'TIE; ' + t.score.notes.new.replace('TIE; ', '').replace('TIE', '');
