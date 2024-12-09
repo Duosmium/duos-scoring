@@ -74,7 +74,10 @@
 		: $metParamsA === 'Blank' && $metParamsB === 'Blank'
 			? 'NOSHOW'
 			: 'COMPETED';
-	$: tiebreak = [Math.min(score1 * penalty1, score2 * penalty2)];
+	$: tiebreak = [
+		Math.min(score1 * penalty1, score2 * penalty2),
+		Math.max(score1, score2)
+	];
 </script>
 
 <Checklist
