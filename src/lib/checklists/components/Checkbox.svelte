@@ -67,7 +67,7 @@
 	};
 </script>
 
-<span class="flex flex-row items-center justify-center space-x-2">
+<span class="flex flex-row items-center justify-center space-x-2 px-1 mx-2">
 	<button
 		on:click={() => {
 			if (readonly) return;

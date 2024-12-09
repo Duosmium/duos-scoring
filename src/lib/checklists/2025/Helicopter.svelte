@@ -149,10 +149,9 @@
 			bind:value={designLog}
 			highlightFunction={logHighlight}
 			options={designLogOptions}
-			rule="4."
 			numberItem
 		>
-			Is the Flight Log complete, incomplete, or not present?
+			<strong>Is the Flight Log complete, incomplete, or not present?</strong>
 		</Select>
 	</Section>
 

@@ -29,7 +29,7 @@
 
 <Base {rule} {numberItem} {blank} {blankOk} bind:value {highlightFunction}>
 	<svelte:fragment slot="input">
-		<span class="flex flex-row items-center justify-center space-x-2">
+		<span class="flex flex-row items-center justify-center space-x-2 mx-2 px-1">
 			{#each options as option}
 				<button
 					on:click={() => {

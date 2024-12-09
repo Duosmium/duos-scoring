@@ -55,28 +55,28 @@
 
 <div class={'p-2 ring-1 ' + highlight}>
 	<div class="flex flex-col sm:flex-row items-start sm:items-baseline">
-		<div class="flex flex-row items-center mr-2">
-			{#if rule || numberItem}
-				<span class="mb-1 mr-1">
-					{#if numberItem}
-						<strong class="mr-0.5">
-							{checklistNumber}.
-						</strong>
-					{/if}
-					{#if rule}
-						<strong class="font-medium">
-							Rule {rule}
-						</strong>
-					{/if}
-				</span>
+		<div class="flex flex-row items-center">
+			{#if numberItem}
+				<strong class="mr-1 mb-1">
+					{checklistNumber}.
+				</strong>
 			{/if}
+
 			{#if $$slots.input}
-				<span class="mb-1 mr-1">
+				<span class="mb-1">
 					<slot name="input"></slot>
 				</span>
 			{/if}
 		</div>
 		<div class="flex-1">
+			{#if rule}
+				<strong
+					class="mb-1 mr-1 font-medium text-black dark:text-white min-w-fit"
+				>
+					{rule}
+				</strong>
+			{/if}
+
 			<slot name="text"></slot>
 		</div>
 	</div>
