@@ -75,8 +75,11 @@
 			? 'NOSHOW'
 			: 'COMPETED';
 	$: tiebreak = [
-		Math.min(score1 * penalty1, score2 * penalty2),
-		Math.max(score1, score2)
+		score1 * penalty1 === score2 * penalty2
+			? Math.min(score1, score2)
+			: score1 * penalty1 > score2 * penalty2
+				? score2
+				: score1
 	];
 </script>
 
