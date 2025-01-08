@@ -54,7 +54,7 @@
 			awardsDate: editTournamentData.awardsDate
 				? new Date(editTournamentData.awardsDate)
 				: undefined,
-			enableTracks: editTournamentData.enableTracks || undefined,
+			enableTracks: editTournamentData.enableTracks ?? undefined,
 			medals: ((m) => (isNaN(m) ? undefined : m))(
 				parseInt(editTournamentData.medals as any)
 			),
