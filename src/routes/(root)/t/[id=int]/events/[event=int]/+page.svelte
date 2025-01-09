@@ -27,6 +27,7 @@
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 	import checklists from '$lib/checklists';
 	import { sendData } from '../../helpers';
+	import { formatSchool } from '$lib/sciolyffHelpers';
 
 	export let data: PageData;
 
@@ -775,11 +776,7 @@
 		{@const checklistsEnabled =
 			ChecklistComponent != undefined && data.event.enableChecklist}
 		<TableBodyCell class="px-2">{team.number}</TableBodyCell>
-		<TableBodyCell class="px-2"
-			>{team.abbreviation ??
-				team.school.slice(0, 30) +
-					(team.school.length > 30 ? '…' : '')}</TableBodyCell
-		>
+		<TableBodyCell class="px-2">{formatSchool(team, 30)}</TableBodyCell>
 		<TableBodyCell class="pl-2 pr-4">
 			{team.suffix
 				? team.suffix.slice(0, 20) + (team.suffix.length > 20 ? '…' : '')
@@ -1023,7 +1020,7 @@
 					<span class="tabular-nums">#{score.number}:</span>
 					<span
 						>{t
-							? `${t.abbreviation || t.school}${t.suffix ? ' ' + t.suffix : ''}`
+							? `${formatSchool(t)}${t.suffix ? ' ' + t.suffix : ''}`
 							: 'Team Not Found'}</span
 					>
 					<span class="dark:text-green-300 text-green-700"

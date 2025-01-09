@@ -28,6 +28,7 @@
 	import { ExclamationCircleSolid } from 'flowbite-svelte-icons';
 	import { distance } from 'fastest-levenshtein';
 	import { normalize } from './shared';
+	import { formatSchool } from '$lib/sciolyffHelpers';
 
 	export let data: PageData;
 
@@ -395,8 +396,7 @@
 	<svelte:fragment slot="item" let:item={team}>
 		<TableBodyCell class="py-0 px-2">{team.number}</TableBodyCell>
 		<TableBodyCell class="py-0 px-2">
-			{team.abbreviation ??
-				team.school.slice(0, 45) + (team.school.length > 45 ? '…' : '')}
+			{formatSchool(team, 45)}
 			{team.suffix
 				? team.suffix.slice(0, 38) + (team.suffix.length > 38 ? '…' : '')
 				: ''}{#if nonCanonicalTeams?.has(team.id)}<button

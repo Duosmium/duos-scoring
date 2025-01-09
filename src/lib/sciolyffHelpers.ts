@@ -37,6 +37,26 @@ export function shortName(name?: string): string | undefined {
 		.join(' ');
 }
 
+export function formatSchool(team: Team, maxLength = -1) {
+	const abbr = abbrSchool(team.abbreviation || team.school);
+	if (maxLength < 0 || abbr.length <= maxLength) {
+		return abbr;
+	}
+	return abbr.slice(0, maxLength) + '…';
+}
+
+export function abbrSchool(school: string) {
+	return school
+		.replace('Elementary School', 'Elementary')
+		.replace(/Elementary[ /-]Middle School/, 'EMS')
+		.replace('Middle School', 'MS')
+		.replace('Junior High School', 'JHS')
+		.replace(/Middle[ /-]High School/, 'MHS')
+		.replace(/Junior[ /-]Senior High School/, 'Jr/Sr HS')
+		.replace('High School', 'HS')
+		.replace('Secondary School', 'Secondary');
+}
+
 export function seasonYear(date: Date): number {
 	const seasonStart = new Date(date.getFullYear(), 6, 15); // july 15
 	if (date >= seasonStart) {
