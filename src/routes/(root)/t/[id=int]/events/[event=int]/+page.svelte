@@ -227,16 +227,27 @@
 		tiebreak: number | null;
 		status: ScoreStatus | 'NA';
 	}[] = [];
-	let parsedError = '';
+	let parsedErrors: string[] = [];
 	$: {
-		rawParsedImport = papaparse.parse(importScoresData, { header: true })
-			.data as any;
-		parsedError = '';
-		const missingFields: Set<string> = new Set();
-		const invalidStatuses: Set<string> = new Set();
-		const invalidTeams: Set<string> = new Set();
+		const parseObj = papaparse.parse(importScoresData, {
+			header: true,
+			skipEmptyLines: 'greedy'
+		});
+		rawParsedImport = parseObj.data as any;
+		parsedErrors = [];
+
 		const seenTeams: Set<number> = new Set();
 		const duplicateTeams: Set<string> = new Set();
+
+		if (
+			importScoresData &&
+			!parseObj.meta.fields?.some((h) => h.match(/(number|#|score)/i))
+		) {
+			parsedErrors.push(
+				'Missing required fields - did you forget to copy the header row?'
+			);
+		}
+
 		// TODO: validate stuff
 		parsedImportScores = [];
 		rawParsedImport.forEach((t) => {
@@ -246,26 +257,68 @@
 			const team = teamLookup.get(parsedNumber);
 
 			if (!isNaN(parsedNumber) && seenTeams.has(parsedNumber)) {
-				duplicateTeams.add(t.Number || t['Team #']);
+				if (!duplicateTeams.has(t.Number || t['Team #'])) {
+					duplicateTeams.add(t.Number || t['Team #']);
+					parsedErrors.push(`Duplicate team: ${t.Number || t['Team #']}`);
+				}
+				return;
 			} else if (!isNaN(parsedNumber)) {
 				seenTeams.add(parsedNumber);
 			}
 			if (!t.Number && !t['Team #']) {
-				missingFields.add('Number');
+				parsedErrors.push('Entry missing team number');
+				return;
 			} else if (!team) {
-				invalidTeams.add(t.Number || t['Team #']);
+				parsedErrors.push(`Invalid team number: ${t.Number || t['Team #']}`);
+				return;
 			}
 			if (!t.Status && !t['Raw Score'] && !t.Score) {
-				missingFields.add('Status');
+				parsedErrors.push(
+					`Team ${t.Number || t['Team #']} missing score or status`
+				);
+				return;
 			} else if (t.Status && scoreAliases.every((s) => s.name !== t.Status)) {
-				invalidStatuses.add(t.Status);
+				parsedErrors.push(
+					`Team ${t.Number || t['Team #']} has invalid status: ${t.Status}`
+				);
+				return;
 			}
 			if (
 				!t['Raw Score'] &&
 				!t.Score &&
 				(t.Status === 'CO' || t.Status === 'C')
 			) {
-				missingFields.add('Score');
+				parsedErrors.push(`Team ${t.Number || t['Team #']} missing score`);
+				return;
+			}
+
+			if (
+				(t['Raw Score'] || t.Score) &&
+				isNaN(parseFloat(t['Raw Score'] || t.Score))
+			) {
+				parsedErrors.push(
+					`Team ${t.Number || t['Team #']} has invalid score: ${
+						t['Raw Score'] || t.Score
+					}`
+				);
+				return;
+			}
+			if (t.Tier && isNaN(parseInt(t.Tier))) {
+				parsedErrors.push(
+					`Team ${t.Number || t['Team #']} has invalid tier: ${t.Tier}`
+				);
+				return;
+			}
+			if (
+				(t.Tiebreak || t.Tiebreaker) &&
+				isNaN(parseFloat(t.Tiebreak || t.Tiebreaker))
+			) {
+				parsedErrors.push(
+					`Team ${t.Number || t['Team #']} has invalid tiebreaker: ${
+						t.Tiebreak || t.Tiebreaker
+					}`
+				);
+				return;
 			}
 
 			if (team) {
@@ -290,22 +343,9 @@
 				});
 			}
 		});
-		if (missingFields.size > 0) {
-			parsedError += `Missing fields: ${[...missingFields].join(', ')}; `;
-		}
-		if (invalidStatuses.size > 0) {
-			parsedError += `Invalid statuses: ${[...invalidStatuses].join(', ')}`;
-		}
-		if (invalidTeams.size > 0) {
-			parsedError += `Invalid teams: ${[...invalidTeams].join(', ')}`;
-		}
-		if (duplicateTeams.size > 0) {
-			parsedError += `Duplicate teams: ${[...duplicateTeams].join(', ')}`;
-		}
 	}
 	function importScores() {
 		if (locked) return;
-		if (parsedError) return;
 		parsedImportScores.forEach((parsedScore) => {
 			const team = teamLookup.get(parsedScore.number);
 			if (!team) return;
@@ -1008,44 +1048,57 @@
 		/>
 	</Label>
 
-	<Heading tag="h3" class="text-md">Preview</Heading>
+	<div>
+		<Heading tag="h3" class="text-md">Preview</Heading>
 
-	{#if parsedError}
-		<Alert class="mt-2" color="red">{parsedError}</Alert>
-	{:else if parsedImportScores.length !== 0}
-		<ol>
-			{#each parsedImportScores as score}
-				{@const t = teamLookup.get(score.number)}
-				<li>
-					<span class="tabular-nums">#{score.number}:</span>
-					<span
-						>{t
-							? `${formatSchool(t)}${t.suffix ? ' ' + t.suffix : ''}`
-							: 'Team Not Found'}</span
-					>
-					<span class="dark:text-green-300 text-green-700"
-						>{score.rawScore ?? ''}</span
-					><span class="dark:text-blue-300 text-blue-700"
-						>{score.tier ? ` [Tier ${score.tier}]` : ''}</span
-					><span class="dark:text-pink-300 text-pink-700"
-						>{score.tiebreak ? ` (*${score.tiebreak})` : ''}</span
-					>
-					<span class="dark:text-violet-300 text-violet-700"
-						>{statusLookup[score.status]}</span
-					>
-				</li>
-			{/each}
-		</ol>
-	{:else}
-		<P>Waiting for score input...</P>
-	{/if}
+		{#if parsedErrors.length > 0}
+			<Alert class="py-0 my-2" color="red">
+				<ul class="list-disc">
+					{#each parsedErrors as error}
+						<li>{error}</li>
+					{/each}
+				</ul>
+			</Alert>
+		{/if}
+		{#if parsedImportScores.length > 0}
+			<ol>
+				{#each parsedImportScores as score}
+					{@const t = teamLookup.get(score.number)}
+					<li>
+						<span class="tabular-nums">#{score.number}:</span>
+						<span
+							>{t
+								? `${formatSchool(t)}${t.suffix ? ' ' + t.suffix : ''}`
+								: 'Team Not Found'}</span
+						>
+						<span class="dark:text-green-300 text-green-700"
+							>{score.rawScore ?? ''}</span
+						><span class="dark:text-blue-300 text-blue-700"
+							>{score.tier ? ` [Tier ${score.tier}]` : ''}</span
+						><span class="dark:text-pink-300 text-pink-700"
+							>{score.tiebreak ? ` (*${score.tiebreak})` : ''}</span
+						>
+						<span class="dark:text-violet-300 text-violet-700"
+							>{statusLookup[score.status]}</span
+						>
+					</li>
+				{/each}
+			</ol>
+		{/if}
+		{#if parsedImportScores.length === 0 && parsedErrors.length === 0}
+			<P>Waiting for score input...</P>
+		{/if}
+	</div>
 
 	<svelte:fragment slot="footer">
 		<!-- TODO: validation -->
 		<Button
 			color="green"
-			disabled={parsedError.length !== 0}
-			on:click={importScores}>Save</Button
+			disabled={parsedImportScores.length === 0}
+			on:click={importScores}
+			>Save {parsedImportScores.length} score{parsedImportScores.length != 1
+				? 's'
+				: ''}</Button
 		>
 		<Button color="alternative">Cancel</Button>
 	</svelte:fragment>
