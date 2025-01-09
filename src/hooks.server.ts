@@ -12,7 +12,8 @@ import * as Sentry from '@sentry/sveltekit';
 import {
 	createOrUpdateUser,
 	getTournamentInfo,
-	getUserInfo
+	getUserInfo,
+	isAdmin
 } from '$lib/server/db';
 import { sequence } from '@sveltejs/kit/hooks';
 
@@ -156,19 +157,28 @@ const handler: Handle = async ({ event, resolve }) => {
 
 	// check permissions if user is trying to access a tournament page
 	if (event.url.pathname.startsWith('/t') && event.params.id) {
-		if (
-			!user.roles.find((r) => r.tournament.id.toString() === event.params.id)
-		) {
+		const tournament = await getTournamentInfo(event.params.id);
+		if (tournament === false) {
 			return new Response(undefined, {
 				status: 303,
 				headers: { location: '/dashboard' }
 			});
 		}
-		const role = user.roles.find(
-			(r) => r.tournament.id.toString() === event.params.id
-		);
-		const tournament = await getTournamentInfo(event.params.id);
-		if (tournament === false) {
+
+		const admin = await isAdmin(user.id);
+		const role =
+			user.roles.find((r) => r.tournament.id.toString() === event.params.id) ||
+			admin
+				? {
+						id: BigInt(-1),
+						role: 'TD' as const,
+						tournament,
+						tournamentId: tournament.id,
+						supEvents: [],
+						userId: user.id
+					}
+				: undefined;
+		if (!role) {
 			return new Response(undefined, {
 				status: 303,
 				headers: { location: '/dashboard' }

@@ -90,7 +90,7 @@
 			</List></TableBodyCell
 		>
 		<TableBodyCell class="py-0 px-2"
-			>{t.year} {t.name} {t.division}</TableBodyCell
+			><a href="/t/{t.id}/">{t.year} {t.name} {t.division}</a></TableBodyCell
 		>
 		<TableBodyCell class="px-2">
 			<List>
@@ -137,7 +137,7 @@
 			</List></TableBodyCell
 		>
 		<TableBodyCell class="py-0 px-2"
-			>{t.year} {t.name} {t.division}</TableBodyCell
+			><a href="/t/{t.id}/">{t.year} {t.name} {t.division}</a></TableBodyCell
 		>
 		<TableBodyCell class="py-0 px-2"
 			>{fmtDate(t.startDate)} to {fmtDate(t.endDate)}</TableBodyCell
@@ -183,7 +183,7 @@
 			</List></TableBodyCell
 		>
 		<TableBodyCell class="py-0 px-2"
-			>{t.year} {t.name} {t.division}</TableBodyCell
+			><a href="/t/{t.id}/">{t.year} {t.name} {t.division}</a></TableBodyCell
 		>
 		<TableBodyCell class="py-0 px-2"
 			>{fmtDate(t.startDate)} to {fmtDate(t.endDate)}</TableBodyCell

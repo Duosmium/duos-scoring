@@ -1,5 +1,6 @@
 import { error } from '@sveltejs/kit';
 import type { Event, Role, User } from '$drizzle/types';
+import { isAdmin } from './db';
 
 type UserWithRoles = User & { roles: (Role & { supEvents: Event[] })[] };
 
@@ -15,6 +16,8 @@ export async function checkIsDirector(
 			return false;
 		}
 	}
+	if (await isAdmin(user.id)) return true;
+
 	const userRole = user.roles.find(
 		(role) =>
 			role.role === 'TD' && role.tournamentId.toString() === tournamentId
@@ -42,6 +45,8 @@ export async function checkScoremasterPerms(
 			return false;
 		}
 	}
+	if (await isAdmin(user.id)) return true;
+
 	const userRole = user.roles.find(
 		(role) =>
 			(role.role === 'TD' || role.role === 'SM') &&
@@ -71,6 +76,8 @@ export async function checkEventPerms(
 			return false;
 		}
 	}
+	if (await isAdmin(user.id)) return true;
+
 	const userRole = user.roles.find(
 		(role) => role.tournamentId.toString() === tournamentId
 	);
@@ -101,6 +108,8 @@ export async function checkTournamentAccess(
 			return false;
 		}
 	}
+	if (await isAdmin(user.id)) return true;
+
 	const userRole = user.roles.find(
 		(role) => role.tournamentId,
 		toString() === tournamentId

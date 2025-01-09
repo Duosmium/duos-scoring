@@ -8,7 +8,7 @@ import {
 } from '$lib/server/db';
 import type { ScoreStatus, Score } from '$drizzle/types';
 import type { RequestHandler } from './$types';
-import { checkEventPerms } from '$lib/server/utils';
+import { checkEventPerms, checkScoremasterPerms } from '$lib/server/utils';
 
 export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 	await checkEventPerms(locals.user, params.id, BigInt(params.event));
@@ -18,6 +18,12 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 
 	const event = await getEvent(BigInt(params.event));
 	if (!event) return new Response('invalid event', { status: 404 });
+
+	const hasScoremasterPerms = await checkScoremasterPerms(
+		user,
+		params.id,
+		false
+	);
 
 	const payload: {
 		enableChecklist?: boolean;
@@ -50,19 +56,13 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 		return new Response("can't lock with missing scores", { status: 400 });
 	if (
 		payload.audited === true &&
-		(!user.roles.find(
-			(role) => role.tournamentId.toString() === params.id && role.role !== 'ES'
-		) ||
-			!event.locked ||
-			event.auditedUserId != undefined)
+		(!hasScoremasterPerms || !event.locked || event.auditedUserId != undefined)
 	)
 		return new Response('unauthorized user', { status: 403 });
 	if (
 		payload.locked === false &&
 		event.auditedUserId != undefined &&
-		!user.roles.find(
-			(role) => role.tournamentId.toString() === params.id && role.role !== 'ES'
-		)
+		!hasScoremasterPerms
 	)
 		return new Response('unauthorized user', { status: 403 });
 
