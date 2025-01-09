@@ -12,16 +12,16 @@
 
 	export let data;
 	$: pending = data.pending.sort(
-		(a, b) => a.startDate.getDate() - b.startDate.getDate()
+		(a, b) => a.startDate.valueOf() - b.startDate.valueOf()
 	);
 	let selectedPending: typeof pending = [];
 
 	$: upcoming = data.upcoming.sort(
-		(a, b) => a.startDate.getDate() - b.startDate.getDate()
+		(a, b) => a.startDate.valueOf() - b.startDate.valueOf()
 	);
 
 	$: approved = data.approved.sort(
-		(a, b) => b.startDate.getDate() - a.startDate.getDate()
+		(a, b) => b.startDate.valueOf() - a.startDate.valueOf()
 	);
 	let selectedApproved: typeof approved = [];
 
