@@ -111,6 +111,8 @@
 				<li><span>Drops:</span> {t.drops}</li>
 				<li><span>Tracks:</span> {t.enableTracks}</li>
 				<li><span>N Offset:</span> {t.nOffset}</li>
+				<li><span>Event Count:</span> {t.events}</li>
+				<li><span>Team Count:</span> {t.teams}</li>
 			</List>
 		</TableBodyCell>
 	</svelte:fragment>

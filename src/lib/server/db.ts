@@ -676,15 +676,13 @@ export async function addScores(scores: Omit<Score, 'id' | 'checklistUuid'>[]) {
 		return true;
 	}
 	try {
-		await db
-			.insert(schema.Score)
-			.values(
-				scores.map((s) => ({
-					...s,
-					checklist: s.checklist ?? null,
-					checklistUuid: undefined
-				}))
-			);
+		await db.insert(schema.Score).values(
+			scores.map((s) => ({
+				...s,
+				checklist: s.checklist ?? null,
+				checklistUuid: undefined
+			}))
+		);
 	} catch (e) {
 		console.error(e);
 		captureException(e);
@@ -862,16 +860,24 @@ export async function getFilteredTournaments(
 		undefined
 	>['where']
 ) {
-	const tournaments = await db.query.Tournament.findMany({
-		where: filter,
-		with: {
-			roles: {
-				with: {
-					user: true
-				}
+	const tournaments = (
+		await db.query.Tournament.findMany({
+			where: filter,
+			with: {
+				roles: {
+					with: {
+						user: true
+					}
+				},
+				events: true,
+				teams: true
 			}
-		}
-	});
+		})
+	).map((t) => ({
+		...t,
+		events: t.events.length,
+		teams: t.teams.length
+	}));
 
 	return tournaments;
 }
