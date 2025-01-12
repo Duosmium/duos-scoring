@@ -31,10 +31,20 @@
 <div
 	class="min-h-screen pb-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-200"
 >
-	{#if $navigating}
+	{#if $navigating && $navigating.from?.url.pathname !== $navigating.to?.url.pathname}
 		<div
-			in:fly={{ x: -pageWidth, duration: 3000, easing: quintOut, opacity: 1 }}
-			out:fly={{ x: pageWidth, duration: 500, easing: quintOut, opacity: 1 }}
+			in:fly={{
+				x: (-pageWidth * 2) / 3,
+				duration: 3000,
+				easing: quintOut,
+				opacity: 1
+			}}
+			out:fly={{
+				x: (pageWidth * 4) / 3,
+				duration: 500,
+				easing: quintOut,
+				opacity: 1
+			}}
 			class="bar animate-pulse bg-none bg-indigo-500 dark:bg-indigo-700 z-40 -translate-x-1/3"
 		/>
 	{:else}
