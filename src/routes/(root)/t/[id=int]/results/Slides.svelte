@@ -136,13 +136,11 @@
 		if (!data.batches || data.batches?.length <= batchIndex) return;
 
 		const events = data.batches
-			.filter(
-				(_, i, s) => i >= batchIndex && (data.done ? i < s.length - 1 : true)
-			)
+			.slice(batchIndex, data.done ? -1 : undefined)
 			.flat()
 			.map((e) => BigInt(e));
 
-		if (events) {
+		if (events.length > 0) {
 			const sciolyff = generateSciolyFF(events);
 			const slides = await generatePdf(sciolyff, undefined, currentSettings(), [
 				'events'
@@ -150,9 +148,7 @@
 			await viewer.appendPdf(slides);
 		}
 		if (data.done) {
-			const sciolyff = generateSciolyFF(
-				data.batches.slice(-1)[0].map((e) => BigInt(e))
-			);
+			const sciolyff = generateSciolyFF([]);
 			const slides = await generatePdf(sciolyff, undefined, currentSettings(), [
 				'overall',
 				'closing'
