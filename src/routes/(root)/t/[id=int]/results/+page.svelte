@@ -97,17 +97,18 @@
 	}
 	function getSciolyFF(events?: bigint[]) {
 		if (!events && selected.length !== 0) touchEventsExportedAt();
-		const selectedEvents = new Set(
+		const selectedEvents =
 			events == null
 				? selected.flatMap((e) => e.id)
 				: events.length !== 0
 					? events
-					: data.events.map((e) => e.id)
-		);
+					: data.events.map((e) => e.id);
 
-		const filteredEvents = data.events.filter((e) => selectedEvents.has(e.id));
+		const filteredEvents = selectedEvents
+			.map((id) => data.events.find((e) => e.id === id))
+			.filter((e) => e != null);
 		const filteredRankings = data.rankings.filter((r) =>
-			selectedEvents.has(r.event.id)
+			selectedEvents.includes(r.event.id)
 		);
 
 		return generateSciolyFF(

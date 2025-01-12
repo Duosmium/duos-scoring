@@ -49,6 +49,7 @@ declare global {
 			textColor: string;
 			headerTextColor: string;
 			randomOrder: boolean;
+			preserveOrder: boolean;
 			combineTracks: boolean;
 			separateTracks: boolean;
 			overallSchools: boolean;

@@ -32,7 +32,7 @@ import {
 import logos from './logos';
 
 // https://stackoverflow.com/a/12646864/9129832
-function shuffleArray(array: unknown[]) {
+export function shuffleArray(array: unknown[]) {
 	for (let i = array.length - 1; i > 0; i--) {
 		const j = Math.floor(Math.random() * (i + 1));
 		[array[i], array[j]] = [array[j], array[i]];
@@ -149,6 +149,7 @@ export async function generatePdf(
 	const headerTextColor = options.headerTextColor;
 
 	const randomOrder = options.randomOrder;
+	const preserveOrder = options.preserveOrder;
 	const combineTracks = options.combineTracks;
 	const separateTracks = options.separateTracks;
 	const overallSchools = options.overallSchools;
@@ -557,7 +558,20 @@ export async function generatePdf(
 		}
 	}
 
-	const sortEvents = (eventsList: [Event, Track | null][]) => {
+	const sortEvents = (
+		eventsList: [Event, Track | null][],
+		interpreter: Interpreter | null
+	) => {
+		if (preserveOrder) {
+			return interpreter
+				? eventsList.sort(
+						(a, b) =>
+							interpreter.rep.Events.findIndex((e) => e.name === a[0].name) -
+							interpreter.rep.Events.findIndex((e) => e.name === b[0].name)
+					)
+				: eventsList;
+		}
+
 		// this nonsense sorts the events by name, grouping non-trials (including trialed events) and trials separately
 		return eventsList.sort((a, b) =>
 			a[0].trial === b[0].trial
@@ -598,7 +612,10 @@ export async function generatePdf(
 				});
 				if (sections ? sections.includes('events') : true) {
 					addEventSlides(
-						sortEvents(events1.filter(([_, track]) => track === t)),
+						sortEvents(
+							events1.filter(([_, track]) => track === t),
+							interpreter1
+						),
 						outline
 					);
 				}
@@ -614,7 +631,10 @@ export async function generatePdf(
 				});
 				if (sections ? sections.includes('events') : true) {
 					addEventSlides(
-						sortEvents(events2.filter(([_, track]) => track === t)),
+						sortEvents(
+							events2.filter(([_, track]) => track === t),
+							interpreter2
+						),
 						outline
 					);
 				}
@@ -622,7 +642,7 @@ export async function generatePdf(
 					addOverallSlides(interpreter2, t);
 				}
 			});
-	} else if (randomOrder) {
+	} else if (randomOrder && !preserveOrder) {
 		const outline = doc.outline.add(null, 'Placements', {
 			pageNumber: doc.getNumberOfPages()
 		});
@@ -639,8 +659,8 @@ export async function generatePdf(
 		const outline = doc.outline.add(null, 'Placements', {
 			pageNumber: doc.getNumberOfPages()
 		});
-		sortEvents(events1);
-		sortEvents(events2);
+		sortEvents(events1, interpreter1);
+		sortEvents(events2, interpreter2);
 		// alternate B/C event slides
 		const events = Array(Math.max(events1.length, events2.length))
 			.fill(0)

@@ -2,7 +2,12 @@
 	import { Modal } from 'flowbite-svelte';
 
 	import { page } from '$app/stores';
-	import { generatePdf, getColor, getImage } from '$lib/slides/gen';
+	import {
+		generatePdf,
+		getColor,
+		getImage,
+		shuffleArray
+	} from '$lib/slides/gen';
 	import printable from '$lib/slides/printable';
 	import type { Slides, Tournament } from '$drizzle/types';
 	import FullscreenPdf from '$lib/components/FullscreenPdf.svelte';
@@ -43,7 +48,7 @@
 	let qrCode = true;
 	let showSlidesPreview = false;
 	let slidesURL = '';
-	const currentSettings = () => ({
+	const currentSettings = (preview = true) => ({
 		tournamentLogo: tournamentLogo || defaultImage?.[0] || '',
 		tournamentLogoDimensions:
 			!tournamentLogo && defaultImage
@@ -63,7 +68,8 @@
 		bgColor,
 		textColor,
 		headerTextColor,
-		randomOrder,
+		randomOrder: preview ? randomOrder : false,
+		preserveOrder: preview ? false : true,
 		combineTracks,
 		separateTracks,
 		overallSchools,
@@ -142,17 +148,22 @@
 
 		if (events.length > 0) {
 			const sciolyff = generateSciolyFF(events);
-			const slides = await generatePdf(sciolyff, undefined, currentSettings(), [
-				'events'
-			]);
+			const slides = await generatePdf(
+				sciolyff,
+				undefined,
+				currentSettings(false),
+				['events']
+			);
 			await viewer.appendPdf(slides);
 		}
 		if (data.done) {
 			const sciolyff = generateSciolyFF([]);
-			const slides = await generatePdf(sciolyff, undefined, currentSettings(), [
-				'overall',
-				'closing'
-			]);
+			const slides = await generatePdf(
+				sciolyff,
+				undefined,
+				currentSettings(false),
+				['overall', 'closing']
+			);
 			await viewer.appendPdf(slides);
 		}
 
@@ -170,10 +181,12 @@
 
 	export const startPresentation = async (events: bigint[]) => {
 		const sciolyff = generateSciolyFF(events);
-		const slides = await generatePdf(sciolyff, undefined, currentSettings(), [
-			'intro',
-			'events'
-		]);
+		const slides = await generatePdf(
+			sciolyff,
+			undefined,
+			currentSettings(false),
+			['intro', 'events']
+		);
 		await viewer.appendPdf(slides);
 		viewer.enterFullScreen();
 
@@ -195,10 +208,10 @@
 	export const resumePresentation = async () => {
 		if (!broadcastChannel) {
 			const intro = await generatePdf(
-				generateSciolyFF(),
+				generateSciolyFF([]),
 				undefined,
-				currentSettings(),
-				['intro', 'events']
+				currentSettings(false),
+				['intro']
 			);
 			await viewer.appendPdf(intro);
 			fetchLatestBatches();
@@ -207,6 +220,9 @@
 	};
 
 	export const addBatch = async (events: bigint[], done?: boolean) => {
+		if (currentSettings().randomOrder) {
+			shuffleArray(events);
+		}
 		sendData({
 			method: 'PUT',
 			body: { events: events.map((e) => e.toString()), done },
