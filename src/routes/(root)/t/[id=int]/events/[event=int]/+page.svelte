@@ -433,6 +433,8 @@
 				checklist: t.score.checklist
 			}));
 
+		const savedModifiedTeams = structuredClone(modifiedTeams);
+
 		modifiedTeams = modifiedTeams.map((t) => ({
 			...t,
 			score: {
@@ -456,17 +458,20 @@
 				notes: { old: t.score.notes.new, new: t.score.notes.new, dirty: false }
 			}
 		}));
-
-		await sendData({
-			method: 'PUT',
-			body,
-			msgs: {
-				info: 'Saving scores...',
-				success: 'Scores saved!',
-				error: 'Failed to save scores!'
-			}
-		});
-		modifiedTeams = generateModifiedTeams(data);
+		try {
+			await sendData({
+				method: 'PUT',
+				body,
+				msgs: {
+					info: 'Saving scores...',
+					success: 'Scores saved!',
+					error: 'Failed to save scores!'
+				}
+			});
+			modifiedTeams = generateModifiedTeams(data);
+		} catch (e) {
+			modifiedTeams = savedModifiedTeams;
+		}
 	}
 
 	let showLockDirty = false;
