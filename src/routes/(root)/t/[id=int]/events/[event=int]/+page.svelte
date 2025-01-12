@@ -28,6 +28,7 @@
 	import checklists from '$lib/checklists';
 	import { sendData } from '../../helpers';
 	import { formatSchool } from '$lib/sciolyffHelpers';
+	import { QuestionCircleSolid } from 'flowbite-svelte-icons';
 
 	export let data: PageData;
 
@@ -800,18 +801,64 @@
 </div>
 <SelectableTable items={modifiedTeams} bind:selected cols={10}>
 	<svelte:fragment slot="headers">
-		<TableHeadCell class="px-2">#</TableHeadCell>
-		<TableHeadCell class="px-2">School</TableHeadCell>
+		<TableHeadCell class="px-2"
+			><button
+				on:click={() => {
+					sortBy = 'number';
+				}}>#</button
+			></TableHeadCell
+		>
+		<TableHeadCell class="px-2"
+			><button
+				on:click={() => {
+					sortBy = 'school';
+				}}>School</button
+			></TableHeadCell
+		>
 		<TableHeadCell class="pl-2 pr-4">Suffix</TableHeadCell>
 		{#if ChecklistComponent && data.event.enableChecklist}
 			<TableHeadCell class="pl-0 pr-4">Checklist</TableHeadCell>
 			<TableHeadCell class="pl-0 pr-4">Incomplete</TableHeadCell>
 		{/if}
-		<TableHeadCell class="px-0">Raw Score</TableHeadCell>
-		<TableHeadCell class="px-0">Tier</TableHeadCell>
+		<TableHeadCell class="px-0"
+			><button
+				on:click={() => {
+					sortBy = 'score';
+				}}>Raw Score</button
+			></TableHeadCell
+		>
+		<TableHeadCell class="px-0"
+			><button
+				on:click={() => {
+					sortBy = 'tier';
+				}}>Tier</button
+			></TableHeadCell
+		>
 		<TableHeadCell class="px-0">Tiebreak</TableHeadCell>
-		<TableHeadCell class="px-0">Status</TableHeadCell>
-		<TableHeadCell class="px-4">Ranking</TableHeadCell>
+		<TableHeadCell class="px-0"
+			><span class="flex items-center gap-1">
+				<button
+					on:click={() => {
+						sortBy = 'status';
+					}}>Status</button
+				>
+				<button
+					on:click={() => {
+						showHelp = true;
+					}}
+				>
+					<QuestionCircleSolid></QuestionCircleSolid>
+					<span class="sr-only">Help</span>
+				</button>
+			</span></TableHeadCell
+		>
+		<TableHeadCell class="px-4"
+			><button
+				on:click={() => {
+					sortBy = 'ranking';
+				}}>Ranking</button
+			></TableHeadCell
+		>
 		<TableHeadCell class="px-0">Notes</TableHeadCell>
 	</svelte:fragment>
 	<svelte:fragment slot="item" let:item={team}>
@@ -927,43 +974,6 @@
 	<P class="dark:text-gray-300"
 		>Welcome to scoring! Enter scores for your event here.</P
 	>
-	<Heading tag="h2" class="text-xl">Toolbar</Heading>
-	<P class="dark:text-gray-300">
-		<dl class="space-y-3 mt-6">
-			<div>
-				<dt>Sorting:</dt>
-				<dd>Sort events by various columns.</dd>
-			</div>
-			<div>
-				<dt>Import:</dt>
-				<dd>
-					Paste in scores from an external source, such as a Google Sheet.
-				</dd>
-			</div>
-			<div>
-				<dt>Save/Discard:</dt>
-				<dd>
-					Changes you have made will be highlighted in orange. You will need to
-					click "Save" to commit your changes, or use "Discard" to revert back
-					to the original scores.
-				</dd>
-			</div>
-			<div>
-				<dt>Lock/Unlock:</dt>
-				<dd>
-					Locking an event will prevent scores from being edited and indicates
-					that the event is done grading.
-				</dd>
-			</div>
-			<div>
-				<dt>Settings:</dt>
-				<dd>
-					Change the event's scoring method (high, low) or the number of medals
-					offered.
-				</dd>
-			</div>
-		</dl>
-	</P>
 	<Heading tag="h2" class="text-xl">About Columns</Heading>
 	<P class="dark:text-gray-300">
 		<dl class="space-y-3 mt-6">
@@ -976,28 +986,82 @@
 				<dd>
 					Only used in some build and hybrid events. <strong
 						>Leave blank if not used.</strong
-					> Lower number tier (1) is ranked better than a higher number tier (2,
-					3, 4).
+					> Lower number tier (1) is always ranked better than a higher number tier
+					(2, 3, 4).
 				</dd>
 			</div>
 			<div>
 				<dt>Tiebreak:</dt>
 				<dd>
-					A value between 0 and 1. Give the tiebreaker to the better ranked
+					In the case of a tie in raw score, the <strong
+						>higher tiebreak score will win</strong
+					>. Typically this is a value between 0 and 1 to the better ranked
 					team.
 				</dd>
 			</div>
 			<div>
-				<dt>Status:</dt>
+				<dt>Statuses:</dt>
 				<dd>
-					If a team competed as normal, select <strong>"CO" (Competed)</strong>.
-					If a team participated but cannot be assigned a raw score, select
-					<strong>"PO" (Participation)</strong>. If a team did not show up,
-					select
-					<strong>"NS" (No Show)</strong>. If a team is disqualified, select
-					<strong>"DQ" (Disqualification)</strong>. If any score is entered into
-					the "Raw Score", "Tier", or "Tiebreak" columns, status cannot be set
-					to "PO" or "NS". Remove scores before modifying the status.
+					<ul class="list-disc pl-6">
+						<li>
+							Select <strong>"CO" (Competed)</strong> for teams that competed as
+							normal.
+						</li>
+						<li>
+							Select
+							<strong>"PO" (Participation)</strong> for teams that participtated
+							but cannot be assigned a raw score.
+						</li>
+						<li>
+							Select
+							<strong>"NS" (No Show)</strong> for teams that did not show up.
+						</li>
+						<li>
+							Select
+							<strong>"DQ" (Disqualification)</strong> if a team is disqualified.
+						</li>
+					</ul>
+				</dd>
+			</div>
+		</dl>
+	</P>
+	<Heading tag="h2" class="text-xl">Toolbar</Heading>
+	<P class="dark:text-gray-300">
+		<dl class="space-y-3 mt-6">
+			<div>
+				<dt>Sorting:</dt>
+				<dd>Sort events by various columns.</dd>
+			</div>
+			<div>
+				<dt class="text-green-700 dark:text-green-500">Import:</dt>
+				<dd>
+					Paste in scores from an external source, such as a Google Sheet.
+				</dd>
+			</div>
+			<div>
+				<dt>
+					<span class="text-green-700 dark:text-green-500">Save</span>/<span
+						class="text-red-700 dark:text-red-500">Discard</span
+					>:
+				</dt>
+				<dd>
+					Changes you have made will be highlighted in orange. You will need to
+					click "Save" to commit your changes, or use "Discard" to revert back
+					to the original scores.
+				</dd>
+			</div>
+			<div>
+				<dt class="text-amber-700 dark:text-amber-500">Lock/Unlock:</dt>
+				<dd>
+					Locking an event will prevent scores from being edited and indicates
+					that the event is done grading.
+				</dd>
+			</div>
+			<div>
+				<dt>Settings:</dt>
+				<dd>
+					Change the event's scoring method (high, low) or the number of medals
+					offered.
 				</dd>
 			</div>
 		</dl>
@@ -1260,5 +1324,9 @@
 	}
 	dt {
 		@apply font-semibold;
+	}
+
+	button {
+		text-transform: inherit;
 	}
 </style>
