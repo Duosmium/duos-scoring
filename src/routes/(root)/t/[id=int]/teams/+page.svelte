@@ -109,7 +109,18 @@
 	}
 
 	let showAddTeam = false;
-	let addTeamData: Partial<Team> = {};
+	let addTeamData: { [k in keyof Team]?: string } & { exhibition?: boolean } =
+		{};
+	$: addTeamValid =
+		addTeamData.number &&
+		addTeamData.school &&
+		addTeamData.city &&
+		addTeamData.state &&
+		addTeamData.number.match(/\d+/) &&
+		teams.every(
+			(t) => t.number !== parseInt(/\d+/.exec(addTeamData.number!)?.[0] ?? '')
+		) &&
+		stateLookup.values().find((s) => s === addTeamData.state);
 	function openAddTeam() {
 		showAddTeam = true;
 	}
@@ -117,7 +128,7 @@
 		// TODO: validation, canonicalization
 		const payloadData = {
 			...addTeamData,
-			number: parseInt(/\d+/.exec(addTeamData.number as any)?.[0] ?? ''),
+			number: parseInt(/\d+/.exec(addTeamData.number!)?.[0] ?? ''),
 			trackId: addTeamData.trackId?.toString() || null
 		};
 		sendData({
@@ -451,11 +462,28 @@
 
 	<Label>
 		Team Number: <span class="text-red-600">*</span>
-		<Input class="mt-2" type="text" required bind:value={addTeamData.number} />
+		<Input
+			class="mt-2 {!addTeamData.number ? 'ring-2 ring-red-600' : ''}"
+			type="text"
+			required
+			bind:value={addTeamData.number}
+		/>
+		<span class="text-red-600 dark:text-red-400"
+			>{#if addTeamData.number && !addTeamData.number.match(/\d+/)}
+				Team number must have a number!
+			{:else if teams.some((t) => t.number === parseInt(/\d+/.exec(addTeamData.number ?? '')?.[0] ?? ''))}
+				Team {addTeamData.number} already exists!
+			{/if}</span
+		>
 	</Label>
 	<Label>
 		School Name: <span class="text-red-600">*</span>
-		<Input class="mt-2" type="text" required bind:value={addTeamData.school} />
+		<Input
+			class="mt-2 {!addTeamData.school ? 'ring-2 ring-red-600' : ''}"
+			type="text"
+			required
+			bind:value={addTeamData.school}
+		/>
 	</Label>
 	<Label>
 		<div>School Abbreviation:</div>
@@ -471,13 +499,18 @@
 	</Label>
 	<Label>
 		City: <span class="text-red-600">*</span>
-		<Input class="mt-2" type="text" required bind:value={addTeamData.city} />
+		<Input
+			class="mt-2 {!addTeamData.city ? 'ring-2 ring-red-600' : ''}"
+			type="text"
+			required
+			bind:value={addTeamData.city}
+		/>
 	</Label>
 	<Label>
 		State: <span class="text-red-600">*</span>
 		<Select
 			underline
-			class="mt-2"
+			class="mt-2 rounded-lg {!addTeamData.state ? 'ring-2 ring-red-600' : ''}"
 			items={states}
 			bind:value={addTeamData.state}
 		/>
@@ -494,10 +527,11 @@
 		</Label>
 	{/if}
 	<Checkbox bind:checked={addTeamData.exhibition}>Exhibition Team</Checkbox>
-
 	<svelte:fragment slot="footer">
 		<!-- TODO: validation -->
-		<Button color="green" disabled={false} on:click={addTeam}>Add Team</Button>
+		<Button color="green" disabled={!addTeamValid} on:click={addTeam}
+			>Add Team</Button
+		>
 		<Button color="alternative">Cancel</Button>
 	</svelte:fragment>
 </Modal>
