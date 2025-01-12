@@ -592,12 +592,36 @@
 		{/if}
 	</svelte:fragment>
 	<svelte:fragment slot="headers">
-		<TableHeadCell class="px-2">Event</TableHeadCell>
+		<TableHeadCell class="px-2"
+			><button
+				on:click={() => {
+					sortBy = 'event';
+				}}>Event</button
+			></TableHeadCell
+		>
 		<TableHeadCell class="px-2">Medals</TableHeadCell>
 		<TableHeadCell class="px-2">Trial Status</TableHeadCell>
-		<TableHeadCell class="px-2">Scores In</TableHeadCell>
-		<TableHeadCell class="px-2">Audited</TableHeadCell>
-		<TableHeadCell class="px-2">Last Export</TableHeadCell>
+		<TableHeadCell class="px-2"
+			><button
+				on:click={() => {
+					sortBy = 'scoresIn';
+				}}>Scores In</button
+			></TableHeadCell
+		>
+		<TableHeadCell class="px-2"
+			><button
+				on:click={() => {
+					sortBy = 'auditTime';
+				}}>Audited</button
+			></TableHeadCell
+		>
+		<TableHeadCell class="px-2"
+			><button
+				on:click={() => {
+					sortBy = 'exportTime';
+				}}>Last Export</button
+			></TableHeadCell
+		>
 		<TableHeadCell class="px-2">
 			<span class="sr-only"> Histogram </span>
 		</TableHeadCell>
@@ -876,3 +900,9 @@
 		/>
 	</div>
 {/await}
+
+<style>
+	button {
+		text-transform: inherit;
+	}
+</style>
