@@ -498,6 +498,7 @@
 				color="yellow"
 				disabled={selected.length === 0}
 				on:click={() => {
+					touchEventsExportedAt();
 					slides.setPreview(true);
 				}}>Preview Slides</Button
 			>
@@ -507,6 +508,7 @@
 					color="yellow"
 					disabled={selected.length === 0}
 					on:click={() => {
+						touchEventsExportedAt();
 						slides.startPresentation(selected.map((e) => e.id));
 						presentationActive = true;
 						invalidateAll();
@@ -518,6 +520,7 @@
 					color="yellow"
 					disabled={selected.length === 0}
 					on:click={() => {
+						touchEventsExportedAt();
 						slides.addBatch(selected.map((e) => e.id));
 					}}>Append Events</Button
 				>
@@ -526,10 +529,7 @@
 					color="yellow"
 					disabled={selected.length === 0}
 					on:click={() => {
-						slides.addBatch(
-							selected.map((e) => e.id),
-							true
-						);
+						slides.addBatch([], true);
 					}}>Append Overall</Button
 				>
 				<Button
