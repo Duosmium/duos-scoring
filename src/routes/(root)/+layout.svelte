@@ -2,14 +2,18 @@
 	import '../../app.postcss';
 	// import './app.css';
 
-	import { goto, invalidate } from '$app/navigation';
+	import { invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import type { LayoutData } from './$types';
 	import { DarkMode } from 'flowbite-svelte';
+	import { navigating } from '$app/stores';
+	import { fly } from 'svelte/transition';
+	import { quintOut } from 'svelte/easing';
 
 	export let data: LayoutData;
-
 	$: ({ supabase, session } = data);
+
+	let pageWidth = 0;
 
 	onMount(() => {
 		const { data } = supabase.auth.onAuthStateChange((_, newSession) => {
@@ -22,8 +26,20 @@
 	});
 </script>
 
-<div class="min-h-screen pb-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-200">
-	<div class="bar" />
+<svelte:window bind:outerWidth={pageWidth} />
+
+<div
+	class="min-h-screen pb-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+>
+	{#if $navigating}
+		<div
+			in:fly={{ x: -pageWidth, duration: 3000, easing: quintOut, opacity: 1 }}
+			out:fly={{ x: pageWidth, duration: 500, easing: quintOut, opacity: 1 }}
+			class="bar animate-pulse bg-none bg-indigo-500 dark:bg-indigo-700 z-40 -translate-x-1/3"
+		/>
+	{:else}
+		<div class="bar" />
+	{/if}
 	<slot />
 </div>
 <footer>Duosmium Scoring System</footer>
