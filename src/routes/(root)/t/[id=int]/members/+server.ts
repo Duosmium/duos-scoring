@@ -7,7 +7,8 @@ import {
 	getEvents,
 	getInvites,
 	getRoles,
-	getInvite
+	getInvite,
+	getUserEmailLookup
 } from '$lib/server/db';
 import type { RequestHandler } from './$types';
 import { checkIsDirector } from '$lib/server/utils';
@@ -175,23 +176,9 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
 
 	const roles = (await getRoles(params.id)) || [];
 
+	const emails = await getUserEmailLookup(roles.map((role) => role.user.id));
 	const existingUsers = new Map(
-		(
-			await Promise.all(
-				roles.map(async (role) => {
-					const { data, error } = await supabase.auth.admin.getUserById(
-						role.user.id
-					);
-					if (error) {
-						return [];
-					}
-					return [[data.user?.email?.toLowerCase() ?? '', role]] as [
-						string,
-						typeof role
-					][];
-				})
-			)
-		).flat()
+		roles.map((role) => [emails.get(role.user.id)!.toLowerCase(), role])
 	);
 	const existingInvites = ((await getInvites(params.id)) || []).reduce(
 		(acc, i) => {

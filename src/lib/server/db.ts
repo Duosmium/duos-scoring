@@ -9,7 +9,7 @@ import {
 	type UserRole
 } from '$drizzle/types';
 import * as schema from '$drizzle/schema';
-import { db } from '$drizzle/db';
+import { db, supaAuthDb } from '$drizzle/db';
 import { and, eq, inArray } from 'drizzle-orm';
 import { captureException } from '@sentry/sveltekit';
 
@@ -455,9 +455,9 @@ export async function getUserInfo(userId: string) {
 			}
 		}
 	});
-	const {
-		data: { user: supabaseUser }
-	} = await supabase.auth.admin.getUserById(userId);
+	const supabaseUser = await supaAuthDb.query.User.findFirst({
+		where: (i, { eq }) => eq(i.id, userId)
+	});
 
 	if (user == undefined || supabaseUser == null) {
 		return false;
@@ -880,4 +880,14 @@ export async function getFilteredTournaments(
 	}));
 
 	return tournaments;
+}
+
+export async function getUserEmailLookup(userIds: string[]) {
+	return new Map(
+		(
+			await supaAuthDb.query.User.findMany({
+				where: (users, { inArray }) => inArray(users.id, userIds)
+			})
+		).map((u) => [u.id, u.email])
+	);
 }

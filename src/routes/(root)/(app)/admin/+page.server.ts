@@ -1,6 +1,9 @@
-import { getFilteredTournaments, isAdmin } from '$lib/server/db.js';
+import {
+	getFilteredTournaments,
+	getUserEmailLookup,
+	isAdmin
+} from '$lib/server/db.js';
 import { redirect } from '@sveltejs/kit';
-import { supabase } from '$lib/server/supabaseAdmin';
 
 export const load = async ({ locals }) => {
 	if (!(await isAdmin(locals.userId))) {
@@ -16,22 +19,13 @@ export const load = async ({ locals }) => {
 	const approved = await getFilteredTournaments((t, { eq }) =>
 		eq(t.approved, true)
 	);
-	const emails = new Map(
-		(
-			await Promise.all(
-				[...upcoming, ...pending, ...approved]
-					.flatMap((t) => t.roles.map((r) => r.userId))
-					.filter((id, i, a) => a.indexOf(id) === i)
-					.map(async (id) => {
-						const { data, error } = await supabase.auth.admin.getUserById(id);
-						if (error) {
-							return [];
-						}
-						return [[id, data.user?.email ?? '']] as [string, string][];
-					})
+	const emails = await getUserEmailLookup([
+		...new Set(
+			[...upcoming, ...pending, ...approved].flatMap((t) =>
+				t.roles.map((r) => r.userId)
 			)
-		).flat()
-	);
+		)
+	]);
 
 	return { approved, upcoming, pending: pending, emails };
 };
