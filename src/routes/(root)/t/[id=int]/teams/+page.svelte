@@ -120,7 +120,7 @@
 		teams.every(
 			(t) => t.number !== parseInt(/\d+/.exec(addTeamData.number!)?.[0] ?? '')
 		) &&
-		stateLookup.values().find((s) => s === addTeamData.state);
+		[...stateLookup.values()].find((s) => s === addTeamData.state);
 	function openAddTeam() {
 		showAddTeam = true;
 	}
