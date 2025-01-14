@@ -11,6 +11,9 @@ const config = {
 		}),
 		alias: {
 			$drizzle: './drizzle'
+		},
+		version: {
+			pollInterval: 15000
 		}
 	}
 };

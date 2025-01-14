@@ -2,13 +2,14 @@
 	import '../../app.postcss';
 	// import './app.css';
 
-	import { invalidate } from '$app/navigation';
+	import { invalidate, beforeNavigate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import type { LayoutData } from './$types';
 	import { DarkMode } from 'flowbite-svelte';
 	import { navigating } from '$app/stores';
 	import { fly } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
+	import { updated } from '$app/stores';
 
 	export let data: LayoutData;
 	$: ({ supabase, session } = data);
@@ -23,6 +24,12 @@
 		});
 
 		return () => data.subscription.unsubscribe();
+	});
+
+	beforeNavigate(({ willUnload, to }) => {
+		if ($updated && !willUnload && to?.url) {
+			location.href = to.url.href;
+		}
 	});
 </script>
 
