@@ -149,6 +149,7 @@
 	let editEnableChecklist = false;
 	let editEventMedals = '';
 	let editEventId: bigint;
+	let editEventLocked = false;
 	function openEditEvent(event: bigint) {
 		showEditEvent = true;
 		const ev = events.find((ev) => ev.id === event);
@@ -159,6 +160,7 @@
 		editHighScoring = ev.highScoring ? 'true' : 'false';
 		editEnableChecklist = ev.enableChecklist;
 		editEventMedals = ev.medals?.toString() || '';
+		editEventLocked = ev.locked;
 	}
 	function editEvent() {
 		events = events.map((ev) =>
@@ -167,8 +169,12 @@
 						...ev,
 						name: editEventName,
 						trialStatus: editEventTrialStatus as any,
-						highScoring: editHighScoring === 'true',
-						enableChecklist: editEnableChecklist,
+						highScoring: ev.locked
+							? ev.highScoring
+							: editHighScoring === 'true',
+						enableChecklist: ev.locked
+							? ev.enableChecklist
+							: editEnableChecklist,
 						medals: parseInt(editEventMedals) || null
 					}
 				: ev
@@ -180,8 +186,8 @@
 				event: editEventId.toString(),
 				name: editEventName,
 				trialStatus: editEventTrialStatus,
-				highScoring: editHighScoring,
-				enableChecklist: editEnableChecklist,
+				highScoring: editEventLocked ? undefined : editHighScoring,
+				enableChecklist: editEventLocked ? undefined : editEnableChecklist,
 				medals: parseInt(editEventMedals) || undefined
 			},
 			msgs: {
@@ -429,12 +435,15 @@
 			underline
 			class="mt-2"
 			items={highScoring}
+			disabled={editEventLocked}
 			bind:value={editHighScoring}
 		/>
 	</Label>
 	{#if checklists[data.tournament.year]?.[editEventName] != undefined}
-		<Checkbox class="mt-2" bind:checked={editEnableChecklist}
-			>Enable Digital Checklists</Checkbox
+		<Checkbox
+			class="mt-2"
+			bind:checked={editEnableChecklist}
+			disabled={editEventLocked}>Enable Digital Checklists</Checkbox
 		>
 	{/if}
 	<Label>
