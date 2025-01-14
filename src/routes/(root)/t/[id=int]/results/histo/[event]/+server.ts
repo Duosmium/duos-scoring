@@ -30,10 +30,16 @@ export const GET: RequestHandler = async ({ params, locals, request }) => {
 			cookie.parse(request.headers.get('cookie') || '', { decode: (s) => s })
 		).map(([name, value]) => ({
 			name,
-			value,
-			domain
+			value: value || '',
+			domain,
+			path: '/',
+			expires: -1,
+			httpOnly: true,
+			secure: true,
+			session: true,
+			size: value?.length || 0
 		}));
-		await page.setCookie(...cookies);
+		await browser.setCookie(...cookies);
 
 		const timeout = 8500; // 8.5 seconds, netlify function timeout is 10 sec
 		const url = new URL(

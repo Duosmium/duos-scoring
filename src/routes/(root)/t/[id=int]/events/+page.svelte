@@ -212,21 +212,6 @@
 		<Button color="green" on:click={openAddEvent}>Add Event</Button>
 	</span>
 </div>
-{#if selected.length > 0}
-	<div
-		class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-slate-300 dark:bg-slate-700 z-40 rounded-lg p-4 flex items-center space-x-4"
-	>
-		<span>{selected.length} selected</span>
-		<Button
-			size="sm"
-			color="alternative"
-			btnClass="bg-transparent border-none underline p-2"
-			on:click={() => {
-				events = events.map((ev) => ({ ...ev, checked: false }));
-			}}>Clear</Button
-		>
-	</div>
-{/if}
 <SelectableTable items={events} bind:selected cols={10}>
 	<svelte:fragment slot="buttons">
 		<Button

@@ -962,7 +962,7 @@
 							? 'border-0'
 							: 'border-x-0 border-t-0 border-b-1 dark:border-b-slate-500 border-b-slate-400'
 				} ${locked ? 'disabled:cursor-text' : 'disabled:cursor-not-allowed'} disabled:opacity-100`}
-				rows="1"
+				rows={1}
 				value={team.score.notes.new ?? ''}
 				on:change={updateData(team.number, 'notes')}
 			/>
@@ -1253,7 +1253,7 @@
 	<Label>
 		High Scoring
 		<Select
-			disabled={locked || data.event.audited}
+			disabled={locked || !!data.event.audited}
 			underline
 			class="mt-2"
 			items={highScoring}
@@ -1262,7 +1262,7 @@
 	</Label>
 	{#if ChecklistComponent}
 		<Checkbox
-			disabled={locked || data.event.audited}
+			disabled={locked || !!data.event.audited}
 			class="mt-2"
 			bind:checked={editEnableChecklist}>Enable Digital Checklists</Checkbox
 		>
