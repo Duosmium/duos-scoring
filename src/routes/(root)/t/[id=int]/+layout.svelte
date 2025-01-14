@@ -27,6 +27,8 @@
 			{/if}
 			<NavLi href="/t/{data.tournament.id}/teams">Teams</NavLi>
 			<NavLi href="/t/{data.tournament.id}/results">Results</NavLi>
+		{:else}
+			<NavLi href="/dashboard">My Dashboard</NavLi>
 		{/if}
 	</svelte:fragment>
 </Navigation>
