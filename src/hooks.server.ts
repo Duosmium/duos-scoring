@@ -166,7 +166,6 @@ const handler: Handle = async ({ event, resolve }) => {
 		}
 
 		const admin = await isAdmin(user.id);
-		console.log({ admin });
 		const role =
 			user.roles.find((r) => r.tournament.id.toString() === event.params.id) ||
 			(admin
@@ -179,7 +178,6 @@ const handler: Handle = async ({ event, resolve }) => {
 						userId: user.id
 					}
 				: undefined);
-		console.log({ role });
 		if (!role) {
 			return new Response(undefined, {
 				status: 303,
