@@ -131,17 +131,19 @@ export async function updateInvite(
 				role: role
 			})
 			.where(eq(schema.Invite.link, link));
-		if (events && events.length !== 0) {
+		if (events) {
 			await db.transaction(async (tx) => {
 				await tx
 					.delete(schema._InviteEvents)
 					.where(eq(schema._InviteEvents.B, link));
-				await tx.insert(schema._InviteEvents).values(
-					events.map((e) => ({
-						A: e,
-						B: link
-					}))
-				);
+				if (events.length !== 0) {
+					await tx.insert(schema._InviteEvents).values(
+						events.map((e) => ({
+							A: e,
+							B: link
+						}))
+					);
+				}
 			});
 		}
 	} catch (e) {
@@ -188,17 +190,19 @@ export async function updateMember(
 				})
 				.returning()
 		)[0];
-		if (data.events && data.events.length !== 0) {
+		if (data.events) {
 			await db.transaction(async (tx) => {
 				await tx
 					.delete(schema._ESEventRoles)
 					.where(eq(schema._ESEventRoles.B, role.id));
-				await tx.insert(schema._ESEventRoles).values(
-					data.events!.map((e) => ({
-						A: e,
-						B: role.id
-					}))
-				);
+				if (data.events?.length !== 0) {
+					await tx.insert(schema._ESEventRoles).values(
+						data.events!.map((e) => ({
+							A: e,
+							B: role.id
+						}))
+					);
+				}
 			});
 		}
 	} catch (e) {
