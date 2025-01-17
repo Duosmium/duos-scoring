@@ -30,7 +30,7 @@
 						{role.tournament.name}
 						{role.tournament.division}</Heading
 					>
-					<P class="mb-6"
+					<P class="mb-0"
 						>{role.tournament.startDate.toUTCString() ===
 						role.tournament.endDate.toUTCString()
 							? role.tournament.startDate
@@ -53,13 +53,8 @@
 						@ {role.tournament.location}
 					</P>
 				</div>
-				{#if role.role === 'TD'}
-					<Button href="/t/{role.tournament.id}/"
-						>Tournament Director Dashboard</Button
-					>
-				{:else if role.role === 'SM'}
-					<Button href="/t/{role.tournament.id}/">Scoremaster Dashboard</Button>
-				{:else}
+				{#if role.supEvents.length > 0}
+					<Heading tag="h4" class="mt-4">Events</Heading>
 					<List tag="ul">
 						{#each role.supEvents as event}
 							<Li>
@@ -67,10 +62,21 @@
 									>{event.name} Dashboard</A
 								>
 							</Li>
-						{:else}
-							<Li>The tournament director has not assigned you a role yet.</Li>
 						{/each}
 					</List>
+				{:else if role.role === 'ES'}
+					<List tag="ul" class="mt-4">
+						<Li>The tournament director has not assigned you a role yet.</Li>
+					</List>
+				{/if}
+				{#if role.role === 'TD'}
+					<Button href="/t/{role.tournament.id}/" class="mt-6"
+						>Tournament Director Dashboard</Button
+					>
+				{:else if role.role === 'SM'}
+					<Button href="/t/{role.tournament.id}/" class="mt-6"
+						>Scoremaster Dashboard</Button
+					>
 				{/if}
 			</Card>
 		{/each}
