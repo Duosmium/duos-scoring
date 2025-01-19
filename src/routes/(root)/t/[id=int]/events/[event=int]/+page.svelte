@@ -294,6 +294,7 @@
 			}
 
 			if (
+				(t.Status === 'CO' || t.Status === 'C') &&
 				(t['Raw Score'] || t.Score) &&
 				isNaN(parseFloat(t['Raw Score'] || t.Score))
 			) {
