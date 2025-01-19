@@ -64,14 +64,6 @@ const statusOrder = {
 	'N/A': 4
 } as const;
 
-const statusLookup = {
-	NA: 'N/A',
-	COMPETED: 'CO',
-	PARTICIPATION: 'PO',
-	NOSHOW: 'NS',
-	DISQUALIFICATION: 'DQ'
-} as const;
-
 interface ScoreLike {
 	status: ScoreStatus | 'NA';
 	tier?: number | null;
@@ -110,9 +102,7 @@ export function computeEventRankings(
 			if (s) {
 				return {
 					...s,
-					ranking: -1 as
-						| number
-						| (typeof statusLookup)[keyof typeof statusLookup],
+					ranking: -1 as number | ScoreStatus,
 					tie: false
 				};
 			} else {
@@ -148,7 +138,7 @@ export function computeEventRankings(
 		.map((t, i, s) => {
 			t.ranking =
 				t.status !== 'COMPETED'
-					? statusLookup[t.status]
+					? t.status
 					: compareTeams(t, s[i - 1], event.highScoring) === 0
 						? s[i - 1].ranking
 						: i + 1;
