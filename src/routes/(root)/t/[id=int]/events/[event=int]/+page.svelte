@@ -305,13 +305,18 @@
 				);
 				return;
 			}
-			if (t.Tier && isNaN(parseInt(t.Tier))) {
+			if (
+				(t.Status === 'CO' || t.Status === 'C') &&
+				t.Tier &&
+				isNaN(parseInt(t.Tier))
+			) {
 				parsedErrors.push(
 					`Team ${t.Number || t['Team #']} has invalid tier: ${t.Tier}`
 				);
 				return;
 			}
 			if (
+				(t.Status === 'CO' || t.Status === 'C') &&
 				(t.Tiebreak || t.Tiebreaker) &&
 				isNaN(parseFloat(t.Tiebreak || t.Tiebreaker))
 			) {
