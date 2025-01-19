@@ -29,6 +29,7 @@
 	import { sendData } from '../../helpers';
 	import { formatSchool } from '$lib/sciolyffHelpers';
 	import { QuestionCircleSolid } from 'flowbite-svelte-icons';
+	import { compareTeams } from '$lib/scoreHelpers';
 
 	export let data: PageData;
 
@@ -620,19 +621,21 @@
 			a: (typeof modifiedTeams)[0] | undefined,
 			b: (typeof modifiedTeams)[0] | undefined
 		) =>
-			a && b
-				? statusOrder[a.score.status.new] - statusOrder[b.score.status.new] ||
-					(a.score.tier.new ?? 1) - (b.score.tier.new ?? 1) ||
-					(data.event.highScoring
-						? (b.score.rawScore.new ?? 0) - (a.score.rawScore.new ?? 0)
-						: (a.score.rawScore.new ?? Infinity) -
-							(b.score.rawScore.new ?? Infinity)) ||
-					(b.score.tiebreak.new ?? 0) - (a.score.tiebreak.new ?? 0)
-				: a
-					? -1
-					: b
-						? 1
-						: 0;
+			compareTeams(
+				a && {
+					status: a.score.status.new,
+					tier: a.score.tier.new,
+					rawScore: a.score.rawScore.new,
+					tiebreak: a.score.tiebreak.new
+				},
+				b && {
+					status: b.score.status.new,
+					tier: b.score.tier.new,
+					rawScore: b.score.rawScore.new,
+					tiebreak: b.score.tiebreak.new
+				},
+				data.event.highScoring
+			);
 
 		// update rankings when things change
 		modifiedTeams = modifiedTeams.sort(compare).map((t, i, s) => {

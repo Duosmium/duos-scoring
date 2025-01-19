@@ -1,4 +1,4 @@
-import type { Event, Team, Score } from '$drizzle/types';
+import type { Event, Team, Score, ScoreStatus } from '$drizzle/types';
 
 type EventWithScores = Event & { scores: Score[] };
 type ScoreWithEventAndTeam = Score & { event: Event; team: Team };
@@ -51,18 +51,58 @@ export function generateHisto(event: EventWithScores) {
 	};
 }
 
+const statusOrder = {
+	COMPETED: 0,
+	PARTICIPATION: 1,
+	NOSHOW: 2,
+	DISQUALIFICATION: 3,
+	NA: 4,
+	CO: 0,
+	PO: 1,
+	NS: 2,
+	DQ: 3,
+	'N/A': 4
+} as const;
+
+const statusLookup = {
+	NA: 'N/A',
+	COMPETED: 'CO',
+	PARTICIPATION: 'PO',
+	NOSHOW: 'NS',
+	DISQUALIFICATION: 'DQ'
+} as const;
+
+interface ScoreLike {
+	status: ScoreStatus | 'NA';
+	tier?: number | null;
+	rawScore?: number | null;
+	tiebreak?: number | null;
+}
+
+export function compareTeams(
+	a: ScoreLike | undefined,
+	b: ScoreLike | undefined,
+	highScoring: boolean
+) {
+	return a && b
+		? statusOrder[a.status] - statusOrder[b.status] ||
+				(a.tier ?? 1) - (b.tier ?? 1) ||
+				(highScoring
+					? (b.rawScore ?? 0) - (a.rawScore ?? 0)
+					: (a.rawScore ?? Infinity) - (b.rawScore ?? Infinity)) ||
+				(b.tiebreak ?? 0) - (a.tiebreak ?? 0)
+		: a
+			? -1
+			: b
+				? 1
+				: 0;
+}
+
 export function computeEventRankings(
 	event: Event,
 	teams: Team[],
 	scores: ScoreWithEventAndTeam[]
 ) {
-	const statusOrder = {
-		COMPETED: 0,
-		PARTICIPATION: 1,
-		NOSHOW: 2,
-		NA: 2,
-		DISQUALIFICATION: 3
-	} as const;
 	const teamScores = new Map(scores.map((s) => [s.teamId, s] as const));
 	return teams
 		.map((t) => {
@@ -70,14 +110,9 @@ export function computeEventRankings(
 			if (s) {
 				return {
 					...s,
-					ranking:
-						s.status === 'COMPETED'
-							? s.rawScore != null
-								? s.rawScore +
-									((s.tiebreak || 0) - 1000000 * (s.tier || 1)) *
-										(s.event.highScoring ? 1 : -1)
-								: 'PARTICIPATION'
-							: s.status,
+					ranking: -1 as
+						| number
+						| (typeof statusLookup)[keyof typeof statusLookup],
 					tie: false
 				};
 			} else {
@@ -90,26 +125,19 @@ export function computeEventRankings(
 					tier: null,
 					tiebreak: null,
 					notes: null,
-					status: 'NOSHOW',
+					status: 'NOSHOW' as const,
 					ranking: 'NOSHOW' as const,
 					tie: false
 				};
 			}
 		})
-		.sort((a, b) =>
-			typeof a.ranking === 'number' && typeof b.ranking === 'number'
-				? (b.ranking - a.ranking) * (a.event.highScoring ? 1 : -1)
-				: typeof a.ranking === 'string' && typeof b.ranking === 'string'
-					? statusOrder[a.ranking] - statusOrder[b.ranking]
-					: typeof a.ranking === 'number'
-						? -1
-						: 1
-		)
+		.sort((a, b) => compareTeams(a, b, event.highScoring))
 		.map((t, i, s) => {
 			// check ties
 			if (
-				typeof t.ranking === 'number' &&
-				(t.ranking === s[i - 1]?.ranking || t.ranking === s[i + 1]?.ranking)
+				t.status === 'COMPETED' &&
+				(compareTeams(t, s[i - 1], event.highScoring) === 0 ||
+					compareTeams(t, s[i + 1], event.highScoring) === 0)
 			) {
 				t.tie = true;
 			} else {
@@ -117,11 +145,13 @@ export function computeEventRankings(
 			}
 			return t;
 		})
-		.map((t, i, s) => ({
-			...t,
-			ranking:
-				typeof t.ranking === 'string'
-					? t.ranking
-					: (t.tie ? s.findIndex((x) => x.ranking === t.ranking) : i) + 1 // do index searching for ties
-		}));
+		.map((t, i, s) => {
+			t.ranking =
+				t.status !== 'COMPETED'
+					? statusLookup[t.status]
+					: compareTeams(t, s[i - 1], event.highScoring) === 0
+						? s[i - 1].ranking
+						: i + 1;
+			return t;
+		});
 }
