@@ -258,18 +258,23 @@
 				<Select
 					on:change={changeTrialStatus(event.id)}
 					underline
-					class="min-w-[5.25rem] !border-0"
+					class="min-w-[5.25rem] !border-0  {event.trialStatus === 'TRIALED'
+						? 'text-orange-600 dark:text-orange-400'
+						: event.trialStatus === 'TRIAL'
+							? 'text-blue-700 dark:text-blue-400'
+							: ''}"
 					items={trialStatus}
 					value={event.trialStatus}
 				/>
 			</Label>
 		</TableBodyCell>
-		<TableBodyCell class="py-0 px-2"
+		<TableBodyCell
+			class="py-0 px-2 {!event.locked ? 'text-red-700 dark:text-red-400' : ''}"
 			>{event.locked ? 'Yes' : 'No'}</TableBodyCell
 		>
 		<TableBodyCell class="py-0 px-2">
 			{#if event.audited}
-				<Avatar class={`user_${event.audited.id} -ml-2`}
+				<Avatar class={`user_${event.audited.id} -ml-1`} stacked
 					>{event.audited.name
 						.split(' ')
 						.map((w) => w[0])
@@ -277,10 +282,17 @@
 						.toUpperCase()}</Avatar
 				>
 			{:else}
-				No
+				<span class="text-red-700 dark:text-red-400">No</span>
 			{/if}
 		</TableBodyCell>
-		<TableBodyCell class="py-0 px-2"
+		{@const color = event.audited
+			? 'text-green-700 dark:text-green-400'
+			: event.scores.length === data.teams?.length
+				? 'text-blue-700 dark:text-blue-400'
+				: event.scores.length > 0
+					? 'text-amber-600 dark:text-amber-400'
+					: 'text-red-700 dark:text-red-400'}
+		<TableBodyCell class="py-0 px-2 {color}"
 			>{event.scores.length} / {data.teams.length}</TableBodyCell
 		>
 		<TableBodyCell class="py-0 px-2"

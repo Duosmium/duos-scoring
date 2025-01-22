@@ -14,6 +14,7 @@
 		List,
 		Modal,
 		P,
+		Progressbar,
 		Select
 	} from 'flowbite-svelte';
 	import { divisions, levels, stateOrgs, states } from '$lib/data/consts';
@@ -105,6 +106,10 @@
 		<Card size="xl">
 			<P class="mb-2 text-2xl">{data.teams?.length} Teams</P>
 			<P class="mb-2 text-2xl"
+				>{data.events?.filter((e) => e.scores.length > 0)?.length} / {data
+					.events?.length} Events With Scores</P
+			>
+			<P class="mb-2 text-2xl"
 				>{data.events?.filter((e) => e.locked)?.length} / {data.events?.length} Events
 				Done Grading</P
 			>
@@ -117,7 +122,14 @@
 			<Heading tag="h2" class="mb-2 text-2xl">Scores In</Heading>
 			<List tag="ul">
 				{#each data.events ?? [] as event}
-					<Li>
+					{@const color = event.audited
+						? 'text-green-700 dark:text-green-400'
+						: event.scores.length === data.teams?.length
+							? 'text-blue-700 dark:text-blue-400'
+							: event.scores.length > 0
+								? 'text-amber-600 dark:text-amber-400'
+								: 'text-red-700 dark:text-red-400'}
+					<Li class={color}>
 						{event.name}: {event.scores.length} / {data.teams?.length}
 					</Li>
 				{:else}
