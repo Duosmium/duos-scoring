@@ -1,4 +1,5 @@
 import { deleteInvites, getInvite, updateMember } from '$lib/server/db';
+import { error, redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ locals, params }) => {
@@ -8,7 +9,10 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 
 	const invite = await getInvite(params.invite);
 	if (!invite) {
-		return new Response('Invite link not valid', { status: 404 });
+		throw redirect(
+			303,
+			'/dashboard?error=Invite link is invalid or has expired.'
+		);
 	}
 
 	const role =
@@ -23,7 +27,7 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 	});
 
 	if (update === false) {
-		return new Response('Failed to join tournament!', { status: 500 });
+		throw error(500, 'Failed to join tournament! Please try again.');
 	}
 
 	await deleteInvites([params.invite]);
