@@ -14,7 +14,7 @@ export const load = async ({ locals }) => {
 		and(eq(t.requestingApproval, true), ne(t.approved, true))
 	);
 	const upcoming = await getFilteredTournaments((t, { gt }) =>
-		gt(t.startDate, new Date())
+		gt(t.startDate, new Date(Date.now() - 1000 * 60 * 60 * 24))
 	);
 	const approved = await getFilteredTournaments((t, { eq }) =>
 		eq(t.approved, true)
