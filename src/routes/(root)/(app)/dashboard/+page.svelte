@@ -2,17 +2,17 @@
 	import type { PageData } from './$types';
 	import Head from '$lib/components/Head.svelte';
 	import { A, Button, Card, Heading, Li, List, P } from 'flowbite-svelte';
-	import { page } from '$app/state';
+	import { page } from '$app/stores';
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 
 	export let data: PageData;
 
-	const errorParam = page.url.searchParams.get('error');
+	const errorParam = $page.url.searchParams.get('error');
 	if (errorParam) {
-		page.url.searchParams.delete('error');
-		if (browser) goto(page.url, { replaceState: true, keepFocus: true });
+		$page.url.searchParams.delete('error');
+		if (browser) goto($page.url, { replaceState: true, keepFocus: true });
 		addToastMessage(errorParam, 'error');
 	}
 
