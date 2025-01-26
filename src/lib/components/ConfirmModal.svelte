@@ -43,9 +43,13 @@
 	<svelte:fragment slot="footer">
 		<Button
 			{color}
-			disabled={confirmDiscardText !== confirmText || disabled}
+			disabled={confirmDiscardText.toLowerCase() !==
+				confirmText.toLowerCase() || disabled}
 			on:click={() => {
-				if (confirmDiscardText === confirmText && !disabled) {
+				if (
+					confirmDiscardText.toLowerCase() === confirmText.toLowerCase() &&
+					!disabled
+				) {
 					onConfirm();
 					confirmDiscardText = '';
 				}
