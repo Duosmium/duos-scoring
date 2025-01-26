@@ -63,6 +63,7 @@
 				parseInt(editTournamentData.trophies as any)
 			),
 			bids: parseInt(editTournamentData.bids as any) || null,
+			bidsPerSchool: parseInt(editTournamentData.bidsPerSchool as any) || null,
 			drops: parseInt(editTournamentData.drops as any) || null,
 			nOffset: parseInt(editTournamentData.nOffset as any) || null
 		};
@@ -249,6 +250,12 @@
 					>
 				</div>
 				<div class="flex flex-col pb-3">
+					<DescriptionList tag="dt">Bids Per School</DescriptionList>
+					<DescriptionList tag="dd"
+						>{data.tournament.bidsPerSchool ?? 'None'}</DescriptionList
+					>
+				</div>
+				<div class="flex flex-col pb-3">
 					<DescriptionList tag="dt">Drops</DescriptionList>
 					<DescriptionList tag="dd"
 						>{data.tournament.drops ?? 'None'}</DescriptionList
@@ -375,6 +382,13 @@
 				type="number"
 				name="bids"
 				bind:value={editTournamentData.bids}
+			/>
+		</Label>
+		<Label>
+			Bids Per School: <Input
+				type="number"
+				name="bidsPerSchool"
+				bind:value={editTournamentData.bidsPerSchool}
 			/>
 		</Label>
 		<Label>

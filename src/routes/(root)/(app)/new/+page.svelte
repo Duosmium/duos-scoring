@@ -23,7 +23,8 @@
 
 	let defaults = {
 		medals: 6,
-		trophies: 3
+		trophies: 3,
+		bidsPerSchool: 1
 	};
 	let fields: Partial<Omit<Tournament, 'id'>> = Object.assign({}, defaults);
 	let dirty: { [k in keyof Tournament]?: boolean } = {};
@@ -306,19 +307,37 @@
 	<Step
 		{step}
 		hide={fields.level === 'NATIONAL' || fields.level === 'INVITATIONAL'}
-		title="How many schools are progressing to the {fields.level === 'STATE'
+		title="How many teams are progressing to the {fields.level === 'STATE'
 			? 'National'
 			: 'State'} Tournament from this competition?"
 	>
+		<p>
+			If multiple teams from the same school can progress, change the "Bids Per
+			School" option.
+		</p>
 		<div class="flex flex-wrap items-center gap-4">
-			<Input
-				on:change={() => {
-					dirty.bids = true;
-					commit();
-				}}
-				type="number"
-				bind:value={fields.bids}
-			/>
+			<Label class="flex-1">
+				Bids:
+				<Input
+					on:change={() => {
+						dirty.bids = true;
+						commit();
+					}}
+					type="number"
+					bind:value={fields.bids}
+				/>
+			</Label>
+			<Label class="flex-1">
+				Bids Per School:
+				<Input
+					on:change={() => {
+						dirty.bidsPerSchool = true;
+						commit();
+					}}
+					type="number"
+					bind:value={fields.bidsPerSchool}
+				/>
+			</Label>
 		</div>
 		{#if dirty.bids && !fields.bids}
 			<p class="err">Bids are required!</p>

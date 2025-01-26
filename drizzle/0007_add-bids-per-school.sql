@@ -1,0 +1,1 @@
+ALTER TABLE "scoring"."Tournament" ADD COLUMN "bidsPerSchool" smallint;

@@ -26,6 +26,8 @@ export const POST = async ({ request, locals }) => {
 		parseInt(formData.get('trophies')?.toString() ?? '')
 	);
 	const bids = parseInt(formData.get('bids')?.toString() ?? '') || null;
+	const bidsPerSchool =
+		parseInt(formData.get('bidsPerSchool')?.toString() ?? '') || null;
 	const nOffset = parseInt(formData.get('nOffset')?.toString() ?? '') || null;
 	const drops = parseInt(formData.get('drops')?.toString() ?? '') || null;
 
@@ -44,6 +46,7 @@ export const POST = async ({ request, locals }) => {
 		medals,
 		trophies,
 		bids,
+		bidsPerSchool,
 		nOffset,
 		drops,
 		approved: false,

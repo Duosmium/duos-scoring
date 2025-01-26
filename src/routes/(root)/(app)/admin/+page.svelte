@@ -108,6 +108,7 @@
 				<li><span>Medals:</span> {t.medals}</li>
 				<li><span>Trophies:</span> {t.trophies}</li>
 				<li><span>Bids:</span> {t.bids}</li>
+				<li><span>Bids Per School:</span> {t.bidsPerSchool}</li>
 				<li><span>Drops:</span> {t.drops}</li>
 				<li><span>Tracks:</span> {t.enableTracks}</li>
 				<li><span>N Offset:</span> {t.nOffset}</li>

@@ -247,6 +247,7 @@ export const Tournament = scoring.table('Tournament', {
 	medals: smallint('medals').default(6).notNull(),
 	trophies: smallint('trophies').default(3).notNull(),
 	bids: smallint('bids'),
+	bidsPerSchool: smallint('bidsPerSchool'),
 	drops: smallint('drops'),
 	shortName: text('shortName'),
 	awardsDate: date('awardsDate', { mode: 'date' }).notNull(),

@@ -50,6 +50,13 @@
       "when": 1732605717913,
       "tag": "0006_add-more-indices",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1737923918668,
+      "tag": "0007_add-bids-per-school",
+      "breakpoints": true
     }
   ]
 }
