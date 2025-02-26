@@ -79,7 +79,7 @@ export async function getImage(filename: string) {
 
 export async function generatePdf(
 	sciolyff1: string | SciOlyFF,
-	sciolyff2: string | SciOlyFF,
+	sciolyff2: string | SciOlyFF | undefined,
 	options: DbJson.SlidesSettings,
 	sections?: ('intro' | 'events' | 'overall' | 'closing')[]
 ) {
@@ -150,10 +150,15 @@ export async function generatePdf(
 
 	const randomOrder = options.randomOrder;
 	const preserveOrder = options.preserveOrder;
+
 	const combineTracks = options.combineTracks;
 	const separateTracks = options.separateTracks;
+
 	const overallSchools = options.overallSchools;
 	const overallPoints = options.overallPoints;
+
+	const exhibitionMedals = options.exhibitionMedals;
+
 	const eventsOnly = options.eventsOnly;
 
 	const tournamentUrl = options.tournamentUrl;
@@ -352,7 +357,7 @@ export async function generatePdf(
 				doc.setFontSize(teamFontSize * 0.875);
 				doc.setFont('Roboto-Light');
 				doc.text(
-					`${ordinalize(place)}:${schoolOnly ? '' : ' Team ' + team.number}`,
+					`${ordinalize(place)}:${schoolOnly ? '' : ' Team ' + team.number + (team.exhibition ? ' (Exhibition)' : '')}`,
 					0.5,
 					teamNameOffset,
 					{
@@ -417,7 +422,7 @@ export async function generatePdf(
 												? team.trackPoints
 												: team.points) +
 											')'
-										: ' [' + team.number + ']'
+										: ' [' + team.number + (team.exhibition ? ', EX' : '') + ']'
 							}`,
 							dividerOffset + 0.5,
 							sidebarOffset + (eventPlaces - (i + 1)) * sidebarLineHeight,
@@ -427,19 +432,13 @@ export async function generatePdf(
 			});
 	}
 
-	function addEventSlides(events: [Event, Track][], outline: OutlineItem) {
+	function addEventSlides(
+		events: [Event, Track | null][],
+		outline: OutlineItem
+	) {
 		events.forEach(([event, track]) => {
-			const eventPlaces = Math.min(
-				// use event medal override if applicable, otherwise fall back on tournament medal count
-				event.medals ?? (track ? track.medals : event.tournament.medals),
-				// if less teams participated than medals, don't show empty places
-				event.placings.filter(
-					(p) =>
-						(track ? p.team.track === track : true) && // filter by track if applicable
-						p.participated &&
-						(event.trial || !(p.team.exhibition || p.exempt))
-				).length
-			);
+			const maxMedals =
+				event.medals ?? (track ? track.medals : event.tournament.medals);
 			const eventName =
 				event.name +
 				' ' +
@@ -450,21 +449,32 @@ export async function generatePdf(
 			// i apologize for all these ternary operators
 			const rankedTeams = event.placings
 				.filter(
-					(p) => (track ? p.team.track === track : true) && !p.team.exhibition
+					(p) =>
+						(track ? p.team.track === track : true) && // filter by track if applicable
+						p.participated &&
+						(event.trial ||
+							!((p.team.exhibition && !exhibitionMedals) || p.exempt))
 				) // use non-exhibition teams from the correct track
 				.sort(
 					(a, b) =>
 						(track
 							? a.isolatedTrackPoints - b.isolatedTrackPoints
 							: a.isolatedPoints - b.isolatedPoints) *
-						(event.tournament.reverseScoring ? -1 : 1)
+							(event.tournament.reverseScoring ? -1 : 1) ||
+						(a.team.exhibition ? 1 : 0) - (b.team.exhibition ? 1 : 0)
 				) // sort by points
 				.filter((p, i) =>
 					event.tournament.reverseScoring
-						? i < eventPlaces
-						: (track ? p.isolatedTrackPoints : p.isolatedPoints) <= eventPlaces
+						? i < maxMedals
+						: (track ? p.isolatedTrackPoints : p.isolatedPoints) <= maxMedals
 				) // only select top placings
-				.map((p) => [p.team, track ? p.isolatedTrackPoints : p.isolatedPoints]);
+				.map(
+					(p) =>
+						[p.team, track ? p.isolatedTrackPoints : p.isolatedPoints] as [
+							Team,
+							number
+						]
+				);
 
 			if (rankedTeams.length > 0) {
 				addTextSlide(eventName, tournamentName);

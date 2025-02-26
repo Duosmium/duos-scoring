@@ -39,6 +39,7 @@
 	let separateTracks = false;
 	let overallSchools = true;
 	let overallPoints = true;
+	let exhibitionMedals = false;
 	let eventsOnly = false;
 	let defaultImage: [string, [number, number]] | undefined = undefined;
 	let tournamentUrl =
@@ -74,6 +75,7 @@
 		separateTracks,
 		overallSchools,
 		overallPoints,
+		exhibitionMedals,
 		eventsOnly,
 		tournamentUrl,
 		qrCode
@@ -88,6 +90,36 @@
 		slidesURL = await generatePdf(sciolyff, undefined, currentSettings());
 	}
 	$: {
+		let _ = {
+			tournamentLogo: tournamentLogo || defaultImage?.[0] || '',
+			tournamentLogoDimensions:
+				!tournamentLogo && defaultImage
+					? defaultImage[1]
+					: tournamentLogoDimensions,
+			logoTextHeight,
+			logoAwardsHeight,
+			sidebarLineHeight,
+			dividerOffset,
+			titleFontSize,
+			headerFontSize,
+			sidebarFontSize,
+			teamFontSize,
+			teamLineHeight,
+			themeBgColor,
+			themeTextColor,
+			bgColor,
+			textColor,
+			headerTextColor,
+			randomOrder,
+			combineTracks,
+			separateTracks,
+			overallSchools,
+			overallPoints,
+			exhibitionMedals,
+			eventsOnly,
+			tournamentUrl,
+			qrCode
+		};
 		if (showSlidesPreview) {
 			generatePdf(generateSciolyFF(), undefined, currentSettings()).then(
 				(url) => {
@@ -329,6 +361,10 @@
 				<label>
 					Display Overall Point Totals:
 					<input type="checkbox" bind:checked={overallPoints} />
+				</label>
+				<label>
+					Award medals to exhibition teams:
+					<input type="checkbox" bind:checked={exhibitionMedals} />
 				</label>
 
 				<label>

@@ -54,6 +54,7 @@ declare global {
 			separateTracks: boolean;
 			overallSchools: boolean;
 			overallPoints: boolean;
+			exhibitionMedals: boolean;
 			eventsOnly: boolean;
 			tournamentUrl: string;
 			qrCode: boolean;
