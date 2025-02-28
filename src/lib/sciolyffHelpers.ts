@@ -145,7 +145,9 @@ export function generateSciolyFF(
 			medals: tournament.medals,
 			trophies: tournament.trophies,
 			bids: tournament.bids ?? undefined,
-			'bids per school': tournament.bidsPerSchool ?? 1,
+			'bids per school': tournament.bids
+				? (tournament.bidsPerSchool ?? 1)
+				: undefined,
 			'n offset': tournament.nOffset ?? undefined,
 			'worst placings dropped': tournament.drops ?? undefined
 		},
