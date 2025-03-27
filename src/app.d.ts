@@ -69,6 +69,16 @@ declare global {
 		};
 	}
 
+	namespace Queue {
+		interface Email {
+			fromUser?: string;
+			to: string;
+			subject: string;
+			text: string;
+			html: string;
+		}
+	}
+
 	declare module '*as=metadata&image' {
 		const out: { width: number; height: number; src: string };
 		export default out;
