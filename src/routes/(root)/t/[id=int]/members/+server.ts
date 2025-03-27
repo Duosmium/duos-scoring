@@ -14,7 +14,7 @@ import type { RequestHandler } from './$types';
 import { checkIsDirector } from '$lib/server/utils';
 import { customAlphabet } from 'nanoid';
 import { UserRole } from '$drizzle/types';
-import { sendInvite } from '$lib/server/email';
+import { sendInvites } from '$lib/server/email';
 import { supabase } from '$lib/server/supabaseAdmin';
 
 const nanoid = customAlphabet(
@@ -170,9 +170,6 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
 	) {
 		return new Response('invalid events', { status: 400 });
 	}
-	if (payload.length > 15) {
-		return new Response('too many invites - max 15 at a time', { status: 400 });
-	}
 
 	const roles = (await getRoles(params.id)) || [];
 
@@ -260,25 +257,20 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
 		)
 	).every((b) => b);
 
-	const emailStatus = (
-		await Promise.all(
-			newInvites.map(
-				(invite, i) =>
-					new Promise<boolean>((res, rej) => {
-						if (invite.email) {
-							setTimeout(() => {
-								sendInvite(
-									invite.email as string,
-									invite.link,
-									`${locals.tournament?.year} ${locals.tournament?.shortName} ${locals.tournament?.division}`,
-									invite.events?.map((e) => events.get(e) ?? '')
-								).then(res, rej);
-							}, i * 90);
+	const emailStatus = await sendInvites(
+		newInvites.flatMap((invite) =>
+			invite.email
+				? [
+						{
+							email: invite.email,
+							invite: invite.link,
+							tournamentName: `${locals.tournament?.year} ${locals.tournament?.shortName} ${locals.tournament?.division}`,
+							events: invite.events?.map((e) => events.get(e) ?? '')
 						}
-					})
-			)
+					]
+				: []
 		)
-	).every((b) => b);
+	);
 
 	if (
 		!createStatus ||
@@ -303,12 +295,14 @@ export const POST: RequestHandler = async ({ request, params, locals }) => {
 	if (!invite || !invite.email) {
 		return new Response('invalid invite', { status: 400 });
 	}
-	const status = await sendInvite(
-		invite.email,
-		invite.link,
-		`${locals.tournament?.year} ${locals.tournament?.shortName} ${locals.tournament?.division}`,
-		invite.events.map((e) => e.name)
-	);
+	const status = await sendInvites([
+		{
+			email: invite.email,
+			invite: invite.link,
+			tournamentName: `${locals.tournament?.year} ${locals.tournament?.shortName} ${locals.tournament?.division}`,
+			events: invite.events.map((e) => e.name)
+		}
+	]);
 
 	if (!status) {
 		return new Response('failed to send invite', { status: 500 });

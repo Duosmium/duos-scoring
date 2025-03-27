@@ -143,7 +143,7 @@ const handler: Handle = async ({ event, resolve }) => {
 	if (user === false && supabaseUser) {
 		await createOrUpdateUser(
 			event.locals.userId,
-			supabaseUser?.user_metadata.name.trim() || ''
+			supabaseUser?.user_metadata.name?.trim() || 'Unknown User'
 		);
 		user = await getUserInfo(event.locals.userId);
 	}

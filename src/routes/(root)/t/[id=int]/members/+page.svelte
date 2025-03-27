@@ -160,7 +160,7 @@
 		// TODO: validation
 		sendData({
 			method: 'PUT',
-			body: parsedInvites.slice(0, 15).map((i) => ({
+			body: parsedInvites.map((i) => ({
 				email: i.email,
 				events: i.events.map((name) => events.get(name)?.id.toString()),
 				role: i.role
@@ -418,10 +418,9 @@
 
 <Modal title="Add Member" bind:open={showInviteMembers} autoclose outsideclose>
 	<P>
-		To invite members, paste in list of emails below (max 15 at a time). You can
-		also add events that the person will automatically be assigned to by
-		separating the email and events by commas or tabs (the default in Google
-		Sheets when you copy).
+		To invite members, paste in list of emails below. You can also add events
+		that the person will automatically be assigned to by separating the email
+		and events by commas or tabs (the default in Google Sheets when you copy).
 		<List tag="ul" class="space-y-1 my-2">
 			<Li
 				><code class="dark:text-red-300 text-red-700">Email</code>
@@ -438,7 +437,6 @@
 				events</Li
 			>
 		</List>
-		If you need to invite more than 15 people, just repeat the process!
 	</P>
 	<Label>
 		Emails
@@ -451,7 +449,7 @@
 		<Alert class="mt-2 whitespace-pre-line" color="red">{parsedError}</Alert>
 	{:else if parsedInvites.length !== 0}
 		<ol>
-			{#each parsedInvites.slice(0, 15) as invite}
+			{#each parsedInvites as invite}
 				<li>
 					<span class="dark:text-red-300 text-red-700"
 						>{invite.email} ({invite.role}){invite.events.length !== 0
@@ -462,9 +460,6 @@
 					>
 				</li>
 			{/each}
-			{#if parsedInvites.length > 15}
-				<li>... truncated to 15 invites!</li>
-			{/if}
 		</ol>
 	{:else}
 		<P>Waiting for input...</P>

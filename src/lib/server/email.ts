@@ -1,49 +1,66 @@
-import { PRIVATE_SMTP_PASS, PRIVATE_SMTP_USER } from '$env/static/private';
+import { DATABASE_URL } from '$env/static/private';
 import { captureException } from '@sentry/sveltekit';
-import { error } from '@sveltejs/kit';
+import { Pgmq } from 'pgmq-js';
 
-import nodemailer from 'nodemailer';
+let pgmq: Pgmq;
 
-const mailer = nodemailer.createTransport({
-	host: 'email-smtp.us-east-1.amazonaws.com',
-	port: 465,
-	secure: true,
-	auth: {
-		user: PRIVATE_SMTP_USER,
-		pass: PRIVATE_SMTP_PASS
+export async function sendEmails(emails: Queue.Email[]) {
+	if (!pgmq) {
+		try {
+			const params = new URL(DATABASE_URL);
+			pgmq = await Pgmq.new(
+				{
+					user: params.username,
+					password: params.password,
+					host: params.hostname,
+					port: parseInt(params.port),
+					database: params.pathname.split('/')[1],
+					ssl: false
+				},
+				{ skipExtensionCreation: true }
+			);
+		} catch (err) {
+			console.error(err);
+			captureException(err);
+			return false;
+		}
 	}
-});
-
-export async function sendInvite(
-	email: string,
-	invite: string,
-	tournamentName: string,
-	events?: string[]
-) {
 	try {
-		await mailer.sendMail({
-			from: 'Duosmium Scoring <invite@scoring.duosmium.org>',
-			to: email,
-			replyTo: 'support@duosmium.org',
-			subject: `Join the ${tournamentName}!`,
-			text:
-				`You have been invited to join ${tournamentName} on Duosmium Scoring!\n` +
-				((events?.length ?? 0) > 0
-					? `You will be added to these events: ${events?.join(', ')}\n`
-					: '') +
-				`Click here to accept the invite: https://scoring.duosmium.org/invite/${invite}`,
-			html:
-				`<h2>You have been invited to join ${tournamentName} on Duosmium Scoring!</h2>\n` +
-				((events?.length ?? 0) > 0
-					? `<p>You will be added to these events: ${events?.join(', ')}</p>\n`
-					: '') +
-				`<p><a href="https://scoring.duosmium.org/invite/${invite}">Click here</a> to accept the invite.</p>\n` +
-				'<hr /><p style="color:#898989;font-size:12px;">Duosmium Scoring</p>'
-		});
+		await pgmq.msg.sendBatch('emails', emails);
 	} catch (err) {
 		console.error(err);
 		captureException(err);
-		error(500, 'Failed to send email!');
+		return false;
 	}
 	return true;
+}
+
+export async function sendInvites(
+	invites: {
+		email: string;
+		invite: string;
+		tournamentName: string;
+		events?: string[];
+	}[]
+) {
+	return await sendEmails(
+		invites.map((i) => ({
+			fromUser: 'invite',
+			to: i.email,
+			subject: `Join the ${i.tournamentName}!`,
+			text:
+				`You have been invited to join ${i.tournamentName} on Duosmium Scoring!\n` +
+				((i.events?.length ?? 0) > 0
+					? `You will be added to these events: ${i.events?.join(', ')}\n`
+					: '') +
+				`Click here to accept the invite: https://scoring.duosmium.org/invite/${i.invite}`,
+			html:
+				`<h2>You have been invited to join ${i.tournamentName} on Duosmium Scoring!</h2>\n` +
+				((i.events?.length ?? 0) > 0
+					? `<p>You will be added to these events: ${i.events?.join(', ')}</p>\n`
+					: '') +
+				`<p><a href="https://scoring.duosmium.org/invite/${i.invite}">Click here</a> to accept the invite.</p>\n` +
+				'<hr /><p style="color:#898989;font-size:12px;">Duosmium Scoring</p>'
+		}))
+	);
 }
