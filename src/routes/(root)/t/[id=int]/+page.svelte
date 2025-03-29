@@ -17,7 +17,13 @@
 		Progressbar,
 		Select
 	} from 'flowbite-svelte';
-	import { divisions, levels, stateOrgs, states } from '$lib/data/consts';
+	import {
+		divisions,
+		levels,
+		perEventNOptions,
+		stateOrgs,
+		states
+	} from '$lib/data/consts';
 	import type { Tournament } from '$drizzle/types';
 	import { page } from '$app/stores';
 	import { sendData } from './helpers';
@@ -65,7 +71,8 @@
 			bids: parseInt(editTournamentData.bids as any) || null,
 			bidsPerSchool: parseInt(editTournamentData.bidsPerSchool as any) || null,
 			drops: parseInt(editTournamentData.drops as any) || null,
-			nOffset: parseInt(editTournamentData.nOffset as any) || null
+			nOffset: parseInt(editTournamentData.nOffset as any) || null,
+			perEventN: editTournamentData.perEventN || undefined
 		};
 		sendData({
 			method: 'PATCH',
@@ -267,6 +274,13 @@
 						>{data.tournament.nOffset ?? 'None'}</DescriptionList
 					>
 				</div>
+				<div class="flex flex-col pb-3">
+					<DescriptionList tag="dt">Per-event N</DescriptionList>
+					<DescriptionList tag="dd"
+						>{data.tournament.perEventN[0] +
+							data.tournament.perEventN.slice(1).toLowerCase()}</DescriptionList
+					>
+				</div>
 			</List>
 		</Card>
 	</div>
@@ -392,6 +406,13 @@
 			/>
 		</Label>
 		<Label>
+			Drops: <Input
+				type="number"
+				name="drops"
+				bind:value={editTournamentData.drops}
+			/>
+		</Label>
+		<Label>
 			N-Offset: <Input
 				type="number"
 				name="nOffset"
@@ -399,10 +420,10 @@
 			/>
 		</Label>
 		<Label>
-			Drops: <Input
-				type="number"
-				name="drops"
-				bind:value={editTournamentData.drops}
+			Per-event N (Optional): <Select
+				name="perEventN"
+				items={perEventNOptions}
+				bind:value={editTournamentData.perEventN}
 			/>
 		</Label>
 

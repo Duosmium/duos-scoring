@@ -57,6 +57,13 @@
       "when": 1737923918668,
       "tag": "0007_add-bids-per-school",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1743266655901,
+      "tag": "0008_add-per-event-n",
+      "breakpoints": true
     }
   ]
 }

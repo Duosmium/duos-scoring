@@ -13,6 +13,9 @@ export const TrialStaus = schema.TrialStatus.enumValues;
 export type TrialStatus = (typeof schema.TrialStatus.enumValues)[number];
 export const UserRole = schema.UserRole.enumValues;
 export type UserRole = (typeof schema.UserRole.enumValues)[number];
+export const PerEventNOptions = schema.PerEventNOptions.enumValues;
+export type PerEventNOptions =
+	(typeof schema.PerEventNOptions.enumValues)[number];
 
 export type Slides = typeof schema.Slides.$inferSelect;
 export type Event = typeof schema.Event.$inferSelect;

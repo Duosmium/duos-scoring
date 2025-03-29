@@ -116,3 +116,14 @@ export const divisions = [
 	{ value: 'B', name: 'Middle School (Div. B)' },
 	{ value: 'A', name: 'Elementary School (Div. A)' }
 ];
+export const perEventNOptions = [
+	{ value: 'NONE', name: 'None (Use total team count)' },
+	{
+		value: 'PARTICIPATION',
+		name: 'Participation (Use number of participated and scoring teams)'
+	},
+	{
+		value: 'PLACE',
+		name: 'Place (Use largest place)'
+	}
+];

@@ -124,6 +124,11 @@ export function generateSciolyFF(
 		STATE: 'States',
 		NATIONAL: 'Nationals'
 	} as const;
+	const perEventNLookup = {
+		NONE: undefined,
+		PLACE: 'place',
+		PARTICIPATION: 'participation'
+	} as const;
 	const sciolyffRep = {
 		Tournament: {
 			name:
@@ -149,6 +154,7 @@ export function generateSciolyFF(
 				? (tournament.bidsPerSchool ?? 1)
 				: undefined,
 			'n offset': tournament.nOffset ?? undefined,
+			'per-event n': perEventNLookup[tournament.perEventN],
 			'worst placings dropped': tournament.drops ?? undefined
 		},
 		Events: events.map((e) => ({

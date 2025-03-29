@@ -13,7 +13,13 @@
 
 	import type { Tournament } from '$drizzle/types';
 	import type { Snapshot } from './$types';
-	import { divisions, levels, stateOrgs, states } from '$lib/data/consts';
+	import {
+		divisions,
+		levels,
+		perEventNOptions,
+		stateOrgs,
+		states
+	} from '$lib/data/consts';
 	import { seasonYear, shortName } from '$lib/sciolyffHelpers';
 	import { addToastMessage, clearToasts } from '$lib/components/Toasts.svelte';
 	import { setContext, tick } from 'svelte';
@@ -24,7 +30,8 @@
 	let defaults = {
 		medals: 6,
 		trophies: 3,
-		bidsPerSchool: 1
+		bidsPerSchool: 1,
+		perEventN: 'NONE' as const
 	};
 	let fields: Partial<Omit<Tournament, 'id'>> = Object.assign({}, defaults);
 	let dirty: { [k in keyof Tournament]?: boolean } = {};
@@ -409,6 +416,16 @@
 				}}
 				type="number"
 				bind:value={fields.nOffset}
+			/>
+		</Label>
+		<Label>
+			Per-event N (Optional): <Select
+				on:change={() => {
+					dirty.perEventN = true;
+					commit();
+				}}
+				items={perEventNOptions}
+				bind:value={fields.perEventN}
 			/>
 		</Label>
 	</Step>

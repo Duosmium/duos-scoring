@@ -91,6 +91,11 @@ export const TrialStatus = scoring.enum('TrialStatus', [
 	'TRIALED'
 ]);
 export const UserRole = scoring.enum('UserRole', ['TD', 'SM', 'ES']);
+export const PerEventNOptions = scoring.enum('PerEventNOptions', [
+	'NONE',
+	'PLACE',
+	'PARTICIPATION'
+]);
 
 export const Slides = scoring.table('Slides', {
 	tournamentId: bigint('tournamentId', { mode: 'bigint' })
@@ -253,6 +258,7 @@ export const Tournament = scoring.table('Tournament', {
 	awardsDate: date('awardsDate', { mode: 'date' }).notNull(),
 	endDate: date('endDate', { mode: 'date' }).notNull(),
 	nOffset: smallint('nOffset'),
+	perEventN: PerEventNOptions('perEventN').default('NONE').notNull(),
 	startDate: date('startDate', { mode: 'date' }).notNull(),
 	division: Divisions('division').notNull(),
 	enableTracks: boolean('enableTracks').default(false).notNull(),

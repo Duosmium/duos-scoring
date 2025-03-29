@@ -1,5 +1,10 @@
 import { updateMember, createTournament } from '$lib/server/db';
-import type { Divisions, States, TournamentLevels } from '$drizzle/types';
+import type {
+	Divisions,
+	PerEventNOptions,
+	States,
+	TournamentLevels
+} from '$drizzle/types';
 
 export const POST = async ({ request, locals }) => {
 	const formData = await request.formData();
@@ -29,6 +34,8 @@ export const POST = async ({ request, locals }) => {
 	const bidsPerSchool =
 		parseInt(formData.get('bidsPerSchool')?.toString() ?? '') || null;
 	const nOffset = parseInt(formData.get('nOffset')?.toString() ?? '') || null;
+	const perEventN = (formData.get('perEventN')?.toString() ??
+		'NONE') as PerEventNOptions;
 	const drops = parseInt(formData.get('drops')?.toString() ?? '') || null;
 
 	const tournament = await createTournament({
@@ -48,6 +55,7 @@ export const POST = async ({ request, locals }) => {
 		bids,
 		bidsPerSchool,
 		nOffset,
+		perEventN,
 		drops,
 		approved: false,
 		requestingApproval: false
