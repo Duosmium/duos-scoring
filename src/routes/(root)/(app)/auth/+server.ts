@@ -9,7 +9,7 @@ export const GET: RequestHandler = async ({ url, locals: { supabase } }) => {
 	const type = url.searchParams.get('type') as EmailOtpType | null;
 
 	const redirectTo = new URL(
-		url.searchParams.get('next') ?? '/',
+		url.searchParams.get('next') ?? '/dashboard',
 		'https://scoring.duosmium.org'
 	);
 	redirectTo.searchParams.delete('token_hash');
