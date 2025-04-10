@@ -1174,7 +1174,7 @@
 			color="green"
 			disabled={parsedImportScores.length === 0}
 			on:click={importScores}
-			>Save {parsedImportScores.length} score{parsedImportScores.length != 1
+			>Import {parsedImportScores.length} score{parsedImportScores.length != 1
 				? 's'
 				: ''}</Button
 		>
