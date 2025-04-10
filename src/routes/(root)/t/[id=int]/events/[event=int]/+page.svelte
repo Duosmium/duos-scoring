@@ -809,6 +809,27 @@
 	</span>
 </div>
 <SelectableTable items={modifiedTeams} bind:selected cols={10}>
+	<svelte:fragment slot="buttons">
+		<Button
+			color="alternative"
+			on:click={() => {
+				navigator.clipboard
+					.writeText(
+						selected
+							.map((t) => `${t.number}\t${t.school}\t${t.suffix ?? ''}`)
+							.join('\n')
+					)
+					.then(
+						() => {
+							addToastMessage('Copied!', 'success');
+						},
+						() => {
+							addToastMessage('Copy failed!', 'error');
+						}
+					);
+			}}>Copy Teams</Button
+		>
+	</svelte:fragment>
 	<svelte:fragment slot="headers">
 		<TableHeadCell class="px-2"
 			><button
