@@ -82,10 +82,9 @@
 	});
 	async function initializeSlidesPreview() {
 		const sciolyff = generateSciolyFF();
-		const filename = generateFilename(tournament).trim();
 
-		themeBgColor = getColor(filename) || '#1f1b35';
-		defaultImage = await getImage(filename);
+		themeBgColor = (await getColor(sciolyff)) || '#1f1b35';
+		defaultImage = await getImage(sciolyff);
 
 		slidesURL = await generatePdf(sciolyff, undefined, currentSettings());
 	}

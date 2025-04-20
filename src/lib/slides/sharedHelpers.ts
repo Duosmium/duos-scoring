@@ -57,7 +57,9 @@ const STATES_BY_POSTAL_CODE = {
 	WY: 'Wyoming'
 } as const;
 
-export function expandStateName(postalCode: keyof typeof STATES_BY_POSTAL_CODE) {
+export function expandStateName(
+	postalCode: keyof typeof STATES_BY_POSTAL_CODE
+) {
 	return STATES_BY_POSTAL_CODE[postalCode];
 }
 
@@ -65,8 +67,14 @@ export function generateFilename(interpreter: Interpreter) {
 	// ^(19|20)\d{2}-[01]\d-[0-3]\d_([\w]+_invitational|([ns]?[A-Z]{2})_[\w]+_regional|([ns]?[A-Z]{2})_states|nationals)_(no_builds_)?[abc]$
 	let output = '';
 	output += interpreter.tournament.startDate.getUTCFullYear();
-	output += '-' + (interpreter.tournament.startDate.getUTCMonth() + 1).toString().padStart(2, '0');
-	output += '-' + interpreter.tournament.startDate.getUTCDate().toString().padStart(2, '0');
+	output +=
+		'-' +
+		(interpreter.tournament.startDate.getUTCMonth() + 1)
+			.toString()
+			.padStart(2, '0');
+	output +=
+		'-' +
+		interpreter.tournament.startDate.getUTCDate().toString().padStart(2, '0');
 	switch (interpreter.tournament.level) {
 		case 'Nationals':
 			output += '_nationals';
@@ -84,7 +92,9 @@ export function generateFilename(interpreter: Interpreter) {
 				.replace(/[^\w]/g, '_')}regional`;
 			break;
 		default:
-			output += `_${(interpreter.tournament.shortName ?? interpreter.tournament.name)
+			output += `_${(
+				interpreter.tournament.shortName ?? interpreter.tournament.name
+			)
 				.toLowerCase()
 				.split('invitational')[0]
 				.replace(/\./g, '')
@@ -94,48 +104,74 @@ export function generateFilename(interpreter: Interpreter) {
 	output += '_' + interpreter.tournament.division.toLowerCase();
 	return output;
 }
+function getSeasonFromFilename(filename: string) {
+	const date = new Date(filename.slice(0, 10));
+
+	const seasonStart = new Date(date.getFullYear(), 6, 15); // july 15
+	if (date >= seasonStart) {
+		return date.getFullYear() + 1;
+	}
+	return date.getFullYear();
+}
 
 export function findTournamentImage(filename: string, images: string[]) {
-	const tournamentYear = parseInt(filename.slice(0, 4));
-	const tournamentName = filename.slice(11, -2).replace('_no_builds', '');
-	const getYear = (image: string) => parseInt(image.match(/^\d+/)?.[0] ?? '0');
+	const season = getSeasonFromFilename(filename);
+	const name = filename.slice(11);
+	const state = /([A-Za-z]+)\w+_regional_[abc]$/.exec(name)?.[1];
 
-	const sameDivision = images.filter((image) =>
-		filename.endsWith(image.split('.')[0].match(/_[abc]$/)?.[0] ?? '')
-	);
+	const aliases = [name];
+	if (state) aliases.push(state + '_states');
 
-	const hasTournName = sameDivision.filter(
-		(image) =>
-			image.startsWith(tournamentName) || image.startsWith(tournamentYear + '_' + tournamentName)
-	);
+	/*
+	  Matches images with this format:
+		- short_name_YYYY-YYYY.ext
+		- short_name_YYYY-.ext
+		- short_name_YYYY.ext
+		- short_name.ext
+	  Capture Groups (e.g. short_name_1234-5678.ext):
+		1. short_name
+		2. 1234
+		3. -5678
+		4. 5678
+	 */
+	const parseImage = /(\w+?)(?:_(\d{4}))?(-(\d{4})?)?\.\w+/;
+	const candidates = images
+		.flatMap((imgFilename) => {
+			const parsed = parseImage.exec(imgFilename);
+			if (!parsed) return [];
 
-	// use state logo if regional logo does not exist
-	let stateFallback: string[] = [];
-	if (/_regional_[abc]$/.test(filename)) {
-		const stateName = filename.split('_')[1] + '_states';
-		stateFallback = sameDivision.filter((image) => image.includes(stateName));
-	}
+			const imageName = parsed[1];
+			const startYear = parseInt(parsed[2]) || undefined;
+			const endYear = parsed[3] ? parseInt(parsed[4]) || Infinity : startYear;
 
-	// remove format info from name
-	let withoutFormat: string[] = [];
-	if (/(mini|satellite|in-person|in_person)_?(so)?_/.test(filename)) {
-		const nameWithoutFormat = tournamentName.replace(
-			/(mini|satellite|in-person|in_person)_?(so)?_/,
-			''
+			if (
+				!aliases.some((name) => {
+					const parts = name.split('_');
+					return imageName.split('_').every((part) => parts.includes(part));
+				}) ||
+				season < (startYear ?? -Infinity) ||
+				season > (endYear ?? Infinity)
+			) {
+				return [];
+			}
+
+			return [
+				{
+					file: imgFilename,
+					length: imageName.length,
+					startYear: startYear ?? -Infinity,
+					duration: (endYear ?? Infinity) - (startYear ?? -Infinity)
+				}
+			];
+		})
+		.sort(
+			(a, b) =>
+				b.length - a.length ||
+				a.duration - b.duration ||
+				b.startYear - a.startYear
 		);
-		withoutFormat = sameDivision.filter((image) => image.includes(nameWithoutFormat));
-	}
 
-	const recentYear = hasTournName
-		.concat(...withoutFormat, stateFallback, 'default.jpg')
-		.filter((image) => getYear(image) <= tournamentYear);
-	const selected = recentYear.reduce((prev, curr) => {
-		const currentScore = getYear(curr) + curr.length / 100;
-		const prevScore = getYear(prev) + prev.length / 100;
-		return currentScore > prevScore ? curr : prev;
-	});
-
-	return '/images/logos/' + selected;
+	return '/images/logos/' + (candidates[0]?.file || 'default.png');
 }
 
 export function tournamentTitle(tInfo: Tournament) {
@@ -190,12 +226,16 @@ export function abbrSchool(school: string) {
 }
 
 export function fullSchoolName(team: Team) {
-	const location = team.city ? `(${team.city}, ${team.state})` : `(${team.state})`;
+	const location = team.city
+		? `(${team.city}, ${team.state})`
+		: `(${team.state})`;
 	return `${team.school} ${location}`;
 }
 
 export function fullTeamName(team: Team) {
-	const location = team.city ? `(${team.city}, ${team.state})` : `(${team.state})`;
+	const location = team.city
+		? `(${team.city}, ${team.state})`
+		: `(${team.state})`;
 	return `${team.school} ${team.suffix ? team.suffix + ' ' : ''}${location}`;
 }
 

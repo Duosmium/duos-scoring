@@ -9,19 +9,24 @@ import './fonts/Roboto-Light-normal';
 
 let colors: { [key: string]: string };
 let images: string[];
-let imageCache: { [key: string]: string };
 
-fetch('https://www.duosmium.org/cache/bg-colors.json')
-	.then((resp) => resp.json())
-	.then((data) => (colors = data));
-fetch('https://www.duosmium.org/cache/images-list.json')
-	.then((resp) => resp.json())
-	.then((data) => (images = data));
-fetch('https://www.duosmium.org/cache/tourn-images.json')
-	.then((resp) => resp.json())
-	.then((data) => (imageCache = data));
+async function getData() {
+	if (!images || images.length === 0) {
+		images = await (
+			await fetch('https://www.duosmium.org/cache/images-list.json')
+		).json();
+	}
+
+	if (!colors || Object.keys(colors).length === 0) {
+		colors = await (
+			await fetch('https://www.duosmium.org/cache/bg-colors.json')
+		).json();
+	}
+}
+getData();
 
 import {
+	generateFilename,
 	findTournamentImage,
 	formatSchool,
 	ordinalize,
@@ -39,25 +44,29 @@ export function shuffleArray(array: unknown[]) {
 	}
 }
 
-export function getColor(filename: string) {
-	if (!filename) return;
+export async function getColor(sciolyff: string) {
+	if (!sciolyff) return;
+
+	await getData();
+
+	const filename = generateFilename(new Interpreter(sciolyff));
 
 	const imagePath =
-		imageCache[filename] ||
-		findTournamentImage(filename, images) ||
-		'/images/logos/default.png';
+		findTournamentImage(filename, images) || '/images/logos/default.png';
 
 	return colors[imagePath] || '#1f1b35';
 }
 
-export async function getImage(filename: string) {
-	if (!filename) return;
+export async function getImage(sciolyff: string) {
+	if (!sciolyff) return;
+
+	await getData();
+
+	const filename = generateFilename(new Interpreter(sciolyff));
 
 	const imagePath =
 		'https://www.duosmium.org' +
-		(imageCache[filename] ||
-			findTournamentImage(filename, images) ||
-			'/images/logos/default.png');
+		(findTournamentImage(filename, images) || '/images/logos/default.png');
 
 	const imgElement = new Image();
 	imgElement.src = imagePath;
