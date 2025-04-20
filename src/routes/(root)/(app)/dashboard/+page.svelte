@@ -1,11 +1,13 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import Head from '$lib/components/Head.svelte';
-	import { A, Button, Card, Heading, Li, List, P } from 'flowbite-svelte';
+	import { A, Heading, P } from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import { addToastMessage } from '$lib/components/Toasts.svelte';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
+	import TournamentCard from './TournamentCard.svelte';
+	import { seasonYear } from '$lib/sciolyffHelpers';
 
 	export let data: PageData;
 
@@ -22,76 +24,62 @@
 			a.tournament.name.localeCompare(b.tournament.name) ||
 			a.tournament.division.localeCompare(b.tournament.division)
 	);
+	$: upcoming = data.user.roles
+		.filter((r) => r.tournament.startDate > new Date(Date.now() - 172800000)) // 48 hrs
+		.sort(
+			(a, b) =>
+				a.tournament.startDate.valueOf() - b.tournament.startDate.valueOf()
+		);
+	$: thisSeason = data.user.roles.filter(
+		(r) =>
+			r.tournament.startDate <= new Date(Date.now() - 129600000) &&
+			r.tournament.year === seasonYear(new Date())
+	);
+	$: pastSeasons = data.user.roles.filter(
+		(r) => r.tournament.year < seasonYear(new Date())
+	);
 </script>
 
 <Head title="Dashboard | Duosmium Scoring" />
 
 <Heading tag="h1" class="mb-12">Welcome, {data.user.name}!</Heading>
 
-<Heading tag="h2" class="mb-8">Your Tournaments</Heading>
 {#if data.user.roles.length === 0}
-	<P>You have no tournaments. <a href="/new">Create one?</a></P>
+	<P
+		>You have no tournaments. You can create a new tournament with the above
+		link, or contact your tournament director for an invite to an existing
+		tournament.</P
+	>
 {:else}
+	<Heading tag="h2" class="mb-8">Upcoming Tournaments</Heading>
 	<div class="grid">
-		{#each data.user.roles as role}
-			<Card size="md">
-				<div class="flex-1 flex flex-col justify-center">
-					<Heading tag="h3" customSize="text-md" class="mb-2"
-						>{role.tournament.year}
-						{role.tournament.name}
-						{role.tournament.division}</Heading
-					>
-					<P class="mb-0"
-						>{role.tournament.startDate.toUTCString() ===
-						role.tournament.endDate.toUTCString()
-							? role.tournament.startDate
-									.toUTCString()
-									.split(' ')
-									.slice(0, 4)
-									.join(' ')
-							: role.tournament.startDate
-									.toUTCString()
-									.split(' ')
-									.slice(0, 4)
-									.join(' ') +
-								' – ' +
-								role.tournament.endDate
-									.toUTCString()
-									.split(' ')
-									.slice(0, 4)
-									.join(' ')}
-						<br />
-						@ {role.tournament.location}
-					</P>
-				</div>
-				{#if role.supEvents.length > 0}
-					<Heading tag="h4" class="mt-4">Events</Heading>
-					<List tag="ul">
-						{#each role.supEvents as event}
-							<Li>
-								<A href="/t/{role.tournament.id}/events/{event.id}/"
-									>{event.name} Dashboard</A
-								>
-							</Li>
-						{/each}
-					</List>
-				{:else if role.role === 'ES'}
-					<List tag="ul" class="mt-4">
-						<Li>The tournament director has not assigned you a role yet.</Li>
-					</List>
-				{/if}
-				{#if role.role === 'TD'}
-					<Button href="/t/{role.tournament.id}/" class="mt-6"
-						>Tournament Director Dashboard</Button
-					>
-				{:else if role.role === 'SM'}
-					<Button href="/t/{role.tournament.id}/" class="mt-6"
-						>Scoremaster Dashboard</Button
-					>
-				{/if}
-			</Card>
+		{#each upcoming as role}
+			<TournamentCard {role} />
+		{:else}
+			<P>No upcoming tournaments!</P>
 		{/each}
 	</div>
+
+	<Heading tag="h2" class="my-8">Past Tournaments</Heading>
+	<div class="grid">
+		{#each thisSeason as role}
+			<TournamentCard {role} />
+		{:else}
+			<P>No past tournaments!</P>
+		{/each}
+	</div>
+
+	<Heading tag="h2" class="mt-8 mb-4">Past Seasons</Heading>
+	<details>
+		<summary class="mb-4">Expand</summary>
+		<div class="grid">
+			{#each pastSeasons as role}
+				<TournamentCard {role} />
+			{:else}
+				<P>No past tournaments!</P>
+			{/each}
+		</div>
+	</details>
 {/if}
 
 <style>
