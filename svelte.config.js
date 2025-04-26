@@ -8,6 +8,7 @@ const config = {
 	kit: {
 		adapter: adapter({
 			// split: true
+			edge: true
 		}),
 		alias: {
 			$drizzle: './drizzle'
