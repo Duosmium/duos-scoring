@@ -26,6 +26,7 @@ Sentry.init({
 export const handleError = Sentry.handleErrorWithSentry();
 
 const handler: Handle = async ({ event, resolve }) => {
+	console.log(`${event.request.method} ${event.url.pathname}`);
 	event.locals.supabase = createServerClient(
 		PUBLIC_SUPABASE_URL,
 		PUBLIC_SUPABASE_ANON_KEY,
