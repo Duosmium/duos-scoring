@@ -94,8 +94,9 @@ declare global {
 		| number
 		| boolean
 		| null
-		| { [property: string]: Json | undefined }
-		| Json[];
+		| undefined
+		| { [property: string]: SerializableJson | undefined }
+		| SerializableJson[];
 }
 
 export {};
