@@ -374,9 +374,8 @@
 <P
 	>Preview and export results on this page. Select the events you want to export
 	with the checkboxes on the left, or check the top-most checkbox to check all
-	the events. Then use the "Preview" button to preview the results page, where
-	you can download a PDF version. In order to select an event, the event must be
-	marked as audited by a tournament director or scoremaster.</P
+	the events. You must select the events you want included for all export
+	methods.</P
 >
 
 <P
@@ -386,6 +385,7 @@
 >
 
 <ul class="flex gap-4 mb-6">
+	<li class="font-bold">Publishing Status:</li>
 	<li class="flex items-center gap-1">
 		{#if data.tournament.approved}
 			<svg
@@ -429,7 +429,7 @@
 				/>
 			</svg>
 			<button class="hover:underline cursor-pointer" on:click={requestApproval}
-				>Request Approval?</button
+				>Not Approved (Request Approval?)</button
 			>
 		{/if}
 	</li>
@@ -487,7 +487,7 @@
 				disabled={selected.length === 0}
 				on:click={() => {
 					showPreview = true;
-				}}>Scoreboard</Button
+				}}>Scoresheet</Button
 			>
 			<Button
 				class="py-2 border border-green-700 hover:border-green-800 dark:border-green-600 dark:hover:border-green-700"
@@ -507,7 +507,7 @@
 				on:click={() => {
 					touchEventsExportedAt();
 					slides.setPreview(true);
-				}}>Preview Slides</Button
+				}}>Generate Slides</Button
 			>
 			{#if !presentationActive}
 				<Button

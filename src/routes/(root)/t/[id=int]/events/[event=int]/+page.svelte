@@ -1106,6 +1106,7 @@
 >
 	<P>
 		To import scores, paste in a CSV or TSV of the data. You can use <a
+			class="underline text-violet-700 dark:text-violet-300"
 			href="https://docs.google.com/spreadsheets/d/12fKJX4-gEuy_tp1AaDC6MkLhHcHmcAVmy5BrZFr9yb4/copy"
 			>this spreadsheet</a
 		>
