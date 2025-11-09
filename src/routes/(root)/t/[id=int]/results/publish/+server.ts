@@ -34,12 +34,15 @@ async function getFile(path: string) {
 			})
 		).data;
 		if (Array.isArray(data) || data.type !== 'file') {
-			return false;
+			return undefined;
 		}
 		const decoded = Buffer.from(data.content, 'base64').toString('utf-8');
+		if (decoded.trim() === '') {
+			return undefined;
+		}
 		return { ...data, decodedContent: decoded };
 	} catch (e) {}
-	return false;
+	return undefined;
 }
 
 export const PUT = async ({ request, locals, params }) => {
@@ -79,23 +82,22 @@ export const PUT = async ({ request, locals, params }) => {
 	}
 
 	const official = await getFile('data/official.yaml');
-	if (official) {
-		const officialList = yaml.load(official.decodedContent) as string[];
-		if (!officialList.includes(filename)) {
-			files['data/official.yaml'] = yaml.dump(officialList.concat(filename));
-		}
+	const officialList =
+		(yaml.load(official?.decodedContent ?? '') as string[]) || [];
+	if (!officialList.includes(filename)) {
+		files['data/official.yaml'] = yaml.dump(officialList.concat(filename));
 	}
+
 	const prelim = await getFile('data/preliminary.yaml');
-	if (prelim) {
-		const prelimList = yaml.load(prelim.decodedContent) as string[];
-		if (markPrelim && !prelimList.includes(filename)) {
-			files['data/preliminary.yaml'] = yaml.dump(prelimList.concat(filename));
-		}
-		if (!markPrelim && prelimList.includes(filename)) {
-			files['data/preliminary.yaml'] = yaml.dump(
-				prelimList.filter((x) => x !== filename)
-			);
-		}
+	const prelimList =
+		(yaml.load(prelim?.decodedContent ?? '') as string[]) || [];
+	if (markPrelim && !prelimList.includes(filename)) {
+		files['data/preliminary.yaml'] = yaml.dump(prelimList.concat(filename));
+	}
+	if (!markPrelim && prelimList.includes(filename)) {
+		files['data/preliminary.yaml'] = yaml.dump(
+			prelimList.filter((x) => x !== filename)
+		);
 	}
 
 	if (Object.keys(files).length === 0) {
