@@ -121,7 +121,10 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 	if (payload.member) {
 		memberStatus = await updateMember(params.id, payload.member.userId, {
 			events: payload.member.events?.map((e) => BigInt(e)),
-			role: payload.member.role
+			role:
+				payload.member.userId === locals.userId
+					? locals.role!.role
+					: payload.member.role
 		});
 	}
 	if (payload.invite) {
@@ -213,7 +216,7 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
 			const role = existingUsers.get(i.email?.toLowerCase() as string)!;
 			return {
 				userId: role.userId,
-				role: i.role ?? role.role,
+				role: role.userId === locals.userId ? role.role : (i.role ?? role.role),
 				events: [
 					...new Set(
 						(role.supEvents.map((e) => e.id) ?? []).concat(
