@@ -27,12 +27,11 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 			locals.user.roles.find((r) => r.tournament.id === invite.tournamentId)
 				?.role,
 			invite.role,
-			'ES'
 		] as UserRole[]
 	).reduce((max, r) => {
 		if (!r) return max;
 		return rank[r] > rank[max] ? r : max;
-	});
+	}, "ES");
 
 	const existingEvents =
 		locals.user.roles
