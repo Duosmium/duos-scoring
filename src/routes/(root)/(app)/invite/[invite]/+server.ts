@@ -1,6 +1,7 @@
 import { deleteInvites, getInvite, updateMember } from '$lib/server/db';
 import { error, redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import type { UserRole } from '$drizzle/types';
 
 export const GET: RequestHandler = async ({ locals, params }) => {
 	if (!locals.user) {
@@ -15,14 +16,31 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 		);
 	}
 
-	const role =
-		locals.user.roles.find((r) => r.tournament.id === invite.tournamentId)
-			?.role ||
-		invite.role ||
-		'ES';
+	const rank: Record<UserRole, number> = {
+		TD: 3,
+		SM: 2,
+		ES: 1
+	};
+
+	const role = (
+		[
+			locals.user.roles.find((r) => r.tournament.id === invite.tournamentId)
+				?.role,
+			invite.role,
+			'ES'
+		] as UserRole[]
+	).reduce((max, r) => {
+		if (!r) return max;
+		return rank[r] > rank[max] ? r : max;
+	});
+
+	const existingEvents =
+		locals.user.roles
+			.find((r) => r.tournament.id === invite.tournamentId)
+			?.supEvents.map((e) => e.id) || [];
 
 	const update = await updateMember(invite.tournamentId, locals.user.id, {
-		events: invite.events.map((e) => e.id),
+		events: invite.events.map((e) => e.id).concat(existingEvents),
 		role
 	});
 
