@@ -10,6 +10,7 @@
 <Navigation user={data.user} session={data.session}>
 	<svelte:fragment slot="brand">
 		<a href="/t/{data.tournament.id}" class="overflow-hidden text-ellipsis">
+			{data.tournament.year}
 			{data.tournament.shortName}
 			{data.tournament.division}
 		</a>
