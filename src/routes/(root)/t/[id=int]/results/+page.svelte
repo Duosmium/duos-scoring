@@ -571,10 +571,9 @@
 			>Other <ChevronDownOutline class="w-6 h-6 fill-transparent" /></Button
 		>
 		<Dropdown class="dark:bg-gray-800">
-			<DropdownItem disabled={selected.length === 0} on:click={downloadRaws}
-				>Export Raw Scores Only</DropdownItem
+			<DropdownItem on:click={downloadRaws}>Export Raw Scores Only</DropdownItem
 			>
-			<DropdownItem disabled={selected.length === 0} on:click={downloadEventZip}
+			<DropdownItem on:click={downloadEventZip}
 				>Export All Event Data</DropdownItem
 			>
 			<DropdownItem disabled={selected.length === 0} on:click={copySciolyFF}
