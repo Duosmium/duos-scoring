@@ -216,13 +216,14 @@ export function formatSchool(team: Team) {
 export function abbrSchool(school: string) {
 	return school
 		.replace('Elementary School', 'Elementary')
-		.replace('Elementary/Middle School', 'E.M.S.')
+		.replace(/Elementary([ /-]| & )Middle School/, 'E.M.S.')
 		.replace('Middle School', 'M.S.')
 		.replace('Junior High School', 'J.H.S.')
-		.replace(/Middle[ /-]High School/, 'M.H.S')
-		.replace('Junior/Senior High School', 'Jr./Sr. H.S.')
+		.replace(/Middl([ /-]| & )High School/, 'M.H.S.')
+		.replace(/Junior([ /-]| & )Senior High School/, 'Jr./Sr. H.S.')
 		.replace('High School', 'H.S.')
-		.replace('Secondary School', 'Secondary');
+		.replace('Secondary School', 'Secondary')
+		.replace('Saint ', 'St. ');
 }
 
 export function fullSchoolName(team: Team) {
