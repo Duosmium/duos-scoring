@@ -21,8 +21,7 @@
 		divisions,
 		levels,
 		perEventNOptions,
-		stateOrgs,
-		states
+		stateOrgs
 	} from '$lib/data/consts';
 	import type { Tournament } from '$drizzle/types';
 	import { page } from '$app/stores';
@@ -319,7 +318,7 @@
 			State:
 			<Select
 				name="state"
-				items={editTournamentData.level === 'INVITATIONAL' ? states : stateOrgs}
+				items={stateOrgs}
 				bind:value={editTournamentData.state}
 				required
 			/>

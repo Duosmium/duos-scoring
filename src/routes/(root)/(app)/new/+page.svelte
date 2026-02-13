@@ -17,8 +17,7 @@
 		divisions,
 		levels,
 		perEventNOptions,
-		stateOrgs,
-		states
+		stateOrgs
 	} from '$lib/data/consts';
 	import { seasonYear, shortName } from '$lib/sciolyffHelpers';
 	import { addToastMessage, clearToasts } from '$lib/components/Toasts.svelte';
@@ -150,7 +149,7 @@
 				dirty.state = true;
 				commit();
 			}}
-			items={fields.level === 'INVITATIONAL' ? states : stateOrgs}
+			items={stateOrgs}
 			bind:value={fields.state}
 		/>
 		{#if dirty.state && !fields.state}
