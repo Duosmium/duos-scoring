@@ -72,5 +72,13 @@
 		"vite": "^5.4.18",
 		"vite-imagetools": "^7.0.5"
 	},
-	"type": "module"
+	"type": "module",
+	"allowScripts": {
+		"@parcel/watcher@2.5.6": true,
+		"@sentry/cli@2.58.6": true,
+		"core-js@3.49.0": true,
+		"esbuild@0.25.12": true,
+		"esbuild@0.28.1": true,
+		"sharp@0.34.5": true
+	}
 }
