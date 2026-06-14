@@ -1,5 +1,5 @@
 <script>
-	import '../app.postcss';
+	import '../app.css';
 	import { page } from '$app/stores';
 	import Head from '$lib/components/Head.svelte';
 	import { DarkMode } from 'flowbite-svelte';
@@ -7,7 +7,9 @@
 
 <Head title="An error occurred | Duosmium Scoring System" />
 
-<div class="min-h-screen pb-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-200">
+<div
+	class="min-h-screen pb-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+>
 	<div class="bar" />
 
 	<main class="main">
@@ -15,8 +17,8 @@
 		<p class="error">{$page.status}: {$page.error?.message}</p>
 
 		<p>
-			If this error persists, please contact us at <a href="mailto:support@duosmium.org"
-				>support@duosmium.org</a
+			If this error persists, please contact us at <a
+				href="mailto:support@duosmium.org">support@duosmium.org</a
 			>.
 		</p>
 
