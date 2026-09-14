@@ -10,13 +10,12 @@ import { generateFilename, generateSciolyFF } from '$lib/sciolyffHelpers';
 import { checkScoremasterPerms } from '$lib/server/utils';
 import { captureException } from '@sentry/sveltekit';
 import yaml from 'js-yaml';
-// @ts-ignore
-import multiFile from 'octokit-commit-multiple-files';
+import { CreateOrUpdateFiles } from 'octokit-commit-multiple-files';
 
 const app = new App({
 	appId: PRIVATE_GH_APP_ID,
 	privateKey: PRIVATE_GH_APP_KEY,
-	Octokit: Octokit.plugin(multiFile)
+	Octokit: Octokit.plugin(CreateOrUpdateFiles)
 });
 
 const octokit = await app.getInstallationOctokit(
