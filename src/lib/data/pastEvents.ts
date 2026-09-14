@@ -1,5 +1,30 @@
 export default {
 	B: {
+		2026: [
+			'Anatomy and Physiology',
+			'Boomilever',
+			'Circuit Lab',
+			'Codebusters',
+			'Crime Busters',
+			'Disease Detectives',
+			'Dynamic Planet',
+			'Entomology',
+			'Experimental Design',
+			'Helicopter',
+			'Heredity',
+			'Hovercraft',
+			'Machines',
+			'Meteorology',
+			'Metric Mastery',
+			'Mission Possible',
+			'Potions and Poisons',
+			'Remote Sensing',
+			'Rocks and Minerals',
+			'Scrambler',
+			'Solar System',
+			'Water Quality',
+			'Write It Do It'
+		],
 		2025: [
 			'Air Trajectory',
 			'Anatomy and Physiology',
@@ -627,6 +652,31 @@ export default {
 		]
 	},
 	C: {
+		2026: [
+			'Anatomy and Physiology',
+			'Astronomy',
+			'Boomilever',
+			'Bungee Drop',
+			'Chemistry Lab',
+			'Circuit Lab',
+			'Codebusters',
+			'Designer Genes',
+			'Disease Detectives',
+			'Dynamic Planet',
+			'Electric Vehicle',
+			'Engineering CAD',
+			'Entomology',
+			'Experimental Design',
+			'Forensics',
+			'Helicopter',
+			'Hovercraft',
+			'Machines',
+			'Materials Science',
+			'Remote Sensing',
+			'Robot Tour',
+			'Rocks and Minerals',
+			'Water Quality'
+		],
 		2025: [
 			'Air Trajectory',
 			'Anatomy and Physiology',
