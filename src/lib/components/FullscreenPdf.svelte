@@ -19,8 +19,10 @@
 		pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 	});
 
-	export const appendPdf = async (src: string | ArrayBuffer) => {
-		const loadingPdf = pdfjsLib.getDocument(src);
+	export const appendPdf = async (src: string) => {
+		const loadingPdf = pdfjsLib.getDocument({
+			url: src,
+		});
 		const pdf = await loadingPdf.promise;
 
 		pdfObjs.push(pdf);
@@ -62,6 +64,7 @@
 		canvas.width = viewport.width;
 
 		const renderContext = {
+			canvas,
 			canvasContext: context,
 			viewport: viewport
 		};
