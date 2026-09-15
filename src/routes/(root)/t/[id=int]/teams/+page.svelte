@@ -256,6 +256,9 @@
 			if (!t.State) {
 				missingFields.add('State');
 			}
+			if (!t.City) {
+				missingFields.add('City');
+			}
 			if (
 				t.State &&
 				!stateLookup.has(t.State.toLowerCase()) &&
@@ -623,7 +626,7 @@
 			</Li>
 			<Li
 				><code class="dark:text-violet-300 text-violet-700">City</code>
-				<i>(Optional but recommended)</i>: The school's city
+				<i>(Required)</i>: The school's city
 			</Li>
 			<Li
 				><code class="dark:text-violet-300 text-violet-700">State</code>
@@ -732,9 +735,9 @@
 									<Radio
 										name="T{team.id}"
 										value={i}
-										bind:group={canonicalSelection[
-											teamSchools.get(team.id) ?? -1
-										]}
+										bind:group={
+											canonicalSelection[teamSchools.get(team.id) ?? -1]
+										}
 										class="text-green-700 dark:text-green-200 text-base"
 									>
 										{match[0]}, {match[1] ? match[1] + ', ' : ''}{match[2]}
